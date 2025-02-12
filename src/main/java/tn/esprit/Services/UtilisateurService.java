@@ -171,7 +171,7 @@ public class UtilisateurService implements IService<Utilisateur> {
 
     }
 
-    @Override
+
     public List<Utilisateur> getByRole(String role) {
 
         List<Utilisateur> utilisateurs = new ArrayList<>();
@@ -201,7 +201,7 @@ public class UtilisateurService implements IService<Utilisateur> {
         return utilisateurs;
     }
 
-    @Override
+
     public List<Utilisateur> getByEmail(String email) {
         List<Utilisateur> utilisateurs = new ArrayList<>();
         String query = "SELECT email, nickname, nom, numero, prenom, role FROM utilisateur WHERE email = ?";
@@ -230,7 +230,7 @@ public class UtilisateurService implements IService<Utilisateur> {
         return utilisateurs;
     }
 
-    @Override
+
     public boolean emailExists(String email) {
         String query = "SELECT COUNT(*) FROM utilisateur WHERE email = ?";
 
@@ -249,10 +249,29 @@ public class UtilisateurService implements IService<Utilisateur> {
         return false;
     }
 
-    @Override
     public Utilisateur getOne(int id) {
+        String query = "SELECT * FROM Utilisateur WHERE id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(query)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Utilisateur(
+                        rs.getInt("id"),
+                        rs.getString("email"),
+                        rs.getString("mot_passe"),
+                        rs.getString("nickname"),
+                        rs.getString("nom"),
+                        rs.getInt("numero"),
+                        rs.getString("prenom"),
+                        Role.valueOf(rs.getString("role")) // Vérifie bien que ton ENUM Role fonctionne
+                );
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Erreur lors de la récupération de l'utilisateur", e);
+        }
         return null;
     }
+
 
 
 }

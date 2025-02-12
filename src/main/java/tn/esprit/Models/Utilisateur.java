@@ -3,6 +3,15 @@ package tn.esprit.Models;
 import org.mindrot.jbcrypt.BCrypt;
 
 public class Utilisateur  {
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    private int id;
     private String email;
     private String motPasse; // Store hashed password
     private String nickname;
@@ -10,6 +19,17 @@ public class Utilisateur  {
     private int numero;
     private String prenom;
     private Role role;
+
+    public Utilisateur(int id, String email, String motPasse, String nickname, String nom, int numero, String prenom, Role role) {
+        this.id = id;
+        this.email = email;
+        this.motPasse = motPasse;
+        this.nickname = nickname;
+        this.nom = nom;
+        this.numero = numero;
+        this.prenom = prenom;
+        this.role = role;
+    }
 
     // Constructor
     public Utilisateur(String email, String motPasse, String nickname, String nom, int numero, String prenom, Role role) {
@@ -100,13 +120,14 @@ public class Utilisateur  {
     @Override
     public String toString() {
         return "Utilisateur{" +
-                "email='" + email + '\'' +
-
+                "id=" + id +
+                ", email='" + email + '\'' +
+                ", motPasse='" + motPasse + '\'' +
                 ", nickname='" + nickname + '\'' +
                 ", nom='" + nom + '\'' +
                 ", numero=" + numero +
                 ", prenom='" + prenom + '\'' +
                 ", role=" + role +
-                "}\n";
+                '}';
     }
 }
