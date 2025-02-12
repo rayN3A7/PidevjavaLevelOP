@@ -12,4 +12,13 @@ public interface IService<T> {
 
     void delete(T t);
 
+    List<T> getByRole(String role);
+
+    List<T> getByEmail(String email);
+
+    boolean emailExists(String email);
+
+    public T getOne(int id) ;
+
+
 }

@@ -1,0 +1,112 @@
+package tn.esprit.Models;
+
+import org.mindrot.jbcrypt.BCrypt;
+
+public class Utilisateur  {
+    private String email;
+    private String motPasse; // Store hashed password
+    private String nickname;
+    private String nom;
+    private int numero;
+    private String prenom;
+    private Role role;
+
+    // Constructor
+    public Utilisateur(String email, String motPasse, String nickname, String nom, int numero, String prenom, Role role) {
+        this.email = email;
+        this.motPasse = hashPassword(motPasse);
+        this.nickname = nickname;
+        this.nom = nom;
+        this.numero = numero;
+        this.prenom = prenom;
+        this.role = role;
+    }
+
+    public Utilisateur(String email, String nickname, String nom, int numero, String prenom, Role role) {
+        this.email = email;
+        this.nickname = nickname;
+        this.nom = nom;
+        this.numero = numero;
+        this.prenom = prenom;
+        this.role = role;
+    }
+
+    public Utilisateur() {
+    }
+
+
+    // Hash password using BCrypt
+    private String hashPassword(String motPasse) {
+        return BCrypt.hashpw(motPasse, BCrypt.gensalt(12));
+    }
+
+    // Verify password
+    public boolean authenticate(String motPasse) {
+        return BCrypt.checkpw(motPasse, this.motPasse);
+    }
+
+    // Getters
+    public String getEmail() { return email; }
+    public Role getRole() { return role; }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getMotPasse() {
+        return motPasse;
+    }
+
+    public void setMotPasse(String motPasse) {
+        this.motPasse = motPasse;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public int getNumero() {
+        return numero;
+    }
+
+    public void setNumero(int numero) {
+        this.numero = numero;
+    }
+
+    public String getPrenom() {
+        return prenom;
+    }
+
+    public void setPrenom(String prenom) {
+        this.prenom = prenom;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    @Override
+    public String toString() {
+        return "Utilisateur{" +
+                "email='" + email + '\'' +
+
+                ", nickname='" + nickname + '\'' +
+                ", nom='" + nom + '\'' +
+                ", numero=" + numero +
+                ", prenom='" + prenom + '\'' +
+                ", role=" + role +
+                "}\n";
+    }
+}
