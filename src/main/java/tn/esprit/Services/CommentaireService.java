@@ -1,21 +1,15 @@
 package tn.esprit.Services;
-
-
-
 import tn.esprit.Interfaces.IService;
 import tn.esprit.Models.Commentaire;
 import tn.esprit.Models.Question;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.utils.MyDatabase;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CommentaireService implements IService<Commentaire> {
     private static Connection connexion;
-
-    // Default constructor; the connection is now managed by MaConnexion
     public CommentaireService() {
         connexion = MyDatabase.getInstance().getCnx();
     }
@@ -26,17 +20,12 @@ public class CommentaireService implements IService<Commentaire> {
         Question question = commentaire.getQuestion();
         Commentaire parentCommentaire = commentaire.getParent_commentaire_id();
 
-        // Check if utilisateur is null before proceeding
         if (utilisateur == null) {
             throw new IllegalArgumentException("Utilisateur cannot be null when adding a comment.");
         }
-
-        // Check if question is null before proceeding
         if (question == null) {
             throw new IllegalArgumentException("Question cannot be null when adding a comment.");
         }
-
-        // Ajouter le commentaire
         String insertCommentaireQuery = "INSERT INTO Commentaire (contenu, Votes, creation_at, utilisateur_id, question_id, parent_commentaire_id) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connexion.prepareStatement(insertCommentaireQuery)) {
             ps.setString(1, commentaire.getContenu());
@@ -50,7 +39,6 @@ public class CommentaireService implements IService<Commentaire> {
             throw new RuntimeException("Failed to add comment: " + e.getMessage(), e);
         }
     }
-
     @Override
     public Commentaire getOne(int id) {
         String query = "SELECT * FROM Commentaire WHERE Commentaire_id = ?";
@@ -65,17 +53,15 @@ public class CommentaireService implements IService<Commentaire> {
                 int utilisateurId = rs.getInt("utilisateur_id");
                 int questionId = rs.getInt("question_id");
                 Integer parentCommentaireId = (Integer) rs.getObject("parent_commentaire_id");
-
                 Utilisateur utilisateur = new UtilisateurService().getOne(utilisateurId);
                 Question question = new QuestionService().getOne(questionId);
                 Commentaire parentCommentaire = parentCommentaireId != null ? new CommentaireService().getOne(parentCommentaireId) : null;
-
                 return new Commentaire(parentCommentaire, question, utilisateur, creationAt, votes, contenu, commentaireId);
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to fetch comment: " + e.getMessage(), e);
         }
-        return null; // No comment found with the given ID
+        return null;
     }
 
     @Override
@@ -95,7 +81,6 @@ public class CommentaireService implements IService<Commentaire> {
                 Utilisateur utilisateur = new UtilisateurService().getOne(utilisateurId);
                 Question question = new QuestionService().getOne(questionId);
                 Commentaire parentCommentaire = parentCommentaireId != null ? new CommentaireService().getOne(parentCommentaireId) : null;
-
                 Commentaire commentaire = new Commentaire(parentCommentaire, question, utilisateur, creationAt, votes, contenu, commentaireId);
                 commentaireList.add(commentaire);
             }
@@ -119,14 +104,10 @@ public class CommentaireService implements IService<Commentaire> {
             throw new RuntimeException("Failed to update comment: " + e.getMessage(), e);
         }
     }
-
-    // Method to delete a comment and all its replies (recursive)
+    @Override
     public void delete(Commentaire commentaire) {
         try {
-            // First, delete all replies related to this comment (if it has any)
             deleteReplies(commentaire.getCommentaire_id());
-
-            // Now, delete the comment itself
             String deleteCommentQuery = "DELETE FROM Commentaire WHERE Commentaire_id = ?";
             try (PreparedStatement ps = connexion.prepareStatement(deleteCommentQuery)) {
                 ps.setInt(1, commentaire.getCommentaire_id());
@@ -137,23 +118,17 @@ public class CommentaireService implements IService<Commentaire> {
         }
     }
 
-    // Recursive method to delete replies to the given comment
     private void deleteReplies(int parentId) {
         try {
-            // Select all replies to this comment (comments with parent_commentaire_id pointing to the parent)
             String selectRepliesQuery = "SELECT Commentaire_id FROM Commentaire WHERE parent_commentaire_id = ?";
             try (PreparedStatement ps = connexion.prepareStatement(selectRepliesQuery)) {
                 ps.setInt(1, parentId);
                 ResultSet rs = ps.executeQuery();
-
                 while (rs.next()) {
                     int replyId = rs.getInt("Commentaire_id");
-                    // Recursively delete all replies to this comment
                     deleteReplies(replyId);
                 }
             }
-
-            // Delete the comment itself (this is a reply to some other comment)
             String deleteReplyQuery = "DELETE FROM Commentaire WHERE Commentaire_id = ?";
             try (PreparedStatement ps = connexion.prepareStatement(deleteReplyQuery)) {
                 ps.setInt(1, parentId);
