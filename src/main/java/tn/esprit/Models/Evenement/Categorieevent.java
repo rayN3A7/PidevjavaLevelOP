@@ -1,4 +1,4 @@
-package tn.esprit.Models;
+package tn.esprit.Models.Evenement;
 
 public class Categorieevent {
     private int id;

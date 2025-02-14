@@ -1,0 +1,132 @@
+/* Styles généraux */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+.scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-padding: 0;
+}
+
+.scroll-pane .scroll-bar:vertical {
+    -fx-background-color: #161616;
+    -fx-pref-width: 8px;
+}
+
+.scroll-pane .scroll-bar .thumb {
+    -fx-background-color: #FF007A;
+    -fx-background-radius: 4px;
+}
+.root {
+    -fx-background-image: url("/assets/image/Valorant_backg.png");
+    -fx-background-repeat: no-repeat;
+    -fx-background-size: cover;
+    -fx-background-position: center;
+}
+
+/* Header */
+.header {
+    -fx-padding: 10;
+    -fx-background-color: #161616;
+}
+
+.search-bar {
+    -fx-background-radius: 20;
+    -fx-pref-width: 150px;
+    -fx-padding: 5;
+}
+
+/* Navigation */
+.nav-button {
+    -fx-padding: 10 20;
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+}
+
+.login-button {
+    -fx-background-color: #FF007A;
+    -fx-text-fill: white;
+    -fx-padding: 5 10;
+}
+
+/* Bannière */
+.banner {
+    -fx-padding: 30px;
+    -fx-alignment: center-left;
+}
+
+.banner ImageView {
+    -fx-margin-left: 20px;
+}
+
+.title {
+    -fx-font-size: 30px;
+    -fx-text-fill: #FF007A;
+}
+.title2 {
+    -fx-font-size: 28px;
+    -fx-text-fill: white;
+}
+
+
+.subtitle {
+    -fx-text-fill: white;
+}
+
+/* Sections */
+.section {
+    -fx-padding: 20;
+    -fx-background-color: rgba(0, 120, 255, 0.88);
+}
+
+.section-title {
+    -fx-font-size: 20px;
+    -fx-text-fill: white;
+}
+
+.forum-section {
+    -fx-padding: 20;
+}
+
+.trainer-section {
+    -fx-padding: 20;
+    -fx-background-color: #FF007A;
+}
+.section-produits {
+    -fx-padding: 20;
+}
+
+/* Footer */
+.footer {
+    -fx-padding: 20;
+    -fx-background-color: #161616;
+}
+
+.footer-text {
+    -fx-text-fill: white;
+}
+.labeltexte{
+    -fx-text-fill: white;
+}
+.event-box {
+    -fx-border-color: black;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
+    -fx-background-color: #f9f9f9;
+    -fx-spacing: 20px;
+}
+
+/* Style des labels dans la HBox */
+.event-label {
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+/* Style des catégories (par exemple, couleur différente) */
+.categorie-label {
+    -fx-text-fill: #0077cc;
+}
