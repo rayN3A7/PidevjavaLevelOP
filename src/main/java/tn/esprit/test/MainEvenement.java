@@ -1,9 +1,11 @@
 package tn.esprit.test;
 
-import tn.esprit.Models.Categorieevent;
-import tn.esprit.Models.Evenement;
-import tn.esprit.Services.CategorieEvService;
-import tn.esprit.Services.EvenementService;
+
+
+import tn.esprit.Models.Evenement.Categorieevent;
+import tn.esprit.Models.Evenement.Evenement;
+import tn.esprit.Services.Evenement.CategorieEvService;
+import tn.esprit.Services.Evenement.EvenementService;
 
 import java.sql.Date;
 import java.util.List;
