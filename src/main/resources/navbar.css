@@ -1,0 +1,46 @@
+/* Navigation bar */
+.navbar {
+    -fx-background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    -fx-padding: 10 20;
+    -fx-pref-height: 60px;
+}
+
+/* Search bar */
+.search-bar {
+    -fx-background-color: black;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: grey;
+    -fx-border-color: transparent;
+    -fx-border-radius: 20;
+    -fx-padding: 5 15;
+    -fx-min-width: 150px;
+    -fx-pref-width: 25%;
+}
+
+/* Navigation buttons */
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-border-width: 0;
+}
+
+/* Navigation button hover effect */
+.nav-button:hover {
+    -fx-underline: true;
+    -fx-text-fill: #ff007f;
+}
+
+/* Login button */
+.login-button {
+    -fx-background-color: #ff007f;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 8 16;
+    -fx-border-radius: 10;
+}
+
+/* Login button hover effect */
+.login-button:hover {
+    -fx-background-color: #e60073;
+}

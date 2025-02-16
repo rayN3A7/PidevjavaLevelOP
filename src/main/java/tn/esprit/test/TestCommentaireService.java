@@ -13,68 +13,49 @@ import java.sql.Timestamp;
 
 public class TestCommentaireService {
     public static void main(String[] args) {
-
-            // Create instances of services
             CommentaireService commentaireService = new CommentaireService();
             UtilisateurService utilisateurService = new UtilisateurService();
             QuestionService questionService = new QuestionService();
-
-            // Fetch an existing user and question (Assuming IDs exist in the database)
-            Utilisateur utilisateur = utilisateurService.getOne(1); // Replace 1 with a valid ID
-            Question question = questionService.getOne(6); // Replace 1 with a valid ID
+            Utilisateur utilisateur = utilisateurService.getOne(1);
+            Question question = questionService.getOne(51);
 
             if (utilisateur == null || question == null) {
                 System.out.println("Utilisateur or Question not found. Check your database.");
                 return;
             }
-
-            // Create a new Commentaire object
             Commentaire newComment = new Commentaire(
-                    "This is a test comment",
+                    "no it's a right one",
                     0,
-                    new Timestamp(System.currentTimeMillis()), // Current timestamp
+                    new Timestamp(System.currentTimeMillis()),
                     utilisateur,
                     question,
-                    null // No parent comment
+                    null
             );
-
-            // Add comment to the database
             commentaireService.add(newComment);
             System.out.println("Comment added successfully!");
-
-            // Fetch and display all comments
             System.out.println("All Comments:");
             for (Commentaire c : commentaireService.getAll()) {
                 System.out.println(c);
             }
-            testGetOne(commentaireService, 1); // Replace 1 with an existing Commentaire ID in your database
-           // testUpdate(commentaireService, 1); // Replace 1 with an existing Commentaire ID
+            testGetOne(commentaireService, 20); // Replace 1 with an existing Commentaire ID in your database
+           // testUpdate(commentaireService, 1);
          //   testDelete(commentaireService, 1);
-
-
     }
     public static void testGetOne(CommentaireService commentaireService, int commentaireId) {
-
             Commentaire commentaire = commentaireService.getOne(commentaireId);
             if (commentaire != null) {
                 System.out.println("Fetched Commentaire: " + commentaire);
             } else {
                 System.out.println("No Commentaire found with ID: " + commentaireId);
             }
-
     }
-    // Method to test update
    /* public static void testUpdate(CommentaireService commentaireService, int commentaireId) {
         try {
-            // Fetch the existing comment
             Commentaire commentaire = commentaireService.getOne(commentaireId);
             if (commentaire != null) {
-                // Update the content of the comment
                 commentaire.setContenu("This is an updated test comment.");
                 commentaire.setVotes(5); // Updating votes for demonstration purposes
                 commentaire.setCreation_at(new Timestamp(System.currentTimeMillis())); // Set new timestamp
-
-                // Update the comment in the database
                 commentaireService.update(commentaire);
                 System.out.println("Commentaire updated successfully!");
             } else {
@@ -87,10 +68,8 @@ public class TestCommentaireService {
     }
    public static void testDelete(CommentaireService commentaireService, int commentaireId) {
         try {
-            // Fetch the existing comment
             Commentaire commentaire = commentaireService.getOne(commentaireId);
             if (commentaire != null) {
-                // Delete the comment from the database
                 commentaireService.delete(commentaire);
                 System.out.println("Commentaire deleted successfully!");
             } else {
