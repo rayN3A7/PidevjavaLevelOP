@@ -1,7 +1,6 @@
 package tn.esprit.Services.Evenement;
 
 import tn.esprit.Interfaces.IService;
-
 import tn.esprit.Models.Evenement.Evenement;
 import tn.esprit.utils.MyDatabase;
 
@@ -104,13 +103,13 @@ public class EvenementService implements IService<Evenement> {
     }
 
     public List<Evenement> rechercheByNom(String nom) {
-        List<Evenement> resultats = new ArrayList<>();
+        List<Evenement> resultats = new ArrayList<>(); // Pour stocker les résultats trouvés
         String qry = "SELECT * FROM evenement WHERE nom_event LIKE ?";
         try {
             PreparedStatement pre = cnx.prepareStatement(qry);
-            pre.setString(1, "%" + nom + "%");
+            pre.setString(1, "%" + nom + "%"); // Utilise le wildcard % pour une recherche partielle
             ResultSet rs = pre.executeQuery();
-            while (rs.next()) {
+            while (rs.next()) { // Parcours des résultats
                 Evenement e = new Evenement();
                 e.setId(rs.getInt("id"));
                 e.setNom_event(rs.getString("nom_event"));
@@ -121,9 +120,9 @@ public class EvenementService implements IService<Evenement> {
                 resultats.add(e);
             }
         } catch (SQLException e) {
-            e.getMessage();
+            e.printStackTrace();
         }
-        return resultats;
+        return resultats; // Retourne la liste des événements trouvés
     }
 
     public boolean reserverPlace(int clientId , int evenementId){
@@ -137,10 +136,12 @@ public class EvenementService implements IService<Evenement> {
             if (rs.next()) {
                 int placesRestantes = rs.getInt("max_places_event");
                 if (placesRestantes > 0) {
+                    // Étape 2 : Diminuer le nombre de places disponibles
                     PreparedStatement updatePlacesStmt = cnx.prepareStatement(updatePlacesQuery);
                     updatePlacesStmt.setInt(1, evenementId);
                     updatePlacesStmt.executeUpdate();
 
+                    // Étape 3 : Enregistrer la réservation
                     PreparedStatement insertReservationStmt = cnx.prepareStatement(insertReservationQuery);
                     insertReservationStmt.setInt(1, clientId);
                     insertReservationStmt.setInt(2, evenementId);
@@ -161,7 +162,6 @@ public class EvenementService implements IService<Evenement> {
             return false;
         }
     }
-
     List<Evenement> getEvenementsByNom(String nom){
         List<Evenement> resultats = new ArrayList<>();
         String qry = "Select * from evenement where nom_event = LIKE ?";

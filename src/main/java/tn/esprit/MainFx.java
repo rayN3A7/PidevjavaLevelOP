@@ -7,9 +7,9 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class MainFx extends Application {
- /*   public static void main(String[] args) {
+ /*  public static void main(String[] args) {
         launch(args);
-    }
+    }*/
 
     @Override
     public void start(Stage Stage) throws Exception {
@@ -19,8 +19,7 @@ public class MainFx extends Application {
         Stage.setScene(sc);
         Stage.show();
     }
-}*/
- @Override
+ /*@Override
  public void start(Stage primaryStage) throws Exception {
      FXMLLoader loader = new FXMLLoader(getClass().getResource("/QuestionForm.fxml")); // Adjust path if needed
      Scene scene = new Scene(loader.load());
@@ -29,7 +28,7 @@ public class MainFx extends Application {
      primaryStage.setHeight(600);
      primaryStage.setScene(scene);
      primaryStage.show();
- }
+ }*/
 
     public static void main(String[] args) {
         launch(args);

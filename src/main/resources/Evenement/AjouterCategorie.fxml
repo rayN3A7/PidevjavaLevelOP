@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0" 
+    styleClass="scroll-pane" stylesheets="@/assets/style/style.css" 
+    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+    fx:controller="tn.esprit.Controllers.Evenement.AjouterCategorieController">
+
+    <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
+        <children>
+            <!-- Header -->
+            <fx:include source="../navbar.fxml"/>
+
+            <VBox spacing="20" styleClass="content-container" GridPane.rowIndex="1">
+                <padding>
+                    <Insets top="20" right="30" bottom="20" left="30"/>
+                </padding>
+                <children>
+                    <!-- Title Section with Navigation -->
+                    <HBox alignment="CENTER_LEFT" spacing="20" styleClass="header-section">
+                        <VBox spacing="5">
+                            <Label text="Ajouter une catégorie" styleClass="page-title"/>
+                            <Label text="Créez une nouvelle catégorie pour vos événements" 
+                                   styleClass="page-subtitle"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="LCategoriesButton" onAction="#ButtonListeCategories"  styleClass="list-button">
+                            <graphic>
+                                <HBox spacing="10" alignment="CENTER">
+                                    <ImageView fitHeight="16" fitWidth="16">
+                                        <Image url="@/assets/image/lister.png"/>
+                                    </ImageView>
+                                    <Label text="Liste des catégories" styleClass="button-text"/>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                    </HBox>
+
+                    <!-- Main Content -->
+                    <HBox spacing="30" alignment="CENTER">
+                        <!-- Form Card -->
+                        <VBox styleClass="form-card" maxWidth="600">
+                            <VBox styleClass="card-header" alignment="CENTER">
+                                <ImageView fitHeight="48" fitWidth="48">
+                                    <Image url="@/assets/image/categorie.png"/>
+                                </ImageView>
+                                <Label text="Informations de la catégorie" styleClass="card-title"/>
+                            </VBox>
+
+                            <VBox styleClass="card-content">
+                                <!-- Nom -->
+                                <VBox styleClass="input-group">
+                                    <HBox alignment="CENTER_LEFT" spacing="5">
+                                        <Label text="Nom de la catégorie" styleClass="input-label"/>
+                                        <Label text="*" styleClass="required-field"/>
+                                    </HBox>
+                                    <TextField fx:id="NomCategorie" styleClass="input-field" 
+                                             promptText="Ex: Conférences, Ateliers, etc."/>
+                                </VBox>
+
+                                <!-- Description -->
+                                <VBox styleClass="input-group">
+                                    <HBox alignment="CENTER_LEFT" spacing="5">
+                                        <Label text="Description" styleClass="input-label"/>
+                                        <Label text="*" styleClass="required-field"/>
+                                    </HBox>
+                                    <TextArea fx:id="DescCategorie" styleClass="input-field"
+                                            promptText="Décrivez le type d'événements que cette catégorie va regrouper..."
+                                            wrapText="true" prefRowCount="5"/>
+                                </VBox>
+
+                                <!-- Action Buttons -->
+                                <HBox spacing="15" alignment="CENTER" styleClass="button-container">
+                                    <Button fx:id="cancelButton" onAction="#Annuler" 
+                                            text="Réinitialiser" styleClass="cancel-button"/>
+                                    <Button fx:id="addEventButton" onAction="#AjouterCategorie" 
+                                            text="Ajouter la catégorie" styleClass="submit-button"/>
+                                </HBox>
+                            </VBox>
+                        </VBox>
+                    </HBox>
+                </children>
+            </VBox>
+
+            <!-- Footer -->
+            <HBox alignment="CENTER" styleClass="footer" GridPane.rowIndex="2">
+                <padding>
+                    <Insets/>
+                </padding>
+                <Label styleClass="footer-text" text="© 2025 LEVEL UP - Tous droits réservés"/>
+            </HBox>
+        </children>
+
+        <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints vgrow="NEVER"/>
+        </rowConstraints>
+    </GridPane>
+</ScrollPane>
