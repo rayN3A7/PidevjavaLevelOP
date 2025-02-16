@@ -1,12 +1,11 @@
 package tn.esprit.test;
 
 
-import tn.esprit.Models.Client;
 import tn.esprit.Models.Coach;
 import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.UtilisateurService;
-import tn.esprit.utils.TokenUtil;
+import tn.esprit.utils.SessionManager;
 
 public class Main {
 
@@ -16,32 +15,17 @@ public class Main {
 
 
         Utilisateur u1 =new Coach(
-                "hsouna@gmail.com",
-                "hsouna@1235",
-                "Yamimato",
-                "yami",
-                1256969,
-                "sellami",
+                "luffy@gmail.com",
+                "luffy@1235",
+                "mugiwara",
+                "luffy",
+                69696969,
+                ".D",
                 Role.CLIENT);
 
-       // us.add(u1);
-
-        // Authenticate user and generate JWT
-        String token = us.authenticateUser("hsouna@gmail.com", "hsouna@1235");
-        if (token != null) {
-            System.out.println("Login successful. Token: " + token);
-
-            // Verify JWT
-            String email = TokenUtil.getEmailFromToken(token);
-            Role role = TokenUtil.getRoleFromToken(token);
-            System.out.println("Token is valid! Email: " + email + ", Role: " + role);
-        } else {
-            System.out.println("Login failed!");
-        }
-
-       // System.out.println(us.emailExists("hsouna.sellami2ad@gmail.com"));
-
-       // us.delete(u1);
-
+        //us.add(u1);
+       // System.out.println(us.getByEmail("luffy@gmail.com"));
+        //System.out.println(us.loginUser("luffy@gmail.com","luffy@1235",true));
+        SessionManager.getInstance().logout();
     }
 }

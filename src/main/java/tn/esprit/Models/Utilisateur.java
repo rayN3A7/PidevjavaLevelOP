@@ -31,6 +31,8 @@ public class Utilisateur  {
         this.role = role;
     }
 
+
+
     // Constructor
     public Utilisateur(String email, String motPasse, String nickname, String nom, int numero, String prenom, Role role) {
         this.email = email;
@@ -51,21 +53,31 @@ public class Utilisateur  {
         this.role = role;
     }
 
+    public Utilisateur(String email, String nickname, String nom, int numero, String prenom, Role role, int id) {
+        this.email = email;
+        this.nickname = nickname;
+        this.nom = nom;
+        this.numero = numero;
+        this.prenom = prenom;
+        this.role = role;
+        this.id = id;
+    }
+
     public Utilisateur() {
     }
 
 
-    // Hash password using BCrypt
+
     private String hashPassword(String motPasse) {
         return BCrypt.hashpw(motPasse, BCrypt.gensalt(12));
     }
 
-    // Verify password
+
     public boolean authenticate(String motPasse) {
         return BCrypt.checkpw(motPasse, this.motPasse);
     }
 
-    // Getters
+
     public String getEmail() { return email; }
     public Role getRole() { return role; }
 
