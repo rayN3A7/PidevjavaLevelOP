@@ -1,7 +1,8 @@
-package tn.esprit.Services;
+package tn.esprit.Services.Evenement;
 
 import tn.esprit.Interfaces.IService;
-import tn.esprit.Models.Evenement;
+
+import tn.esprit.Models.Evenement.Evenement;
 import tn.esprit.utils.MyDatabase;
 
 import java.sql.*;
@@ -103,13 +104,13 @@ public class EvenementService implements IService<Evenement> {
     }
 
     public List<Evenement> rechercheByNom(String nom) {
-        List<Evenement> resultats = new ArrayList<>(); // Pour stocker les résultats trouvés
+        List<Evenement> resultats = new ArrayList<>();
         String qry = "SELECT * FROM evenement WHERE nom_event LIKE ?";
         try {
             PreparedStatement pre = cnx.prepareStatement(qry);
-            pre.setString(1, "%" + nom + "%"); // Utilise le wildcard % pour une recherche partielle
+            pre.setString(1, "%" + nom + "%");
             ResultSet rs = pre.executeQuery();
-            while (rs.next()) { // Parcours des résultats
+            while (rs.next()) {
                 Evenement e = new Evenement();
                 e.setId(rs.getInt("id"));
                 e.setNom_event(rs.getString("nom_event"));
@@ -120,9 +121,9 @@ public class EvenementService implements IService<Evenement> {
                 resultats.add(e);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.getMessage();
         }
-        return resultats; // Retourne la liste des événements trouvés
+        return resultats;
     }
 
     public boolean reserverPlace(int clientId , int evenementId){
@@ -136,12 +137,10 @@ public class EvenementService implements IService<Evenement> {
             if (rs.next()) {
                 int placesRestantes = rs.getInt("max_places_event");
                 if (placesRestantes > 0) {
-                    // Étape 2 : Diminuer le nombre de places disponibles
                     PreparedStatement updatePlacesStmt = cnx.prepareStatement(updatePlacesQuery);
                     updatePlacesStmt.setInt(1, evenementId);
                     updatePlacesStmt.executeUpdate();
 
-                    // Étape 3 : Enregistrer la réservation
                     PreparedStatement insertReservationStmt = cnx.prepareStatement(insertReservationQuery);
                     insertReservationStmt.setInt(1, clientId);
                     insertReservationStmt.setInt(2, evenementId);
@@ -158,10 +157,76 @@ public class EvenementService implements IService<Evenement> {
                 return false;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.getMessage();
             return false;
         }
     }
 
+    List<Evenement> getEvenementsByNom(String nom){
+        List<Evenement> resultats = new ArrayList<>();
+        String qry = "Select * from evenement where nom_event = LIKE ?";
+        try{
+            PreparedStatement pre = cnx.prepareStatement(qry);
+            pre.setString(1, "%" + nom + "%");
+            ResultSet rs = pre.executeQuery();
+            while(rs.next()){
+                Evenement e = new Evenement();
+                e.setId(rs.getInt("id"));
+                e.setNom_event(rs.getString("nom_event"));
+                e.setMax_places_event(rs.getInt("max_places_event"));
+                e.setLieu_event(rs.getString("lieu_event"));
+                e.setCategorie_id(rs.getInt("categorie_id"));
+                e.setDate_event(rs.getDate("date_event"));
+                resultats.add(e);
+            }
+        }catch(SQLException e){
+            e.getMessage();
+        }
+        return resultats;
+    }
+    List<Evenement> getEvenementsByDate(Date date){
+        List<Evenement> resultats = new ArrayList<>();
+        String qry = "Select * from evenement where date_event = ?";
+        try{
+            PreparedStatement pre = cnx.prepareStatement(qry);
+            pre.setDate(1, date);
+            ResultSet rs = pre.executeQuery();
+            while(rs.next()){
+                Evenement e = new Evenement();
+                e.setId(rs.getInt("id"));
+                e.setNom_event(rs.getString("nom_event"));
+                e.setMax_places_event(rs.getInt("max_places_event"));
+                e.setLieu_event(rs.getString("lieu_event"));
+                e.setCategorie_id(rs.getInt("categorie_id"));
+                e.setDate_event(rs.getDate("date_event"));
+                resultats.add(e);
+            }
+        }catch(SQLException e){
+            e.getMessage();
+        }
+        return resultats;
+    }
+    List<Evenement> getEvenementsByLieu(String lieu){
+        List<Evenement> resultats = new ArrayList<>();
+        String qry = "Select * from evenement where lieu_event = LIKE ?";
+        try{
+            PreparedStatement pre = cnx.prepareStatement(qry);
+            pre.setString(1, "%" + lieu + "%");
+            ResultSet rs = pre.executeQuery();
+            while(rs.next()){
+                Evenement e = new Evenement();
+                e.setId(rs.getInt("id"));
+                e.setNom_event(rs.getString("nom_event"));
+                e.setMax_places_event(rs.getInt("max_places_event"));
+                e.setLieu_event(rs.getString("lieu_event"));
+                e.setCategorie_id(rs.getInt("categorie_id"));
+                e.setDate_event(rs.getDate("date_event"));
+                resultats.add(e);
+            }
+        }catch(SQLException e){
+            e.getMessage();
+        }
+        return resultats;
+    }
 
 }

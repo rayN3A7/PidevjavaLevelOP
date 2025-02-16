@@ -10,6 +10,7 @@ import tn.esprit.utils.MyDatabase;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class QuestionService implements IService<Question> {
     private static Connection connexion;
@@ -105,6 +106,20 @@ public class QuestionService implements IService<Question> {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to downvote question: " + e.getMessage(), e);
         }
+    }
+
+    public int getVotes(int questionId) {
+        String query = "SELECT Votes FROM Questions WHERE question_id = ?";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, questionId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("Votes");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get votes: " + e.getMessage(), e);
+        }
+        return 0;
     }
 
     @Override
@@ -251,9 +266,16 @@ public class QuestionService implements IService<Question> {
         }
     }
 
-    /*@Override
-    public Question getByName(String name) {
-        // This method is not implemented
-        throw new UnsupportedOperationException("getByName is not supported for Question.");
-    }*/
+    public List<Question> getQuestionsByGameName(String gameName) {
+        if (gameName.isEmpty()) {
+            return getAll();  // Return all questions if search is empty
+        }
+        System.out.println("Fetching questions with game name: " + gameName);  // Log game name
+        List<Question> allQuestions = getAll();
+        List<Question> filteredQuestions = allQuestions.stream()
+                .filter(question -> question.getGame().getGame_name().toLowerCase().contains(gameName.toLowerCase()))
+                .collect(Collectors.toList());
+        System.out.println("Filtered questions: " + filteredQuestions.size());  // Log number of filtered questions
+        return filteredQuestions;
+    }
 }
