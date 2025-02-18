@@ -55,6 +55,7 @@ public class AjouterEvenementController {
         int categorie_id = ces.getIdCategorieEvent(categorie_event);
         Evenement evenement = new Evenement(categorie_id,max_places_event,nom_event,lieu_event,date);
         es.add(evenement);
+        showAlert(Alert.AlertType.INFORMATION, "Succès", "Evenement ajouté avec succès");
         }catch(Exception e){
             showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez vérifier les champs");
         }

@@ -28,6 +28,7 @@ public class AjouterCategorieController {
         String description = DescCategorie.getText();
         Categorieevent ce = new Categorieevent(description,nom);
         ces.add(ce);
+        showAlert(Alert.AlertType.INFORMATION,"Succès","Catégorie ajoutée avec succès");
         }catch(Exception e){
             showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez vérifier les champs");
         }

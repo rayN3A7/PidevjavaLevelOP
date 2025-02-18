@@ -228,5 +228,20 @@ public class EvenementService implements IService<Evenement> {
         }
         return resultats;
     }
+    public boolean reservationExiste(int userId, int eventId) {
+        String query = "SELECT COUNT(*) FROM client_evenement WHERE client_id = ? AND evenement_id = ?";
+        try (
+             PreparedStatement ps = cnx.prepareStatement(query)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, eventId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
 }

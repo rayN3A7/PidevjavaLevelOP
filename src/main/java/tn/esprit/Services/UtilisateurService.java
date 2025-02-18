@@ -172,6 +172,36 @@ public class UtilisateurService implements IService<Utilisateur> {
 
         return utilisateurs;
     }
+    public Utilisateur getBynickname(String nickname){
+        Utilisateur utilisateur=null;
+        String query = "SELECT * FROM utilisateur WHERE nickname = ?";
+
+        try {
+            PreparedStatement stmt = cnx.prepareStatement(query);
+            stmt.setString(1, nickname);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                utilisateur = new Utilisateur(
+
+                        rs.getInt("id"),
+                        rs.getString("email"),
+                        rs.getString("mot_passe"),
+                        rs.getString("nickname"),
+                        rs.getString("nom"),
+                        rs.getInt("numero"),
+                        rs.getString("prenom"),
+                        Role.valueOf(rs.getString("role"))
+                );
+
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la récupération par nickname : " + e.getMessage());
+        }
+
+        return utilisateur;
+    }
 
 
     public Utilisateur getByEmail(String email) {

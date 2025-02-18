@@ -22,11 +22,11 @@
 
         <!-- Navigation Buttons -->
         <HBox fx:id="navButtons" spacing="15" alignment="CENTER_RIGHT">
-            <Button fx:id="homeButton" text="Home" styleClass="nav-button"/>
-            <Button fx:id="eventButton" text="Event" styleClass="nav-button"/>
-            <Button fx:id="shopButton" text="Shop" styleClass="nav-button"/>
+            <Button fx:id="homeButton" text="Acceuil" styleClass="nav-button"/>
+            <Button fx:id="eventButton" text="Evenement" styleClass="nav-button"/>
+            <Button fx:id="shopButton" text="Boutique" styleClass="nav-button"/>
             <Button fx:id="forumButton" text="Forum" styleClass="nav-button"/>
-            <Button fx:id="coachingButton" text="Coaching" styleClass="nav-button"/>
+            <Button fx:id="coachingButton" text="Entraineur" styleClass="nav-button"/>
         </HBox>
 
         <!-- Login Button -->

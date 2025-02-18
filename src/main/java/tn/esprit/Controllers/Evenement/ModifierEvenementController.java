@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
@@ -66,6 +67,9 @@ public class ModifierEvenementController {
             eventAModifier.setCategorie_id(categoryId);
 
             es.update(eventAModifier);
+            showAlert(Alert.AlertType.INFORMATION, "Succès", "Evenement modifié avec succès");
+        }else{
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez vérifier les champs");
         }
     }
     @FXML
@@ -86,5 +90,11 @@ public class ModifierEvenementController {
         Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
         window.setScene(signInScene);
         window.show();
+    }
+    private void showAlert(Alert.AlertType alertType, String title, String content) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }

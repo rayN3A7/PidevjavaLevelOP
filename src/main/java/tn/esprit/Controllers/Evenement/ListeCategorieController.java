@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -15,6 +16,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import tn.esprit.Models.Evenement.Categorieevent;
 import tn.esprit.Services.Evenement.CategorieEvService;
+import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
 import java.net.URL;
@@ -27,6 +29,7 @@ public class ListeCategorieController implements Initializable {
     private VBox eventContainer;
     @FXML
     private TextField searchField;
+    String userRole = SessionManager.getInstance().getRole().name();
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -53,6 +56,10 @@ public class ListeCategorieController implements Initializable {
             });
             Button deleteButton = new Button("Supprimer");
             deleteButton.setOnAction(event -> deleteCategorie(cevent));
+            if(userRole == "CLIENT" || userRole == "COACH"){
+                ModifierButton.setDisable(true);
+                deleteButton.setDisable(true);
+            }
             Button DetailsButton = new Button("Details");
             DetailsButton.setOnAction(e -> DetailsEvent(cevent));
 
@@ -81,14 +88,18 @@ public class ListeCategorieController implements Initializable {
     }
     @FXML
     private void ButtonAjouterCategorie(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/AjouterCategorie.fxml"));
-        Parent signInRoot = loader.load();
-        Scene signInScene = new Scene(signInRoot);
+        if(userRole == "Admin") {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/AjouterCategorie.fxml"));
+            Parent signInRoot = loader.load();
+            Scene signInScene = new Scene(signInRoot);
 
 
-        Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        window.setScene(signInScene);
-        window.show();
+            Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            window.setScene(signInScene);
+            window.show();
+        }else{
+            showAlert(Alert.AlertType.INFORMATION,"Information","Vous n'avez pas les droits pour ajouter une catégorie");
+        }
     }
     @FXML
     private void Search() {
@@ -113,6 +124,10 @@ public class ListeCategorieController implements Initializable {
             ModifierButton.setOnAction(e -> UpdateForm(cevent));
             Button deleteButton = new Button("Supprimer");
             deleteButton.setOnAction(event -> deleteCategorie(cevent));
+            if(userRole == "CLIENT" || userRole == "COACH"){
+                ModifierButton.setDisable(true);
+                deleteButton.setDisable(true);
+            }
             Button DetailsButton = new Button("Details");
             DetailsButton.setOnAction(e -> DetailsEvent(cevent));
 
@@ -154,5 +169,11 @@ public class ListeCategorieController implements Initializable {
         } catch (IOException e) {
             e.getMessage();
         }
+    }
+    private void showAlert(Alert.AlertType alertType, String title, String content) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }

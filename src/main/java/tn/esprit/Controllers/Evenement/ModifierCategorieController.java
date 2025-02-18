@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -27,8 +28,14 @@ public class ModifierCategorieController {
     }
     @FXML
     public void ModifierCategorie() {
-        Categorieevent ce = new Categorieevent(DescCategorie.getText(),NomCategorie.getText());
+        if(ce !=null){
+        ce.setNom(NomCategorie.getText());
+        ce.setDescriptioncategorie(DescCategorie.getText());
         ces.update(ce);
+        showAlert(Alert.AlertType.INFORMATION,"Succès","Catégorie modifiée avec succès");
+        }else{
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez vérifier les champs");
+        }
     }
     @FXML
     public void Annuler(){
@@ -45,5 +52,11 @@ public class ModifierCategorieController {
         Stage window = (Stage) ((Node) cevent.getSource()).getScene().getWindow();
         window.setScene(signInScene);
         window.show();
+    }
+    private void showAlert(Alert.AlertType alertType, String title, String content) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 }

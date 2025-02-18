@@ -65,7 +65,7 @@
                                 </VBox>
                             </HBox>
 
-                            <Button text="Réserver maintenant" fx:id="bookButton" 
+                            <Button text="Réserver maintenant" fx:id="reserverButton" onAction="#reserverPlace"
                                     styleClass="book-button" maxWidth="Infinity"/>
                         </VBox>
                     </HBox>

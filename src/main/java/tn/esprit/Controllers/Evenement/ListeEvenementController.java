@@ -9,6 +9,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -19,6 +20,7 @@ import tn.esprit.Models.Evenement.Evenement;
 import tn.esprit.Services.Evenement.CategorieEvService;
 import tn.esprit.Services.Evenement.EvenementService;
 import tn.esprit.Controllers.Evenement.DetailsEvenementController;
+import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
 import java.net.URL;
@@ -33,7 +35,7 @@ public class ListeEvenementController implements Initializable {
 
     private final EvenementService es = new EvenementService();
     private final CategorieEvService ces = new CategorieEvService();
-
+    String userRole = SessionManager.getInstance().getRole().name();
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         afficherEvenements();
@@ -60,10 +62,15 @@ public class ListeEvenementController implements Initializable {
             categorieLabel.getStyleClass().add("categorie-label");
             placesLabel.getStyleClass().add("event-label");
             Button ReserverButton = new Button("Reserver Une place");
+            ReserverButton.setOnAction(e -> reserverPlace(event));
             Button ModifierButton = new Button("Modifier");
             ModifierButton.setOnAction(event1 -> UpdateForm(event));
             Button deleteButton = new Button("Supprimer");
             deleteButton.setOnAction(event1 -> deleteEvent(event));
+            if(userRole == "CLIENT" || userRole == "COACH"){
+                ModifierButton.setDisable(true);
+                deleteButton.setDisable(true);
+            }
             Button DetailsButton = new Button("Details");
             DetailsButton.setOnAction(e -> DetailsEvent(event));
 
@@ -75,8 +82,17 @@ public class ListeEvenementController implements Initializable {
         }
     }
     public void deleteEvent(Evenement event){
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirmation");
+        alert.setHeaderText("Suppression de l'événement");
+        alert.setContentText("Voulez-vous vraiment supprimer l'événement " + event.getNom_event() + " ?");
+        alert.showAndWait();
+        if(alert.getResult().getText().equals("OK")){
         es.delete(event);
         eventContainer.getChildren().clear();
+        }else {
+            alert.close();
+        }
         }
 
         public void UpdateForm(Evenement event){
@@ -143,11 +159,16 @@ public class ListeEvenementController implements Initializable {
             categorieLabel.getStyleClass().add("categorie-label");
             placesLabel.getStyleClass().add("event-label");
             Button ReserverButton = new Button("Reserver Une place");
+            ReserverButton.setOnAction(e -> reserverPlace(event));
             Button ModifierButton = new Button("Modifier");
             ModifierButton.setOnAction(e -> UpdateForm(event));
 
             Button deleteButton = new Button("Supprimer");
             deleteButton.setOnAction(e -> deleteEvent(event));
+            if(userRole == "CLIENT" || userRole == "COACH"){
+                ModifierButton.setDisable(true);
+                deleteButton.setDisable(true);
+            }
             Button DetailsButton = new Button("Details");
             DetailsButton.setOnAction(e -> DetailsEvent(event));
 
@@ -173,5 +194,36 @@ public class ListeEvenementController implements Initializable {
             e.getMessage();
         }
     }
+    public void reserverPlace(Evenement event) {
+        int userId = SessionManager.getInstance().getUserId();
+        // Vérifier si l'utilisateur a déjà réservé
+        if (es.reservationExiste(userId, event.getId())) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Réservation");
+            alert.setHeaderText(null);
+            alert.setContentText("Vous avez déjà réservé une place pour cet événement.");
+            alert.showAndWait();
+            return;
+        }
+
+        boolean success = es.reserverPlace(userId, event.getId());
+
+        if (success) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Réservation");
+            alert.setHeaderText(null);
+            alert.setContentText("Votre place a été réservée avec succès !");
+            alert.showAndWait();
+
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erreur");
+            alert.setHeaderText(null);
+            alert.setContentText("Échec de la réservation. Vérifiez la disponibilité.");
+            alert.showAndWait();
+        }
+    }
+
+
 
 }
