@@ -1,4 +1,4 @@
-package tn.esprit.Controllers;
+package tn.esprit.Controllers.forum;
 
 import tn.esprit.Models.Games;
 import tn.esprit.Models.Question;
@@ -12,9 +12,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import tn.esprit.Models.Role;
+
 import java.net.URL;
 import java.sql.Timestamp;
 import java.util.List;
@@ -45,11 +48,11 @@ public class AddQuestionController implements Initializable {
     private void loadGames() {
 
             List<Games> gamesList = gamesService.getAll();
-            gameComboBox.getItems().clear(); // Ensure no duplication
-            for (Games game : gamesList) {
-                gameComboBox.getItems().add(game.getGame_name());
-            }
-        }
+        gameComboBox.getItems().setAll(
+                gamesService.getAll().stream().map(Games::getGame_name).toList()
+        );
+
+    }
 
     @FXML
     private void handleSubmit(ActionEvent event) {
@@ -78,7 +81,7 @@ public class AddQuestionController implements Initializable {
             // Add question to the database
             questionService.add(question);
 
-            showAlert("Succès", "Question ajoutée avec succès !");
+        showSuccessAlert("Succès", "Question ajoutée avec succès !");
             clearForm();
 
             // Refresh forum page
@@ -90,7 +93,7 @@ public class AddQuestionController implements Initializable {
 
     private void navigateToForumPage(Question question) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Forum.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/resources/forumUI/Forum.fxml"));
             Parent root = loader.load();
 
             ForumController forumController = loader.getController();
@@ -108,16 +111,6 @@ public class AddQuestionController implements Initializable {
         }
     }
 
-
-
-
-
-
-    private void addQuestionCard(Question question) {
-        Label questionCard = new Label("Titre: " + question.getTitle() + "\nContenu: " + question.getContent());
-        questionCardContainer.getChildren().add(questionCard);
-    }
-
     private void clearForm() {
         titleField.clear();
         contentField.clear();
@@ -125,10 +118,56 @@ public class AddQuestionController implements Initializable {
     }
 
     private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
+        icon.setFitHeight(80);
+        icon.setFitWidth(80);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
         alert.showAndWait();
     }
+    private void showSuccessAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toExternalForm()));
+        icon.setFitHeight(60);
+        icon.setFitWidth(80);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toString()));
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
+        alert.showAndWait();
+    }
+        /*private Utilisateur getCurrentUser() {
+        int userId = SessionManager.getInstance().getUserId();
+        if (userId == -1) {
+            return null;
+        }
+        UtilisateurService utilisateurService = new UtilisateurService();
+        return utilisateurService.getOne(userId);
+    }*/
+
 }

@@ -14,7 +14,7 @@
     <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
         <children>
             <!-- Header -->
-            <fx:include source="../navbar.fxml"/>
+            <fx:include source="/forumUI/navbar.fxml"/>
 
             <VBox spacing="20" styleClass="content-container" GridPane.rowIndex="1">
                 <padding>

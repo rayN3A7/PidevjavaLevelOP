@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 
 <HBox spacing="10" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="tn.esprit.Controllers.QuestionCardController" styleClass="question-card">
+      fx:controller="tn.esprit.Controllers.forum.QuestionCardController" styleClass="question-card">
 
     <VBox spacing="5" styleClass="vote-box">
         <Button text="▲" fx:id="upvoteButton" styleClass="vote-button"/>
@@ -14,6 +14,7 @@
     </VBox>
 
     <VBox spacing="10" HBox.hgrow="ALWAYS">
+        <Label fx:id="commentAuthor" styleClass="comment-author"/>
         <Label fx:id="titleLabel" styleClass="question-title"/>
         <Label fx:id="contentLabel" styleClass="question-content"/>
         <Label fx:id="votesLabel" styleClass="votes-label"/>

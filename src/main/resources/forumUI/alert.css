@@ -1,0 +1,28 @@
+/* Gaming futuristic alert style */
+.gaming-alert {
+    -fx-background-color: #091221; /* Dark background */
+    -fx-border-color: #ff007f; /* Neon cyan border */
+    -fx-border-width: 3px;
+}
+
+/* Text styling inside the alert */
+.gaming-alert .content.label {
+    -fx-font-size: 16px;
+    -fx-text-fill: #ff007f; /* Neon cyan text */
+    -fx-font-family: 'Orbitron', sans-serif; /* Use Orbitron for a futuristic feel */
+}
+
+/* Button styling */
+.gaming-alert .button {
+    -fx-background-color: #222;
+    -fx-text-fill: #ff007f;
+    -fx-border-color: #ff007f;
+    -fx-border-radius: 5px;
+    -fx-effect: dropshadow(three-pass-box, rgb(133, 4, 68), 10, 0, 0, 0);
+}
+
+.gaming-alert .button:hover {
+    -fx-background-color: #ff007f;
+    -fx-text-fill: #222;
+    -fx-border-color: #ff007f;
+}

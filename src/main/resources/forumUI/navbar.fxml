@@ -4,7 +4,7 @@
 <?import javafx.scene.image.*?>
 <?import javafx.geometry.*?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" stylesheets="@navbar.css" fx:controller="tn.esprit.Controllers.NavbarController">
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" stylesheets="@navbar.css" fx:controller="tn.esprit.Controllers.forum.NavbarController">
     <HBox fx:id="navbar" spacing="20" alignment="CENTER_LEFT" styleClass="navbar" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
         <!-- Logo -->
         <ImageView fx:id="logo" fitHeight="40" fitWidth="120">

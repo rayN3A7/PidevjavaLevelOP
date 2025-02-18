@@ -23,15 +23,17 @@ public class CommentaireService implements IService<Commentaire> {
         if (utilisateur == null) {
             throw new IllegalArgumentException("Utilisateur cannot be null when adding a comment.");
         }
+
         if (question == null) {
             throw new IllegalArgumentException("Question cannot be null when adding a comment.");
         }
+
         String insertCommentaireQuery = "INSERT INTO Commentaire (contenu, Votes, creation_at, utilisateur_id, question_id, parent_commentaire_id) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connexion.prepareStatement(insertCommentaireQuery)) {
             ps.setString(1, commentaire.getContenu());
             ps.setInt(2, commentaire.getVotes());
             ps.setTimestamp(3, commentaire.getCreation_at());
-            ps.setInt(4, utilisateur.getId()); // Safe to use utilisateur.getId() now
+            ps.setInt(4, utilisateur.getId());
             ps.setInt(5, question.getQuestion_id());
             ps.setObject(6, parentCommentaire != null ? parentCommentaire.getCommentaire_id() : null);
             ps.executeUpdate();
@@ -39,6 +41,41 @@ public class CommentaireService implements IService<Commentaire> {
             throw new RuntimeException("Failed to add comment: " + e.getMessage(), e);
         }
     }
+
+    public void upvoteComment(int commentaire_id) {
+        String query = "UPDATE Commentaire SET Votes = Votes + 1 WHERE Commentaire_id = ?";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, commentaire_id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to upvote comment: " + e.getMessage(), e);
+        }
+    }
+
+    public void downvoteComment(int commentaire_id) {
+        String query = "UPDATE Commentaire SET Votes = Votes - 1 WHERE Commentaire_id = ? AND Votes > 0";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, commentaire_id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to downvote comment: " + e.getMessage(), e);
+        }
+    }
+
+    public int getVotes(int Commentaire_id) {
+        String query = "SELECT Votes FROM Commentaire WHERE Commentaire_id = ?";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, Commentaire_id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("Votes");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get votes: " + e.getMessage(), e);
+        }
+        return 0;
+    }
+
     @Override
     public Commentaire getOne(int id) {
         String query = "SELECT * FROM Commentaire WHERE Commentaire_id = ?";
@@ -53,9 +90,11 @@ public class CommentaireService implements IService<Commentaire> {
                 int utilisateurId = rs.getInt("utilisateur_id");
                 int questionId = rs.getInt("question_id");
                 Integer parentCommentaireId = (Integer) rs.getObject("parent_commentaire_id");
+
                 Utilisateur utilisateur = new UtilisateurService().getOne(utilisateurId);
                 Question question = new QuestionService().getOne(questionId);
                 Commentaire parentCommentaire = parentCommentaireId != null ? new CommentaireService().getOne(parentCommentaireId) : null;
+
                 return new Commentaire(parentCommentaire, question, utilisateur, creationAt, votes, contenu, commentaireId);
             }
         } catch (SQLException e) {
@@ -81,6 +120,7 @@ public class CommentaireService implements IService<Commentaire> {
                 Utilisateur utilisateur = new UtilisateurService().getOne(utilisateurId);
                 Question question = new QuestionService().getOne(questionId);
                 Commentaire parentCommentaire = parentCommentaireId != null ? new CommentaireService().getOne(parentCommentaireId) : null;
+
                 Commentaire commentaire = new Commentaire(parentCommentaire, question, utilisateur, creationAt, votes, contenu, commentaireId);
                 commentaireList.add(commentaire);
             }
@@ -104,10 +144,11 @@ public class CommentaireService implements IService<Commentaire> {
             throw new RuntimeException("Failed to update comment: " + e.getMessage(), e);
         }
     }
-    @Override
+
     public void delete(Commentaire commentaire) {
         try {
             deleteReplies(commentaire.getCommentaire_id());
+
             String deleteCommentQuery = "DELETE FROM Commentaire WHERE Commentaire_id = ?";
             try (PreparedStatement ps = connexion.prepareStatement(deleteCommentQuery)) {
                 ps.setInt(1, commentaire.getCommentaire_id());
@@ -124,11 +165,13 @@ public class CommentaireService implements IService<Commentaire> {
             try (PreparedStatement ps = connexion.prepareStatement(selectRepliesQuery)) {
                 ps.setInt(1, parentId);
                 ResultSet rs = ps.executeQuery();
+
                 while (rs.next()) {
                     int replyId = rs.getInt("Commentaire_id");
                     deleteReplies(replyId);
                 }
             }
+
             String deleteReplyQuery = "DELETE FROM Commentaire WHERE Commentaire_id = ?";
             try (PreparedStatement ps = connexion.prepareStatement(deleteReplyQuery)) {
                 ps.setInt(1, parentId);
@@ -138,10 +181,4 @@ public class CommentaireService implements IService<Commentaire> {
             throw new RuntimeException("Failed to delete replies: " + e.getMessage(), e);
         }
     }
-
-  /*  @Override
-    public Commentaire getByName(String name) {
-        // This method is not implemented
-        throw new UnsupportedOperationException("getByName is not supported for Commentaire.");
-    }*/
 }

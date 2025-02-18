@@ -1,4 +1,4 @@
-package tn.esprit.Controllers;
+package tn.esprit.Controllers.forum;
 
 import tn.esprit.Models.Question;
 import tn.esprit.Services.QuestionService;
@@ -28,19 +28,16 @@ public class ForumController implements Initializable {
     private Button addQuestionButton;
     @FXML
     private TextField searchField;
-    private NavbarController navbarController; // Ajout de NavbarController
+    private NavbarController navbarController; //
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         loadQuestions();
 
-        // Add listener to search field to react to text changes
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
             filterQuestionsByGameName(newValue);
         });
 
-
-        // Add key event handler for "Enter" key
         searchField.setOnKeyPressed(this::handleSearchEnter);
     }
 
@@ -70,7 +67,6 @@ public class ForumController implements Initializable {
         System.out.println("Filtering questions for game: " + gameName);
         List<Question> filteredQuestions = questionService.getQuestionsByGameName(gameName);
 
-        // Ensure UI updates correctly
         Platform.runLater(() -> {
             questionCardContainer.getChildren().clear();
             for (Question question : filteredQuestions) {
@@ -80,16 +76,9 @@ public class ForumController implements Initializable {
     }
 
 
-    private void updateQuestionCards(List<Question> questions) {
-        questionCardContainer.getChildren().clear(); // Clear the current question cards
-        for (Question question : questions) {
-            addQuestionCard(question);
-        }
-    }
-
     public void addQuestionCard(Question question) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/QuestionCard.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/QuestionCard.fxml"));
             Parent questionCard = loader.load();
 
             QuestionCardController cardController = loader.getController();
@@ -101,55 +90,31 @@ public class ForumController implements Initializable {
         }
     }
 
-    public void openQuestionDetails(Question question) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/QuestionDetails.fxml"));
-            Parent root = loader.load();
-
-            QuestionDetailsController controller = loader.getController();
-            controller.loadQuestionDetails(question);
-
-            Stage stage = (Stage) questionCardContainer.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     public void handleUpvote(Question question, Label votesLabel, Button downvoteButton) {
         questionService.upvoteQuestion(question.getQuestion_id());
 
-        // Refresh the vote count from the database
         int updatedVotes = questionService.getVotes(question.getQuestion_id());
         question.setVotes(updatedVotes);
 
-        // Ensure UI update happens on JavaFX thread
         Platform.runLater(() -> {
             votesLabel.setText("Votes: " + updatedVotes);
 
-            // Reactivate downvote button if votes > 0
             if (updatedVotes > 0) {
                 downvoteButton.setDisable(false);
             }
         });
     }
-
-
-
     public void handleDownvote(Question question, Label votesLabel, Button downvoteButton) {
         if (question.getVotes() > 0) {
             questionService.downvoteQuestion(question.getQuestion_id());
 
-            // Refresh the vote count from the database
             int updatedVotes = questionService.getVotes(question.getQuestion_id());
             question.setVotes(updatedVotes);
 
-            // Ensure UI update happens on JavaFX thread
             Platform.runLater(() -> {
                 votesLabel.setText("Votes: " + updatedVotes);
 
-                // Disable downvote button if votes reach 0
                 downvoteButton.setDisable(updatedVotes == 0);
             });
         }
@@ -158,14 +123,14 @@ public class ForumController implements Initializable {
 
     public void updateQuestion(Question question) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/UpdateQuestionForm.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/UpdateQuestionForm.fxml"));
             Parent root = loader.load();
 
             UpdateQuestionController updateController = loader.getController();
             updateController.loadQuestionData(question);
 
             Stage stage = (Stage) questionCardContainer.getScene().getWindow();
-            Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight()); // Use the same width/height as the original window
+            Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
             stage.setScene(newScene);
             stage.show();
         } catch (Exception e) {
@@ -185,16 +150,12 @@ public class ForumController implements Initializable {
     @FXML
     private void navigateToAddQuestion() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/QuestionForm.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/QuestionForm.fxml"));
             Parent root = loader.load();
-
-            // Get the current stage (main window)
             Stage stage = (Stage) questionCardContainer.getScene().getWindow();
-
-            // Set the same size for the new scene to maintain consistency
             Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight()); // Use the same width/height as the original window
             stage.setScene(newScene);
-            stage.show();  // No need to create a new stage
+            stage.show();
         } catch (Exception e) {
             e.printStackTrace();
         }

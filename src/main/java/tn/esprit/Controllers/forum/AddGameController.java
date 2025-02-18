@@ -1,4 +1,4 @@
-package tn.esprit.Controllers;
+package tn.esprit.Controllers.forum;
 
 import tn.esprit.Models.Games;
 import tn.esprit.Services.GamesService;

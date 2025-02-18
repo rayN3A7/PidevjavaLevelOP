@@ -1,4 +1,4 @@
-package tn.esprit.Controllers;
+package tn.esprit.Controllers.forum;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -29,7 +29,7 @@ public class NavbarController implements Initializable {
         shopButton.setOnAction(event -> navigateTo("Produit/main"));
         forumButton.setOnAction(event -> {
             System.out.println("Forum button clicked!"); // Debugging
-            navigateTo("Forum");
+            navigateTo("forumUI/Forum");
         });
         coachingButton.setOnAction(event -> navigateTo("Coaching"));
         loginButton.setOnAction(event -> navigateTo("Login"));

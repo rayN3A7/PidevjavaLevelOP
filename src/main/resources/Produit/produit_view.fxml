@@ -13,7 +13,7 @@
     <BorderPane stylesheets="@/assets/style/produit.css">
         <!-- Navigation Bar -->
         <top>
-            <fx:include source="/navbar.fxml"/>
+            <fx:include source="/forumUI/navbar.fxml"/>
         </top>
         
         <center>

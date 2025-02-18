@@ -2,14 +2,17 @@
     -fx-background-color: linear-gradient(to bottom, #091221, #ff007f);
     -fx-padding: 20px;
 }
-/* Style for the main VBox */
 .main-vbox {
-    -fx-padding: 50px 20px 10px 20px; /* Top: 100px, Right: 50x, Bottom: 10px, Left: 50px */
+    -fx-padding: 20px 100px 20px 100px;
     -fx-background-color: transparent;
     -fx-alignment: center;
 }
+.comment-author {
+    -fx-font-weight: bold;
+    -fx-text-fill: #ff007f;
+}
 .forum-title {
-    -fx-padding: 0px 20px 0px 20px; /* Top: 100px, Right: 50x, Bottom: 10px, Left: 50px */
+    -fx-padding: 0px 20px 0px 20px;
 
     -fx-font-size: 100px;
     -fx-font-weight: bold;
@@ -24,8 +27,8 @@
     -fx-background-color: #091221;
     -fx-background-radius: 15px;
     -fx-border-radius: 15px;
-    -fx-border-color: #ff007f; /* Border color */
-    -fx-border-width: 2px; /* Border width */
+    -fx-border-color: #ff007f;
+    -fx-border-width: 2px;
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 10, 0.5, 0, 0);
     -fx-padding: 15px;
     -fx-spacing: 10px;
@@ -51,6 +54,22 @@
     -fx-background-color: transparent;
     -fx-text-fill: #ff007f;
     -fx-font-size: 18px;
+    -fx-pref-width: 30px;
+    -fx-pref-height: 30px;
+    -fx-border-color: #ff007f;
+    -fx-padding: 1px 1px 1px 1px;
+
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 10, 0.5, 0, 0);
+}
+.vote-box {
+    -fx-padding: 5px 50px 5px 5px;
+}
+.vote-button:hover {
+    -fx-background-color: rgba(255, 0, 127, 0.2);
+    -fx-border-color: #ff007f;
+    -fx-border-radius: 100%;
+
 }
 
 .action-button {
@@ -75,22 +94,18 @@
     -fx-padding: 10px 20px;
     -fx-border-radius: 5px;
 }
-/* Apply background to the root ScrollPane */
 .scroll-pane {
     -fx-background-color: linear-gradient(to bottom, #000000, #ff007f);
 }
 
-/* Ensure the viewport (content area) has the same background */
 .scroll-pane .viewport {
     -fx-background-color: linear-gradient(to bottom, #000000, #ff007f);
 }
 
-/* Apply background to the VBox inside the ScrollPane */
 .vbox-container {
     -fx-background-color: transparent;
 }
 
-/* Style for the forum title */
 .forum-title {
     -fx-font-size: 24px;
     -fx-font-weight: bold;

@@ -1,4 +1,4 @@
-package tn.esprit.Controllers;
+package tn.esprit.Controllers.forum;
 
 import tn.esprit.Models.Games;
 import tn.esprit.Models.Question;
@@ -95,7 +95,7 @@ public class UpdateQuestionController implements Initializable {
 
     private void navigateToForumPage() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Forum.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/Forum.fxml"));
             Parent root = loader.load();
 
             ForumController forumController = loader.getController();

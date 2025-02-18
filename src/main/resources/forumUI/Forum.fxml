@@ -5,8 +5,8 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.image.*?>
 
-<BorderPane  xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="tn.esprit.Controllers.ForumController" stylesheets="@forum.css"
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.Controllers.forum.ForumController" stylesheets="@forum.css"
             style="-fx-background-color: linear-gradient(to bottom, #000000, #ff007f);">
 
     <!-- Top Navigation Bar -->
@@ -17,10 +17,10 @@
     <!-- Forum Content (Inside a Scrollable View) -->
     <center>
         <ScrollPane fitToWidth="true">
-            <VBox spacing="20" alignment="CENTER" styleClass="main-vbox">
+            <VBox spacing="5" alignment="CENTER" styleClass="main-vbox">
 
                 <!-- Image above the forum title -->
-                <ImageView fitWidth="300" fitHeight="200" preserveRatio="true">
+                <ImageView fitWidth="300" fitHeight="150" preserveRatio="true">
                     <image>
                         <Image url="@level.png"/> <!-- Replace with your actual image path -->
                     </image>
@@ -30,9 +30,8 @@
                 <Label text="Forum des Questions" styleClass="forum-title"/>
                 <Label text="vous pouvez ajouter une question" styleClass="forum-subtite"/>
 
-                <!-- Top Bar with Text Field and Button -->
                 <HBox spacing="10" alignment="CENTER" style="-fx-padding: 10px;">
-                    <TextField fx:id="searchField" promptText="Search questions by game..." styleClass="search-field"/>
+                    <TextField fx:id="searchField" promptText="Recherche de questions par jeu..." styleClass="search-field"/>
                     <Button text="ajouter" onAction="#navigateToAddQuestion" styleClass="create-post-button"/>
                 </HBox>
 
