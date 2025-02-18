@@ -26,7 +26,7 @@ public class NavbarController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         homeButton.setOnAction(event -> navigateTo("Home"));
         eventButton.setOnAction(event -> navigateTo("Evenement/ListEvenement"));
-        shopButton.setOnAction(event -> navigateTo("Shop"));
+        shopButton.setOnAction(event -> navigateTo("Produit/main"));
         forumButton.setOnAction(event -> {
             System.out.println("Forum button clicked!"); // Debugging
             navigateTo("Forum");

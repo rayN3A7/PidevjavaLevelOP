@@ -88,7 +88,7 @@ public class ListeCategorieController implements Initializable {
     }
     @FXML
     private void ButtonAjouterCategorie(ActionEvent event) throws IOException {
-        if(userRole == "Admin") {
+        if(userRole == "ADMIN") {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/AjouterCategorie.fxml"));
             Parent signInRoot = loader.load();
             Scene signInScene = new Scene(signInRoot);

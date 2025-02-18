@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Pos?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="tn.esprit.Controllers.Produit.ProductCardController"
+      stylesheets="@/assets/style/produit.css"
+      styleClass="product-card" alignment="CENTER" spacing="10" style="-fx-padding: 15px;">
+
+        <!-- Product Image -->
+        <ImageView fx:id="productImage" fitWidth="200" fitHeight="200" preserveRatio="true" styleClass="product-image" />
+
+        <!-- Product Name (Centered) -->
+        <Label fx:id="productName" styleClass="product-name" alignment="CENTER" />
+
+        <!-- Product Price -->
+        <Label fx:id="productPrice" styleClass="product-price" />
+
+        <!-- View Details Button -->
+        <Button text="Voir detailes" fx:id="viewDetailsButton" onAction="#handleViewDetails" styleClass="view-details" />
+</VBox>
