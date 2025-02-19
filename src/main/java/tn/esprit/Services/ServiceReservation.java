@@ -97,6 +97,66 @@ public class ServiceReservation implements IService<Reservation> {
             System.out.println(e.getMessage());
         }
     }
+    public Reservation getReservationByClientAndSession(int clientId, int sessionId) {
+        String qry = "SELECT * FROM reservation WHERE client_id = ? AND session_id_id = ?";
+        try {
+            PreparedStatement pstm = cnx.prepareStatement(qry);
+            pstm.setInt(1, clientId);
+            pstm.setInt(2, sessionId);
+            ResultSet rs = pstm.executeQuery();
+
+            if (rs.next()) {
+                Reservation reservation = new Reservation();
+                reservation.setId(rs.getInt("id"));
+                reservation.setdate_reservation(rs.getDate("date_reservation"));
+                reservation.setClient_id(rs.getInt("client_id"));
+
+                ServiceSession serviceSession = new ServiceSession();
+                Session_game sessiongame = serviceSession.getAll().stream()
+                        .filter(s -> {
+                            try {
+                                return s.getId() == rs.getInt("session_id_id");
+                            } catch (SQLException e) {
+                                throw new RuntimeException(e);
+                            }
+                        })
+                        .findFirst()
+                        .orElse(null);
+                reservation.setSession(sessiongame);
+                return reservation;
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+    // Méthode qui vérifie si une session est déjà réservée
+    public boolean isSessionReserved(int sessionId) {
+        String qry = "SELECT 1 FROM reservation WHERE session_id_id = ? LIMIT 1"; // Query améliorée pour vérifier rapidement
+        try (PreparedStatement pstm = cnx.prepareStatement(qry)) {
+            pstm.setInt(1, sessionId);
+            try (ResultSet rs = pstm.executeQuery()) {
+                return rs.next(); // Si une ligne est retournée, cela signifie que la session est réservée
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la vérification de la réservation : " + e.getMessage());
+        }
+        return false; // Retourne false en cas d'erreur ou si la session n'est pas réservée
+    }
+    public boolean isSessionAlreadyReserved(int sessionId) {
+        String qry = "SELECT COUNT(*) FROM `reservation` WHERE `session_id_id` = ?";
+        try (PreparedStatement pstm = cnx.prepareStatement(qry)) {
+            pstm.setInt(1, sessionId);
+            ResultSet rs = pstm.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0; // Retourne true si une réservation existe déjà
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la vérification de la réservation : " + e.getMessage());
+        }
+        return false;
+    }
+
 
     @Override
     public Reservation getOne(int id) {
