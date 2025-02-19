@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+
+<?import javafx.scene.layout.Region?>
+<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0" styleClass="scroll-pane" stylesheets="@/assets/style/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Evenement.ListeEvenementController">
+
+    <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
+        <children>
+            <!-- Header -->
+            <fx:include source="/forumUI/navbar.fxml"/>
+
+            <VBox spacing="20" styleClass="content-container" GridPane.rowIndex="1">
+                <padding>
+                    <Insets top="20" right="30" bottom="20" left="30"/>
+                </padding>
+                
+                <!-- Header Section -->
+                <HBox alignment="CENTER_LEFT" spacing="20" styleClass="list-header">
+                    <VBox spacing="5">
+                        <Label text="Événements" styleClass="page-title"/>
+                        <Label text="Gérez vos événements" styleClass="page-subtitle"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <TextField fx:id="searchField" promptText="Rechercher un événement..." 
+                                 styleClass="search-field" onKeyReleased="#Search"/>
+                        <Button fx:id="addEventButton" onAction="#ButtonAjouterEvenement" 
+                                styleClass="add-button">
+                            <graphic>
+                                <HBox spacing="10" alignment="CENTER">
+                                    <ImageView fitHeight="16" fitWidth="16">
+                                        <Image url="@/assets/image/ajouter.png"/>
+                                    </ImageView>
+                                    <Label text="Nouvel Événement" styleClass="button-text"/>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="categoriesButton" onAction="#ButtonListeCategorie"
+                                styleClass="list-button">
+                            <graphic>
+                                <HBox spacing="10" alignment="CENTER">
+                                    <ImageView fitHeight="16" fitWidth="16">
+                                        <Image url="@/assets/image/categorie.png"/>
+                                    </ImageView>
+                                    <Label text="Catégories" styleClass="button-text"/>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                </HBox>
+
+                <!-- Table Header -->
+                <GridPane styleClass="table-header">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="8"/>
+                        <ColumnConstraints percentWidth="20"/>
+                        <ColumnConstraints percentWidth="15"/>
+                        <ColumnConstraints percentWidth="15"/>
+                        <ColumnConstraints percentWidth="15"/>
+                        <ColumnConstraints percentWidth="12"/>
+                        <ColumnConstraints percentWidth="15"/>
+                    </columnConstraints>
+                    <Label text="ID" styleClass="header-cell" GridPane.columnIndex="0"/>
+                    <Label text="Nom" styleClass="header-cell" GridPane.columnIndex="1"/>
+                    <Label text="Date" styleClass="header-cell" GridPane.columnIndex="2"/>
+                    <Label text="Lieu" styleClass="header-cell" GridPane.columnIndex="3"/>
+                    <Label text="Catégorie" styleClass="header-cell" GridPane.columnIndex="4"/>
+                    <Label text="Places" styleClass="header-cell" GridPane.columnIndex="5"/>
+                    <Label text="Actions" styleClass="header-cell" GridPane.columnIndex="6"/>
+                </GridPane>
+
+                <!-- List Content -->
+                <VBox fx:id="eventContainer" spacing="10" styleClass="list-content"/>
+            </VBox>
+
+            <!-- Footer -->
+            <HBox alignment="CENTER" styleClass="footer" GridPane.rowIndex="2">
+                <padding>
+                    <Insets/>
+                </padding>
+                <Label styleClass="footer-text" text="© 2025 LEVEL UP - Tous droits réservés"/>
+            </HBox>
+        </children>
+
+        <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints vgrow="NEVER"/>
+        </rowConstraints>
+    </GridPane>
+
+</ScrollPane>

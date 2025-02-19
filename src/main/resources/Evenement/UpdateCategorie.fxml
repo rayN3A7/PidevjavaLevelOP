@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0" 
+    styleClass="scroll-pane" stylesheets="@/assets/style/style.css" 
+    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+    fx:controller="tn.esprit.Controllers.Evenement.ModifierCategorieController">
+
+    <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
+        <children>
+            <!-- Header -->
+            <fx:include source="/forumUI/navbar.fxml"/>
+
+            <VBox spacing="20" styleClass="content-container" GridPane.rowIndex="1">
+                <padding>
+                    <Insets top="20" right="30" bottom="20" left="30"/>
+                </padding>
+                
+                <!-- Title Section with Navigation -->
+                <HBox alignment="CENTER_LEFT" spacing="20" styleClass="header-section">
+                    <VBox spacing="5">
+                        <Label text="Modifier la catégorie" styleClass="page-title"/>
+                        <Label text="Mettez à jour les informations de la catégorie" styleClass="page-subtitle"/>
+                    </VBox>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button fx:id="listCategoriesButton" onAction="#ButtonlisteCategories"
+                                styleClass="nav-link-button">
+                            <graphic>
+                                <HBox spacing="10" alignment="CENTER">
+                                    <ImageView fitHeight="16" fitWidth="16">
+                                        <Image url="@/assets/image/categorie.png"/>
+                                    </ImageView>
+                                    <Label text="Liste des catégories" styleClass="button-text"/>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                </HBox>
+
+                <!-- Form Card -->
+                <VBox styleClass="form-card" maxWidth="600" alignment="CENTER">
+                    <VBox styleClass="card-content" spacing="20">
+                        <!-- Nom -->
+                        <VBox styleClass="input-group">
+                            <Label text="Nom de la catégorie" styleClass="input-label"/>
+                            <TextField fx:id="NomCategorie" styleClass="input-field" 
+                                     promptText="Entrez le nom de la catégorie"/>
+                        </VBox>
+
+                        <!-- Description -->
+                        <VBox styleClass="input-group">
+                            <Label text="Description" styleClass="input-label"/>
+                            <TextArea fx:id="DescCategorie" styleClass="input-field" 
+                                    promptText="Entrez la description de la catégorie"
+                                    wrapText="true" prefRowCount="4"/>
+                        </VBox>
+
+                        <!-- Buttons -->
+                        <HBox spacing="15" alignment="CENTER" styleClass="button-container">
+                            <Button fx:id="cancelButton" onAction="#Annuler" 
+                                    text="Réinitialiser" styleClass="cancel-button"/>
+                            <Button fx:id="addEventButton" onAction="#ModifierCategorie" 
+                                    text="Enregistrer les modifications" styleClass="submit-button"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+            </VBox>
+
+            <!-- Footer -->
+            <HBox alignment="CENTER" styleClass="footer" GridPane.rowIndex="2">
+                <padding>
+                    <Insets/>
+                </padding>
+                <Label styleClass="footer-text" text="© 2025 LEVEL UP - Tous droits réservés"/>
+            </HBox>
+        </children>
+
+        <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints vgrow="NEVER"/>
+        </rowConstraints>
+    </GridPane>
+</ScrollPane>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.forum.UpdateQuestionController"
+      spacing="20" alignment="CENTER" style="-fx-background-color: linear-gradient(to bottom, #000000, #ff007f); -fx-padding: 20px;">
+
+    <!-- Title -->
+    <Label text="Edit Question" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+
+    <!-- Title Field -->
+    <TextField fx:id="titleField" promptText="Title of the question"
+               style="-fx-background-color: #091221; -fx-text-fill: white; -fx-prompt-text-fill: #aaaaaa; -fx-font-size: 14px; -fx-padding: 10px;"/>
+
+    <!-- Content Field with Black Text -->
+    <TextArea fx:id="contentField" promptText="Content of the question" prefRowCount="5"
+              style="-fx-background-color: #091221; -fx-text-fill: black; -fx-prompt-text-fill: #aaaaaa; -fx-font-size: 14px; -fx-padding: 10px;"/>
+
+    <!-- Label for Game Selection -->
+    <Label text="Select a game:" style="-fx-text-fill: white; -fx-font-size: 16px;"/>
+
+    <!-- Dropdown List for Games -->
+    <ComboBox fx:id="gameComboBox" promptText="Choose a game" style="-fx-background-color: white; -fx-font-size: 14px;"/>
+
+    <!-- Update Button -->
+    <Button fx:id="updateButton" text="Update" onAction="#handleUpdate"
+            style="-fx-background-color: #ff007f; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px 20px; -fx-border-radius: 5px;"/>
+
+    <!-- Optional Cancel Button (if needed) -->
+    <!-- <Button text="Cancel" onAction="#handleCancel" style="-fx-background-color: #cccccc; -fx-text-fill: black;"/> -->
+</VBox>

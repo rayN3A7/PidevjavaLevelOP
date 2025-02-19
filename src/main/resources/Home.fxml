@@ -22,7 +22,7 @@
         <children>
 
             <!-- Header -->
-            <fx:include source="navbar.fxml"/>
+            <fx:include source="/forumUI/navbar.fxml"/>
             <!-- Section Bannière -->
             <HBox alignment="CENTER_LEFT" spacing="20" styleClass="banner" GridPane.columnIndex="0" GridPane.rowIndex="1">
                 <children>

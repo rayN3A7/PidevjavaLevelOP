@@ -1,22 +1,48 @@
 package tn.esprit.Services;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
 import tn.esprit.Interfaces.IService;
 import tn.esprit.Models.Stock;
 import tn.esprit.utils.MyDatabase;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class StockService implements IService<Stock> {
     private Connection connection;
     private Statement statement;
     private PreparedStatement preparedStatement;
-    
+
     public StockService() {
         connection = MyDatabase.getInstance().getCnx();
     }
-    
+
+    public Stock getByProduitId(int produitId) {
+        String query = "SELECT * FROM stock WHERE produit_id = ?";
+        try {
+            preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, produitId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            if(resultSet.next()) {
+                return new Stock(
+                        resultSet.getInt("id"),
+                        resultSet.getInt("produit_id"),
+                        resultSet.getInt("games_id"),
+                        resultSet.getInt("quantity"),
+                        resultSet.getInt("prix_produit"),
+                        resultSet.getString("image")
+                );
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting stock for product " + produitId + ": " + e.getMessage());
+        }
+        return null;
+    }
+
     @Override
     public void add(Stock stock) {
         String query = "INSERT INTO stock (produit_id, games_id, quantity, prix_produit, image) VALUES (?, ?, ?, ?, ?)";
@@ -41,12 +67,12 @@ public class StockService implements IService<Stock> {
             ResultSet resultSet = statement.executeQuery(query);
             while(resultSet.next()) {
                 Stock stock = new Stock(
-                    resultSet.getInt("id"),
-                    resultSet.getInt("produit_id"),
-                    resultSet.getInt("games_id"),
-                    resultSet.getInt("quantity"),
-                    resultSet.getInt("prix_produit"),
-                    resultSet.getString("image")
+                        resultSet.getInt("id"),
+                        resultSet.getInt("produit_id"),
+                        resultSet.getInt("games_id"),
+                        resultSet.getInt("quantity"),
+                        resultSet.getInt("prix_produit"),
+                        resultSet.getString("image")
                 );
                 stocks.add(stock);
             }
@@ -72,7 +98,7 @@ public class StockService implements IService<Stock> {
             System.err.println(e.getMessage());
         }
     }
-    
+
     public Stock getOne(int id) {
         String query = "SELECT * FROM stock WHERE id = ?";
         try {
@@ -81,12 +107,12 @@ public class StockService implements IService<Stock> {
             ResultSet resultSet = preparedStatement.executeQuery();
             if(resultSet.next()) {
                 return new Stock(
-                    resultSet.getInt("id"),
-                    resultSet.getInt("produit_id"),
-                    resultSet.getInt("games_id"),
-                    resultSet.getInt("quantity"),
-                    resultSet.getInt("prix_produit"),
-                    resultSet.getString("image")
+                        resultSet.getInt("id"),
+                        resultSet.getInt("produit_id"),
+                        resultSet.getInt("games_id"),
+                        resultSet.getInt("quantity"),
+                        resultSet.getInt("prix_produit"),
+                        resultSet.getString("image")
                 );
             }
         } catch (SQLException e) {

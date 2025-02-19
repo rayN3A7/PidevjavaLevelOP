@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="tn.esprit.Controllers.forum.QuestionDetailsController" stylesheets="@Qdetails.css">
+    <top>
+        <fx:include source="navbar.fxml"/>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true">
+            <VBox spacing="30" styleClass="main-vbox">
+                <VBox spacing="10">
+                    <Label fx:id="questionTitle" styleClass="question-title"/>
+                    <Label fx:id="questionContent" styleClass="question-content"/>
+                    <Label fx:id="questionVotes" styleClass="votes-label"/>
+                </VBox>
+
+                <VBox spacing="15">
+                    <Label text="Comments" styleClass="comments-title"/>
+
+                    <ScrollPane fitToWidth="true">
+                        <VBox fx:id="commentContainer" styleClass="comments-container">
+                        </VBox>
+                    </ScrollPane>
+                </VBox>
+
+                <VBox spacing="10">
+                    <TextField fx:id="commentInput" promptText="Write a comment..." styleClass="comment-input"/>
+                    <Button text="Post Comment" onAction="#postComment" styleClass="create-comment-button"/>
+                </VBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <VBox alignment="center" spacing="10" style="-fx-padding: 20px; -fx-alignment: center;">
+            <Button text="Retour au Forum" onAction="#goToForumPage" styleClass="action-button"/>
+        </VBox>
+    </bottom>
+
+</BorderPane>

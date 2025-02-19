@@ -1,0 +1,123 @@
+package tn.esprit.Controllers.forum;
+
+import tn.esprit.Models.Games;
+import tn.esprit.Models.Question;
+import tn.esprit.Services.GamesService;
+import tn.esprit.Services.QuestionService;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.stage.Stage;
+
+import java.net.URL;
+import java.util.List;
+import java.util.ResourceBundle;
+
+public class UpdateQuestionController implements Initializable {
+    @FXML
+    private TextField titleField;
+    @FXML
+    private TextArea contentField;  // Ensure this matches the fx:id in FXML
+    @FXML
+    private Button updateButton;  // Add the @FXML annotation here
+    @FXML
+    private ComboBox<String> gameComboBox;
+
+    private GamesService gamesService = new GamesService();
+    private QuestionService questionService = new QuestionService();
+
+    private Question currentQuestion;
+
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        loadGames();
+    }
+
+    // Load question data into the form fields
+    public void loadQuestionData(Question question) {
+        currentQuestion = question;
+        titleField.setText(question.getTitle());
+        contentField.setText(question.getContent());
+
+        try {
+            if (gameComboBox != null) {
+                gameComboBox.setValue(question.getGame().getGame_name());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadGames() {
+
+            List<Games> gamesList = gamesService.getAll();
+            gameComboBox.getItems().clear(); // Ensure no duplication
+            for (Games game : gamesList) {
+                gameComboBox.getItems().add(game.getGame_name());
+            }
+
+    }
+
+    @FXML
+    private void handleUpdate(ActionEvent event) {
+        String title = titleField.getText().trim();
+        String content = contentField.getText().trim();
+        String selectedGame = gameComboBox.getValue();
+
+        if (title.isEmpty() || content.isEmpty() || selectedGame == null) {
+            showAlert("Erreur", "Tous les champs doivent être remplis.");
+            return;
+        }
+
+
+            Games selectedGameObj = gamesService.getByName(selectedGame);
+            if (selectedGameObj == null) {
+                showAlert("Erreur", "Le jeu sélectionné n'existe pas.");
+                return;
+            }
+
+            // Update the question with the new data
+            currentQuestion.setTitle(title);
+            currentQuestion.setContent(content);
+            currentQuestion.setGame(selectedGameObj);
+
+            // Update the question in the database
+            questionService.update(currentQuestion);
+
+            showAlert("Succès", "Question mise à jour avec succès !");
+            navigateToForumPage();
+        }
+
+
+    private void navigateToForumPage() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/Forum.fxml"));
+            Parent root = loader.load();
+
+            ForumController forumController = loader.getController();
+            forumController.refreshQuestions(); // Refresh the UI
+
+            // Get the current stage (main window)
+            Stage stage = (Stage) updateButton.getScene().getWindow();
+
+            // Set the same size for the new scene
+            Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
+            stage.setScene(newScene);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+}

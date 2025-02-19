@@ -5,14 +5,14 @@ import tn.esprit.Services.*;
 
 public class MainProduit {
     public static void main(String[] args) {
-        // Initialisation des services
+     /*   // Initialisation des services
         ProduitService produitService = new ProduitService();
         GamesService gameService = new GamesService();
         StockService stockService = new StockService();
         CommandeService commandeService = new CommandeService();
         Games game = new Games(1, "FIFA 45");
-        Produit produit = new Produit(2, "LASSSTTg TESTTTTTTT", "GTA 5 STEAM key", 10);
-        /*// Test CRUD pour Produit
+        //Produit produit = new Produit(2, "LASSSTTg TESTTTTTTT", "GTA 5 STEAM key", 10);
+        // Test CRUD pour Produit
         System.out.println("========== TEST CRUD PRODUIT ==========");
         Produit produit = new Produit(5, "LASSSTTg TESTTTTTTT", "GTA 5 STEAM key", 10);
 
@@ -41,7 +41,7 @@ public class MainProduit {
         System.out.println("--- Update Game ---");
         game.setGame_name("Fc 28");
         gameService.update(game);
-        System.out.println("Jeu modifié: " + gameService.getOne(game.getGame_id()));*/
+        System.out.println("Jeu modifié: " + gameService.getOne(game.getGame_id()));
         // Test CRUD pour Stock
         System.out.println("\n========== TEST CRUD STOCK ==========");
         Stock stock = new Stock(6, produit.getId(), game.getGame_id(), 100, 49, "keeeeeeeeeeey");
@@ -61,7 +61,7 @@ public class MainProduit {
             System.out.println("Stock après modification: " + stockService.getOne(stockToUpdate.getId()));
         }
         // Test CRUD pour Commande
-        /*System.out.println("\n========== TEST CRUD COMMANDE ==========");
+        System.out.println("\n========== TEST CRUD COMMANDE ==========");
         Commande commande = new Commande(1, 1, produit.getId(), "En cours");
 
         System.out.println("--- Create Commande ---");
@@ -89,13 +89,14 @@ public class MainProduit {
 
         System.out.println("--- Delete Produit ---");
         produitService.delete(produit);
-*/
+
         // Vérification finale
         System.out.println("\n========== VERIFICATION FINALE ==========");
         System.out.println("Produits restants: " + produitService.getAll().size());
         System.out.println("Jeux restants: " + gameService.getAll().size());
         System.out.println("Stocks restants: " + stockService.getAll().size());
         System.out.println("Commandes restantes: " + commandeService.getAll().size());
+    */
     }
 
 }

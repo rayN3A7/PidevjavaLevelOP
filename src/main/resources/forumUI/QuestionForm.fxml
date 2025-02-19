@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.Controllers.forum.AddQuestionController" stylesheets="@selectgame.css"
+            style="-fx-background-color: linear-gradient(to bottom, #091221, #ff007f);">
+
+    <top>
+        <fx:include source="navbar.fxml"/>
+    </top>
+
+    <center>
+        <VBox spacing="20" alignment="CENTER" style="-fx-padding: 40px;">
+
+            <Label text="Ajouter une Question" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+
+            <TextField fx:id="titleField" promptText="Titre de la question"
+                       style="-fx-background-color: #091221; -fx-text-fill: #ffffff; -fx-prompt-text-fill: #aaaaaa; -fx-font-size: 14px; -fx-padding: 10px;"/>
+
+            <TextArea fx:id="contentField" promptText="Contenu de la question" prefRowCount="5"
+                      style="-fx-background-color: #091221; -fx-text-fill: #091221; -fx-prompt-text-fill: #aaaaaa; -fx-font-size: 14px; -fx-padding: 10px;"/>
+
+            <Label text="Sélectionnez un jeu :" style="-fx-text-fill: white; -fx-font-size: 16px;"/>
+
+            <ComboBox fx:id="gameComboBox" promptText="Choisissez un jeu" styleClass="combo-box"/>
+
+            <Button fx:id="submitButton" text="Ajouter" onAction="#handleSubmit"
+                    style="-fx-background-color: #ff007f; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px 20px; -fx-border-radius: 5px;"/>
+
+            <VBox fx:id="questionCardContainer"/>
+
+        </VBox>
+    </center>
+
+</BorderPane>

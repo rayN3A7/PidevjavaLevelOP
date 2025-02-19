@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.Controllers.Produit.ShopController"
+            style="-fx-background: #091221; -fx-background-color: #091221;"
+            fitToWidth="true">
+    
+    <VBox spacing="30" style="-fx-background-color: #091221; -fx-padding: 30;">
+        <!-- Header Section -->
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <Label text="LevelOp Magasin" style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;"/>
+            <Label text="voici nos produits exclusive" style="-fx-text-fill: #fe0369; -fx-font-size: 18px;"/>
+        </HBox>
+        
+        <!-- Product Grid -->
+        <ScrollPane style="-fx-background: transparent; -fx-background-color: transparent;" fitToWidth="true">
+            <GridPane fx:id="productGrid" hgap="20" vgap="20" style="-fx-background-color: transparent;">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+            </GridPane>
+        </ScrollPane>
+    </VBox>
+</ScrollPane>
