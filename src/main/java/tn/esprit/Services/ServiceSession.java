@@ -13,9 +13,7 @@ public class ServiceSession implements IService<Session_game> {
     private Connection cnx;
 
     public ServiceSession() {
-        cnx = MyDatabase.getInstance().getCnx();
-    }
-
+        cnx = MyDatabase.getInstance().getCnx();}
     @Override
     public void add(Session_game sessiongame) {
         String qry = "INSERT INTO `session_game`(`prix`, `date_creation`, `duree_session`, `game`, `coach_id`) VALUES (?,?,?,?,?)";
@@ -89,6 +87,92 @@ public class ServiceSession implements IService<Session_game> {
             System.out.println(e.getMessage());
         }
     }
+
+    public boolean isSessionAvailable(int sessionId, Date date) {
+        String qry = "SELECT * FROM session_game WHERE id = ? AND date_creation <= ? AND DATE_ADD(date_creation, INTERVAL duree_session MINUTE) >= ?";
+        try {
+            PreparedStatement pstm = cnx.prepareStatement(qry);
+            pstm.setInt(1, sessionId);
+            pstm.setTimestamp(2, new Timestamp(date.getTime()));
+            pstm.setTimestamp(3, new Timestamp(date.getTime()));
+
+            ResultSet rs = pstm.executeQuery();
+            return !rs.next(); // Retourne true si la session est disponible
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la vérification de la disponibilité de la session : " + e.getMessage());
+        }
+        return false;
+    }
+    // Rechercher une session par son ID
+    public Session_game getSessionById(int id) {
+        String qry = "SELECT * FROM `session_game` WHERE `id` = ?";
+        try (PreparedStatement pstm = cnx.prepareStatement(qry)) {
+            pstm.setInt(1, id);
+            ResultSet rs = pstm.executeQuery();
+            if (rs.next()) {
+                return new Session_game(
+                        rs.getInt("id"),
+                        rs.getDouble("prix"),
+                        rs.getDate("date_creation"),
+                        rs.getString("duree_session"),
+                        rs.getString("game"),
+                        rs.getInt("coach_id")
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la récupération de la session : " + e.getMessage());
+        }
+        return null; // Retourne null si aucune session n'est trouvée
+    }
+
+    // Rechercher des sessions en promo (prix inférieur à 60)
+    public List<Session_game> getSessionsInPromo() {
+        List<Session_game> promoSessions = new ArrayList<>();
+        String qry = "SELECT * FROM `session_game` WHERE `prix` < 60";
+        try (Statement stm = cnx.createStatement()) {
+            ResultSet rs = stm.executeQuery(qry);
+            while (rs.next()) {
+                promoSessions.add(new Session_game(
+                        rs.getInt("id"),
+                        rs.getDouble("prix"),
+                        rs.getDate("date_creation"),
+                        rs.getString("duree_session"),
+                        rs.getString("game"),
+                        rs.getInt("coach_id")
+                ));
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la récupération des sessions en promotion : " + e.getMessage());
+        }
+        return promoSessions; // Retourne la liste des sessions en promo
+    }
+    // Rechercher les sessions par ID de coach
+    public List<Session_game> getSessionsByCoachId(int coachId) {
+        List<Session_game> sessions = new ArrayList<>();
+        String qry = "SELECT * FROM `session_game` WHERE `coach_id` = ?";
+        try (PreparedStatement pstm = cnx.prepareStatement(qry)) {
+            pstm.setInt(1, coachId);
+            ResultSet rs = pstm.executeQuery();
+            while (rs.next()) {
+                sessions.add(new Session_game(
+                        rs.getInt("id"),
+                        rs.getDouble("prix"),
+                        rs.getDate("date_creation"),
+                        rs.getString("duree_session"),
+                        rs.getString("game"),
+                        rs.getInt("coach_id")
+                ));
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la récupération des sessions du coach : " + e.getMessage());
+        }
+        return sessions;
+
+    }
+
+
+
+
 
     @Override
     public Session_game getOne(int id) {

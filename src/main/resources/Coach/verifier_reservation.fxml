@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="759.0" prefWidth="1010.0" style="-fx-background-color: linear-gradient(to bottom, #091221, #0236a5);" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Coach.VerifierReservationController">
+
+    <!-- Top: Barre de navigation -->
+    <top>
+        <fx:include source="../forumUI/navbar.fxml" />
+    </top>
+
+    <!-- Center: Contenu principal -->
+    <center>
+        <VBox alignment="CENTER" spacing="30" style="-fx-padding: 30px;">
+            <!-- Section pour Vérification de Réservation -->
+            <VBox alignment="CENTER" prefHeight="298.0" prefWidth="963.0" spacing="20" style="-fx-padding: 25px; -fx-background-color: rgba(5,133,230,0.85); -fx-background-radius: 20px; -fx-border-radius: 20px; -fx-effect: dropshadow(gaussian, rgba(2,54,165,0.7), 15, 0.6, 0, 6);">
+                <Label style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: white;" text="Vérifier la disponibilité d'une Session" />
+
+                <!-- Grille de sélection de session -->
+                <GridPane hgap="12" prefHeight="60.0" prefWidth="904.0" vgap="15">
+                    <Label style="-fx-font-size: 16px; -fx-text-fill: white;" text="Session:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <ComboBox fx:id="sessionComboBox" promptText="Sélectionner une session" style="-fx-pref-width: 220px; -fx-font-size: 14px; -fx-background-color: white; -fx-border-radius: 8px;" visibleRowCount="5" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+
+                    <columnConstraints>
+                        <ColumnConstraints />
+                        <ColumnConstraints />
+                        <ColumnConstraints />
+                    </columnConstraints>
+
+                    <rowConstraints>
+                        <RowConstraints />
+                        <RowConstraints />
+                        <RowConstraints />
+                    </rowConstraints>
+                </GridPane>
+
+                <!-- Bouton de vérification -->
+                <Button mnemonicParsing="false" onAction="#handleVerifierReservation" prefHeight="46.0" prefWidth="151.0" style="-fx-background-color: linear-gradient(to right, #fe0369, #ff6699); -fx-text-fill: white; -fx-font-size: 16px; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.4, 0, 4);" text="Vérifier" />
+            </VBox>
+
+            <!-- Boutons supplémentaires -->
+            <VBox alignment="CENTER" spacing="15">
+                <Button onAction="#hazem" style="-fx-background-color: linear-gradient(to right, #2980B9, #6DD5FA); -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 12px; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.4, 0, 4);" text="Faire Réservation" />
+                <Button onAction="#mmmm" style="-fx-background-color: linear-gradient(to right, #2980B9, #6DD5FA); -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 12px; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.4, 0, 4);" text="Choisir Session par Coach" />
+            </VBox>
+        </VBox>
+    </center>
+
+</BorderPane>

@@ -31,7 +31,7 @@ public class NavbarController implements Initializable {
             System.out.println("Forum button clicked!"); // Debugging
             navigateTo("forumUI/Forum");
         });
-        coachingButton.setOnAction(event -> navigateTo("Coaching"));
+        coachingButton.setOnAction(event -> navigateTo("Coach/search_session"));
         loginButton.setOnAction(event -> navigateTo("Login"));
     }
 
