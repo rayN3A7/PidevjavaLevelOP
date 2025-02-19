@@ -37,4 +37,10 @@
             </VBox>
         </ScrollPane>
     </center>
+    <bottom>
+        <VBox alignment="center" spacing="10" style="-fx-padding: 20px; -fx-alignment: center;">
+            <Button text="Retour au Forum" onAction="#goToForumPage" styleClass="action-button"/>
+        </VBox>
+    </bottom>
+
 </BorderPane>

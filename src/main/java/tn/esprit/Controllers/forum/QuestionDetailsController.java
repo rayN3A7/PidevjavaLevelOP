@@ -1,5 +1,9 @@
 package tn.esprit.Controllers.forum;
 
+import javafx.event.ActionEvent;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import tn.esprit.Models.Commentaire;
 import tn.esprit.Models.Question;
 import tn.esprit.Models.Role;
@@ -13,6 +17,8 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,8 +37,9 @@ public class QuestionDetailsController {
     private VBox commentContainer;
 
     private Question currentQuestion;
+   private UtilisateurService us =new UtilisateurService();
     private CommentaireService commentaireService = new CommentaireService();
-
+private int userId = SessionManager.getInstance().getUserId();
 
     @FXML
     public void loadQuestionDetails(Question question) {
@@ -78,8 +85,8 @@ public class QuestionDetailsController {
 
     @FXML
     public void postComment() {
-        Utilisateur utilisateur = new Utilisateur(2, "yami", "sellami", "hsouna@gmail.com", "Yamimato", 1256969, "hsouna@1235", Role.COACH);
-
+       // Utilisateur utilisateur = new Utilisateur(2, "yami", "sellami", "hsouna@gmail.com", "Yamimato", 1256969, "hsouna@1235", Role.COACH);
+        Utilisateur utilisateur = us.getOne(userId);
         if (utilisateur == null) {
             System.out.println("User is not logged in. Please log in first.");
             return;
@@ -186,6 +193,18 @@ public class QuestionDetailsController {
 
         alert.showAndWait();
     }
+    @FXML
+    private void goToForumPage(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/Forum.fxml"));
+            Parent forumView = loader.load();
 
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(new Scene(forumView));
+            stage.show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 }

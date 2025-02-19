@@ -127,3 +127,14 @@
 .scroll-pane .viewport {
     -fx-background-color: transparent;
 }
+.back-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-padding: 5px 10px;
+    -fx-border-color: transparent;
+}
+
+.back-button:hover {
+    -fx-text-fill: #ff007f;
+}

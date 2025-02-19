@@ -17,6 +17,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import tn.esprit.Models.Role;
+import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.SessionManager;
 
 import java.net.URL;
 import java.sql.Timestamp;
@@ -34,7 +36,8 @@ public class AddQuestionController implements Initializable {
     private VBox questionCardContainer;
     @FXML
     private ComboBox<String> gameComboBox; // Dropdown for selecting games
-
+    private UtilisateurService us =new UtilisateurService();
+    private int userId = SessionManager.getInstance().getUserId();
     private GamesService gamesService = new GamesService();
     private QuestionService questionService = new QuestionService();
 
@@ -72,8 +75,10 @@ public class AddQuestionController implements Initializable {
                 return;
             }
 
-            Utilisateur user = new Utilisateur(2, "yami", "sellami", "hsouna@gmail.com", "Yamimato", 1256969, "hsouna@1235", Role.COACH);
-            Question question = new Question(title, content, selectedGameObj, user, 0, new Timestamp(System.currentTimeMillis()));
+        Utilisateur utilisateur = us.getOne(userId);
+
+        // Utilisateur user = new Utilisateur(2, "yami", "sellami", "hsouna@gmail.com", "Yamimato", 1256969, "hsouna@1235", Role.COACH);
+            Question question = new Question(title, content, selectedGameObj, utilisateur, 0, new Timestamp(System.currentTimeMillis()));
 
             // Debug print
             System.out.println("Creating Question: " + question.getTitle() + " | " + question.getContent());
@@ -90,10 +95,9 @@ public class AddQuestionController implements Initializable {
         }
 
 
-
     private void navigateToForumPage(Question question) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/resources/forumUI/Forum.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/Forum.fxml"));
             Parent root = loader.load();
 
             ForumController forumController = loader.getController();
