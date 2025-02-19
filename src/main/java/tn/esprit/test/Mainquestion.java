@@ -18,6 +18,7 @@ public class Mainquestion {
         System.out.println("Question après upvote : " + questionService.getOne(question.getQuestion_id()));
 */
 
+
         question.setTitle("jdid yjaded");
         question.setContent("jdid yjaded");
         questionService.update(question);
