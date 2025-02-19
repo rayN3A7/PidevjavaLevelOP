@@ -1,4 +1,4 @@
-package tn.esprit.Controllers;
+package tn.esprit.Controllers.Utilisateur;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -8,14 +8,12 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.stage.Stage;
-import tn.esprit.Models.Role;
-import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.UtilisateurService;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
 
-import static tn.esprit.Controllers.PswSenderController.emailsta;
+import static tn.esprit.Controllers.Utilisateur.PswSenderController.emailsta;
 
 public class ReinitialiserPwController {
 

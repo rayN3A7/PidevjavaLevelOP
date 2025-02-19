@@ -1,4 +1,4 @@
-package tn.esprit.Controllers;
+package tn.esprit.Controllers.Utilisateur;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -6,10 +6,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.UtilisateurService;
-import tn.esprit.utils.SessionManager;
-import org.mindrot.jbcrypt.BCrypt;
+
 import java.io.IOException;
 
 public class LoginController {

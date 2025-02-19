@@ -1,4 +1,4 @@
-package tn.esprit.Controllers;
+package tn.esprit.Controllers.Utilisateur;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
