@@ -1,5 +1,7 @@
 package tn.esprit.Controllers.forum;
 
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import tn.esprit.Models.Games;
 import tn.esprit.Models.Question;
 import tn.esprit.Services.GamesService;
@@ -114,10 +116,25 @@ public class UpdateQuestionController implements Initializable {
     }
 
     private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toExternalForm()));
+        icon.setFitHeight(60);
+        icon.setFitWidth(80);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toString()));
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
         alert.showAndWait();
     }
 }

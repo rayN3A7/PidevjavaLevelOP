@@ -1,4 +1,0 @@
-3
-CLIENT
-hazem@gmail.com
-true

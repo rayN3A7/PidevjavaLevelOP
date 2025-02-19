@@ -51,6 +51,10 @@ public class AjouterEvenementController {
         String lieu_event = LieuEvent.getText();
         int max_places_event = Integer.parseInt(NBPEvent.getText());
         Date date = Date.valueOf(DateEvent.getValue());
+            if (date.before(new Date(System.currentTimeMillis()))) {
+                showAlert(Alert.AlertType.ERROR, "Erreur", "La date de l'événement doit être dans le futur.");
+                return;
+            }
         String categorie_event = CatEvent.getValue();
         int categorie_id = ces.getIdCategorieEvent(categorie_event);
         Evenement evenement = new Evenement(categorie_id,max_places_event,nom_event,lieu_event,date);
