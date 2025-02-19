@@ -16,18 +16,18 @@ public class Main {
 
 
         Utilisateur u1 =new Coach(
-                "luffy@gmail.com",
+                "adouani.feres@esprit.tn",
                 "luffy@1235",
-                "mugiwara",
-                "luffy",
+                "fer",
+                "feres",
                 69696969,
-                ".D",
+                "adoui",
                 Role.CLIENT);
 
-        //us.add(u1);
+        //us.delete(u1);
 
        // System.out.println(us.getByEmail("luffy@gmail.com"));
-        System.out.println(us.loginUser("luffy@gmail.com","dfkbizq6526é4^|@ZA",false));
+       // System.out.println(us.loginUser("luffy@gmail.com","dfkbizq6526é4^|@ZA",false));
        // System.out.println(SessionManager.getInstance().isLoggedIn());
         //System.out.println(us.nicknameExists("yamimato"));
        // EmailService emailService = new EmailService();

@@ -31,6 +31,9 @@ public class LoginController {
     private TextField txtUseName;
 
     @FXML
+    private Button btnRegister;
+
+    @FXML
     private Label lblError;
 
     private final UtilisateurService userService = new UtilisateurService(); // Service pour gérer les utilisateurs
@@ -38,7 +41,7 @@ public class LoginController {
 
     @FXML
     private void initialize() {
-
+        btnRegister.setOnAction(event -> navigateToRegister());
         lblOblier.setOnAction(event -> navigateToGetmpPage());
     }
 
@@ -78,6 +81,18 @@ public class LoginController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/gestion Utilisateur/MotPasseOublier/pswOublier.fxml"));
             Stage stage = (Stage) lblOblier.getScene().getWindow();
+            stage.setScene(new Scene(loader.load()));
+            stage.show();
+        } catch (IOException e) {
+            lblError.setText("Impossible de charger la page d'accueil.");
+            e.printStackTrace();
+        }
+    }
+
+    private void navigateToRegister() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/gestion Utilisateur/Register/Register.fxml"));
+            Stage stage = (Stage) btnRegister.getScene().getWindow();
             stage.setScene(new Scene(loader.load()));
             stage.show();
         } catch (IOException e) {

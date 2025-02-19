@@ -70,6 +70,7 @@
                      </VBox.margin>
                   </Button>
                   <Label fx:id="lblError" styleClass="error-label" textFill="#eb0707" />
+                  <Button fx:id="btnRegister" styleClass="link-button" text="Cree un compte" />
                   <Button fx:id="lblOblier" styleClass="link-button" text="Mot de passe oublié" />
                </children>
                <padding>
