@@ -224,6 +224,26 @@ public class UtilisateurService implements IService<Utilisateur> {
         return false;
     }
 
+    private String nickname;
+
+    public boolean nicknameExists(String nickname) {
+        String query = "SELECT COUNT(*) FROM utilisateur WHERE nickname = ?";
+
+        try {
+            PreparedStatement stmt = cnx.prepareStatement(query);
+            stmt.setString(1, nickname);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la vérification du nickname : " + e.getMessage());
+        }
+
+        return false;
+    }
+
     public Utilisateur getOne(int id) {
         String query = "SELECT * FROM Utilisateur WHERE id = ?";
         try (PreparedStatement ps = cnx.prepareStatement(query)) {
@@ -256,6 +276,26 @@ public class UtilisateurService implements IService<Utilisateur> {
         }
         return false;
     }
+
+    public void updatePassword(String email, String newPassword) {
+        String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt()); // Hash the password
+        String query = "UPDATE utilisateur SET mot_passe = ? WHERE email = ?";
+
+        try (PreparedStatement stmt = cnx.prepareStatement(query)) {
+            stmt.setString(1, hashedPassword); // Set the hashed password
+            stmt.setString(2, email);
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("Mot de passe mis à jour avec succès !");
+            } else {
+                System.out.println("Aucun utilisateur trouvé avec cet email.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la mise à jour du mot de passe : " + e.getMessage());
+        }
+    }
+
 
 
 

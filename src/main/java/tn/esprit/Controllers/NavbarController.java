@@ -6,8 +6,12 @@ import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import tn.esprit.Models.Utilisateur;
+import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
 import java.net.URL;
@@ -18,21 +22,43 @@ public class NavbarController implements Initializable {
     @FXML
     private HBox navButtons;
     @FXML
-    private Button homeButton, eventButton, shopButton, forumButton, coachingButton, loginButton;
+    private Button homeButton, eventButton, shopButton, forumButton, coachingButton, loginButton,logoutButton;
+    @FXML
+    private Label nicknameLabel;
 
     private ForumController forumController; // ForumController to be injected
-
+    Boolean isAuthentifier = SessionManager.getInstance().isLoggedIn();
+    private UtilisateurService us = new UtilisateurService();
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        homeButton.setOnAction(event -> navigateTo("Home"));
-        eventButton.setOnAction(event -> navigateTo("Event"));
-        shopButton.setOnAction(event -> navigateTo("Shop"));
-        forumButton.setOnAction(event -> {
-            System.out.println("Forum button clicked!"); // Debugging
-            navigateTo("Forum");
-        });
-        coachingButton.setOnAction(event -> navigateTo("Coaching"));
-        loginButton.setOnAction(event -> navigateTo("Login"));
+        if(isAuthentifier) {
+            homeButton.setOnAction(event -> navigateTo("Home"));
+            eventButton.setOnAction(event -> navigateTo("Evenement/ListEvenement"));
+            shopButton.setOnAction(event -> navigateTo("Shop"));
+            forumButton.setOnAction(event -> {
+                System.out.println("Forum button clicked!");
+                navigateTo("Forum");
+            });
+            coachingButton.setOnAction(event -> navigateTo("Coaching"));
+            loginButton.setVisible(false);
+            int userId = SessionManager.getInstance().getUserId();
+            Utilisateur u1 = us.getOne(userId);
+            nicknameLabel.setText(u1.getNickname());
+            nicknameLabel.setVisible(true);
+            logoutButton.setVisible(true);
+            logoutButton.setOnAction(event -> {
+                SessionManager.getInstance().logout();
+                navigateTo("Home");
+            });
+        }else {
+            // Afficher uniquement le bouton Login
+            loginButton.setVisible(true);
+            loginButton.setOnAction(event -> navigateTo("gestion Utilisateur/Login/login"));
+
+
+            nicknameLabel.setVisible(false);
+            logoutButton.setVisible(false);
+        }
     }
 
     public void setForumController(ForumController forumController) {

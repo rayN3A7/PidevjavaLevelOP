@@ -1,0 +1,145 @@
+.root {
+    -fx-background-image: url("../../assets/image/omen.jpg");
+    -fx-background-size: cover;
+    -fx-background-position: center;
+}
+.root2 {
+
+    -fx-background-size: cover;
+    -fx-background-position: center;
+}
+.overlay {
+    -fx-background-color: #0585e6; /* Remplacez par la valeur hexadécimale de votre couleur */
+    -fx-opacity: 0.2; /* Ajustez l'opacité si nécessaire */
+}
+
+.login-form-container {
+    -fx-min-width: 400px;
+    -fx-max-width: 500px;
+    -fx-pref-width: 40%;
+}
+
+.login-pane {
+    -fx-background-color: rgba(17, 17, 17, 0.8);
+    -fx-background-radius: 20;
+    -fx-min-width: 350px;
+    -fx-max-width: 450px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 5);
+}
+
+.welcome-text {
+    -fx-font-size: 70px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0, 0, 0);
+}
+
+/* Login title */
+.label-title {
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.subtitle {
+    -fx-text-fill: #8692a6;
+    -fx-font-size: 16px;
+}
+
+/* Text fields */
+.text-field, .password-field {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-border-color: white;
+    -fx-border-radius: 5px;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: #8692a6;
+    -fx-padding: 12px;
+    -fx-font-size: 14px;
+}
+
+/* "Remember me" checkbox */
+.check-box {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+}
+
+.check-box .box {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-border-color: white;
+}
+
+/* Login button */
+.login-button {
+    -fx-background-color: linear-gradient(to right, #4776E6, #8E54E9);
+    -fx-text-fill: white;
+
+    -fx-background-radius: 5;
+    -fx-padding: 12px;
+    -fx-cursor: hand;
+}
+
+.login-button:hover {
+    -fx-opacity: 0.9;
+}
+
+/* Forgot password link */
+.hyperlink {
+    -fx-text-fill: white;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+.error-label {
+    -fx-text-fill: #ff4444;
+    -fx-font-size: 12px;
+    -fx-alignment: center;
+    -fx-wrap-text: true;
+    -fx-max-width: 250px;
+}
+
+/* Social login buttons */
+.social-icons {
+    -fx-padding: 10px;
+    -fx-alignment: center;
+}
+
+/* Footer links */
+.footer {
+    -fx-text-fill: lightgray;
+    -fx-font-size: 10px;
+}
+.link-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #3498db;
+    -fx-font-size: 14px;
+    -fx-underline: true;
+    -fx-border-width: 0;
+    -fx-padding: 5px;
+}
+.link-button:hover {
+    -fx-text-fill: #1f77c1;
+}
+
+
+/* Media queries for different screen sizes */
+@media (max-width: 800px) {
+    .welcome-text {
+        -fx-font-size: 60px;
+    }
+    
+    .login-form-container {
+        -fx-pref-width: 50%;
+    }
+}
+
+@media (max-width: 600px) {
+    .welcome-text {
+        -fx-font-size: 40px;
+    }
+    
+    .login-form-container {
+        -fx-pref-width: 100%;
+    }
+    
+    .login-pane {
+        -fx-min-width: 300px;
+    }
+}

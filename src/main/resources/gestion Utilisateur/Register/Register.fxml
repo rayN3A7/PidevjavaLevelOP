@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<?import javafx.scene.control.PasswordField?>
+<AnchorPane prefHeight="600.0" prefWidth="1080.0" stylesheets="@register.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.RegisterController">
+   <children>
+      <Pane styleClass="root" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <Pane styleClass="overlay" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+
+      <Label styleClass="welcome-text" text="Créez votre compte" textFill="WHITE" AnchorPane.leftAnchor="50.0" AnchorPane.topAnchor="120.0">
+         <font>
+            <Font size="40.0" />
+         </font>
+      </Label>
+
+      <AnchorPane styleClass="login-form-container" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="700.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <children>
+            <VBox layoutX="30.0" layoutY="10.0" maxWidth="350.0" spacing="5.0" styleClass="login-pane" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="10.0">
+               <children>
+                  <Label styleClass="label-title" text="Inscription">
+                     <font>
+                        <Font size="20.0" />
+                     </font>
+                     <VBox.margin>
+                        <Insets bottom="5.0" />
+                     </VBox.margin>
+                  </Label>
+
+                  <Label styleClass="subtitle" text="Remplissez les informations ci-dessous">
+                     <VBox.margin>
+                        <Insets bottom="10.0" />
+                     </VBox.margin>
+                  </Label>
+
+                  <TextField fx:id="txtNom" maxWidth="280.0" promptText="Nom" styleClass="text-field" />
+                  <Label fx:id="lblNomError" styleClass="error-label" textFill="#eb0707" />
+
+                  <TextField fx:id="txtPrenom" maxWidth="280.0" promptText="Prénom" styleClass="text-field" />
+                  <Label fx:id="lblPrenomError" styleClass="error-label" textFill="#eb0707" />
+
+                  <TextField fx:id="txtEmail" maxWidth="280.0" promptText="Email" styleClass="text-field" />
+                  <Label fx:id="lblEmailError" styleClass="error-label" textFill="#eb0707" />
+
+                  <TextField fx:id="txtUsername" maxWidth="280.0" promptText="Nom d'utilisateur" styleClass="text-field" />
+                  <Label fx:id="lblUsernameError" styleClass="error-label" textFill="#eb0707" />
+
+                  <TextField fx:id="txtNumero" maxWidth="280.0" promptText="Numéro" styleClass="text-field" />
+                  <Label fx:id="lblNumeroError" styleClass="error-label" textFill="#eb0707" />
+
+                  <PasswordField fx:id="txtPassword" accessibleRole="PASSWORD_FIELD" maxWidth="280.0" promptText="Mot de passe" styleClass="password-field" />
+                  <Label fx:id="lblPasswordError" styleClass="error-label" textFill="#eb0707" />
+
+                  <PasswordField fx:id="txtConfirmPassword" accessibleRole="PASSWORD_FIELD" maxWidth="280.0" promptText="Confirmez le mot de passe" styleClass="password-field">
+                     <VBox.margin>
+                        <Insets bottom="5.0" />
+                     </VBox.margin></PasswordField>
+
+                  <Button fx:id="btnRegister" maxWidth="280.0" mnemonicParsing="false" styleClass="login-button" text="S'inscrire">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                  </Button>
+
+                  <Button fx:id="btnGoToLogin" text="Déjà enregistré ?" styleClass="link-button" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="30.0" />
+
+               </children>
+               <padding>
+                  <Insets bottom="15.0" left="20.0" right="20.0" top="20.0" />
+               </padding>
+            </VBox>
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>
