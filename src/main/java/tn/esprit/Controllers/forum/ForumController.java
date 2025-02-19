@@ -28,7 +28,7 @@ public class ForumController implements Initializable {
     private Button addQuestionButton;
     @FXML
     private TextField searchField;
-    private NavbarController navbarController; //
+    private NavbarController navbarController;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -44,7 +44,7 @@ public class ForumController implements Initializable {
     private void handleSearchEnter(KeyEvent event) {
         if (event.getCode().toString().equals("ENTER")) {
             String gameName = searchField.getText().trim();
-            filterQuestionsByGameName(gameName); // Trigger search when Enter is pressed
+            filterQuestionsByGameName(gameName);
         }
     }
 
@@ -75,7 +75,6 @@ public class ForumController implements Initializable {
         });
     }
 
-
     public void addQuestionCard(Question question) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/QuestionCard.fxml"));
@@ -89,7 +88,6 @@ public class ForumController implements Initializable {
             e.printStackTrace();
         }
     }
-
 
     public void handleUpvote(Question question, Label votesLabel, Button downvoteButton) {
         questionService.upvoteQuestion(question.getQuestion_id());
@@ -114,12 +112,10 @@ public class ForumController implements Initializable {
 
             Platform.runLater(() -> {
                 votesLabel.setText("Votes: " + updatedVotes);
-
                 downvoteButton.setDisable(updatedVotes == 0);
             });
         }
     }
-
 
     public void updateQuestion(Question question) {
         try {
@@ -153,12 +149,11 @@ public class ForumController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/QuestionForm.fxml"));
             Parent root = loader.load();
             Stage stage = (Stage) questionCardContainer.getScene().getWindow();
-            Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight()); // Use the same width/height as the original window
+            Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
             stage.setScene(newScene);
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 }

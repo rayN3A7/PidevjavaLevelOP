@@ -22,14 +22,10 @@ public class AddGameController {
             showAlert("Erreur", "Le nom du jeu ne peut pas être vide.");
             return;
         }
-
-        // Create the Games object
         Games newGame = new Games();
         newGame.setGame_name(gameName);
 
-
-            // Add the new game object to the database
-            gamesService.add(newGame);
+         gamesService.add(newGame);
             showAlert("Succès", "Jeu ajouté avec succès !");
             gameNameField.clear();
 

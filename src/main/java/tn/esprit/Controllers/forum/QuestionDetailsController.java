@@ -32,7 +32,7 @@ public class QuestionDetailsController {
     @FXML
     private Label questionVotes;
     @FXML
-    private TextField commentInput; // Updated reference for the comment input
+    private TextField commentInput;
     @FXML
     private VBox commentContainer;
 
@@ -54,10 +54,9 @@ private int userId = SessionManager.getInstance().getUserId();
     @FXML
     private void loadComments() {
         commentContainer.getChildren().clear();
-        // Load all comments for the current question
         List<Commentaire> comments = commentaireService.getAll();
         for (Commentaire comment : comments) {
-            // Check if comment.getQuestion() is not null before accessing its question_id
+
             if (comment.getQuestion() != null && comment.getQuestion().getQuestion_id() == currentQuestion.getQuestion_id()) {
                 createCommentCard(comment);
             }
@@ -70,18 +69,14 @@ private int userId = SessionManager.getInstance().getUserId();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/CommentCard.fxml"));
             VBox commentCard = loader.load();
 
-            // Get the controller of the comment card and initialize it
             CommentCardController commentCardController = loader.getController();
             commentCardController.init(comment, this);
 
-            // Add the comment card to the container (VBox)
             commentContainer.getChildren().add(commentCard);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
-
 
     @FXML
     public void postComment() {
@@ -92,30 +87,25 @@ private int userId = SessionManager.getInstance().getUserId();
             return;
         }
 
-        String commentText = commentInput.getText(); // Use the correct reference here
+        String commentText = commentInput.getText();
 
         if (commentText == null || commentText.trim().isEmpty()) {
             showAlert("Erreur", "vous ne pouvez pas ajouter un commentaire vide.");
             return;
         }
 
-        // Create a new Commentaire object
         Commentaire commentaire = new Commentaire();
         commentaire.setContenu(commentText);
-        commentaire.setUtilisateur(utilisateur); // Set the logged-in user
+        commentaire.setUtilisateur(utilisateur);
         commentaire.setCreation_at(new java.sql.Timestamp(System.currentTimeMillis())); // Set current timestamp
 
-        // Set the current question (you can adjust this logic to suit your actual code)
         commentaire.setQuestion(currentQuestion);
 
-        // Call the service to add the comment
         commentaireService.add(commentaire);
         System.out.println("Comment added successfully!");
 
-        // After adding the comment to the database, add it to the UI
         createCommentCard(commentaire);
 
-        // Clear the input field
         commentInput.clear();
         loadComments();
 
@@ -129,14 +119,11 @@ private int userId = SessionManager.getInstance().getUserId();
         Platform.runLater(() -> {
             votesLabel.setText("Votes: " + updatedVotes);
 
-            // Reactivate downvote button if votes > 0
             if (updatedVotes > 0) {
                 downvoteButton.setDisable(false);
             }
         });
     }
-
-
 
     public void handleDownvoteC(Commentaire commentaire, Label votesLabel, Button downvoteButton) {
         if (commentaire.getVotes() > 0) {
@@ -162,14 +149,6 @@ private int userId = SessionManager.getInstance().getUserId();
     public void refreshQuestions() {
         loadComments();
     }
-    /*private Utilisateur getCurrentUser() {
-        int userId = SessionManager.getInstance().getUserId();
-        if (userId == -1) {
-            return null;
-        }
-        UtilisateurService utilisateurService = new UtilisateurService();
-        return utilisateurService.getOne(userId);
-    }*/
 
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.NONE);

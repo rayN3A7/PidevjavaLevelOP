@@ -26,7 +26,7 @@ public class NavbarController implements Initializable {
     @FXML
     private Label nicknameLabel;
 
-    private ForumController forumController; // ForumController to be injected
+    private ForumController forumController;
     Boolean isAuthentifier = SessionManager.getInstance().isLoggedIn();
     private UtilisateurService us = new UtilisateurService();
     @Override
@@ -51,7 +51,6 @@ public class NavbarController implements Initializable {
                 navigateTo("Home");
             });
         }else {
-            // Afficher uniquement le bouton Login
             loginButton.setVisible(true);
         loginButton.setOnAction(event -> navigateTo("gestion Utilisateur/Login/Login"));
 
@@ -66,17 +65,15 @@ public class NavbarController implements Initializable {
 
     private void navigateTo(String page) {
         try {
-            System.out.println("Navigating to: " + page); // Debugging
+            System.out.println("Navigating to: " + page);
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/" + page + ".fxml"));
             Parent root = loader.load();
 
-            // Inject ForumController into NavbarController if needed
             if (page.equals("Forum") && forumController != null) {
-                forumController.refreshQuestions(); // Ensure it refreshes if coming from another page
+                forumController.refreshQuestions();
             }
 
-            // Get the current stage (main window)
             Stage stage = (Stage) forumButton.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
