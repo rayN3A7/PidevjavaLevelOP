@@ -24,7 +24,6 @@
         </HBox>
     </VBox>
 
-    <!-- Right-aligned Game Icon & Name -->
     <VBox alignment="CENTER_RIGHT" spacing="5">
         <ImageView fx:id="gameIcon" preserveRatio="true" />
         <Label fx:id="gameNameLabel" styleClass="game-name"/>

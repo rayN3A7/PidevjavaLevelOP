@@ -23,9 +23,9 @@ public class UpdateQuestionController implements Initializable {
     @FXML
     private TextField titleField;
     @FXML
-    private TextArea contentField;  // Ensure this matches the fx:id in FXML
+    private TextArea contentField;
     @FXML
-    private Button updateButton;  // Add the @FXML annotation here
+    private Button updateButton;
     @FXML
     private ComboBox<String> gameComboBox;
 
@@ -39,7 +39,6 @@ public class UpdateQuestionController implements Initializable {
         loadGames();
     }
 
-    // Load question data into the form fields
     public void loadQuestionData(Question question) {
         currentQuestion = question;
         titleField.setText(question.getTitle());
@@ -82,12 +81,10 @@ public class UpdateQuestionController implements Initializable {
                 return;
             }
 
-            // Update the question with the new data
             currentQuestion.setTitle(title);
             currentQuestion.setContent(content);
             currentQuestion.setGame(selectedGameObj);
 
-            // Update the question in the database
             questionService.update(currentQuestion);
 
             showAlert("Succès", "Question mise à jour avec succès !");
@@ -101,12 +98,9 @@ public class UpdateQuestionController implements Initializable {
             Parent root = loader.load();
 
             ForumController forumController = loader.getController();
-            forumController.refreshQuestions(); // Refresh the UI
 
-            // Get the current stage (main window)
             Stage stage = (Stage) updateButton.getScene().getWindow();
 
-            // Set the same size for the new scene
             Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
             stage.setScene(newScene);
             stage.show();

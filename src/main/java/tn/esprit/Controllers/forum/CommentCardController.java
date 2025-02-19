@@ -40,29 +40,21 @@ public class CommentCardController {
         commentAuthor.setText(commentaire.getUtilisateur().getNickname());
         commentContent.setText(commentaire.getContenu());
 
-        // Handle upvote and downvote actions
         upvoteButton.setOnAction(e -> questionDetailsController.handleUpvoteC(commentaire, votesLabel, downvoteButton));
         downvoteButton.setOnAction(e -> questionDetailsController.handleDownvoteC(commentaire, votesLabel, downvoteButton));
-
-        // Handle delete and update actions
         deleteButton.setOnAction(e -> questionDetailsController.deleteComment(commentaire));
 
-        // Initially hide the edit field and save/cancel buttons
         editCommentField.setVisible(false);
         editButtonsBox.setVisible(false);
 
-        // Set up button actions
         updateButton.setOnAction(event -> enableEditMode());
         saveButton.setOnAction(event -> saveUpdatedComment());
     }
 
     private void enableEditMode() {
-        // Show the text field with current comment text
         editCommentField.setText(commentaire.getContenu());
         editCommentField.setVisible(true);
         editButtonsBox.setVisible(true);
-
-        // Hide the label and update button
         commentContent.setVisible(false);
         updateButton.setVisible(false);
     }
@@ -74,13 +66,8 @@ public class CommentCardController {
             return;
         }
 
-        // Update comment object
         commentaire.setContenu(updatedContent);
-
-        // Update in database
         commentaireService.update(commentaire);
-
-        // Refresh UI
         commentContent.setText(updatedContent);
         commentContent.setVisible(true);
         updateButton.setVisible(true);

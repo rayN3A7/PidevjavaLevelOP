@@ -51,13 +51,11 @@ public class QuestionCardController {
         upvoteButton.setOnAction(e -> forumController.handleUpvote(question, votesLabel, downvoteButton));
         downvoteButton.setOnAction(e -> forumController.handleDownvote(question, votesLabel, downvoteButton));
 
-        // Disable downvote button if votes are 0
         downvoteButton.setDisable(question.getVotes() == 0);
 
         updateButton.setOnAction(e -> forumController.updateQuestion(question));
         deleteButton.setOnAction(e -> forumController.deleteQuestion(question));
 
-        // Set game icon
         setGameIcon(question.getGame().getGame_name());
     }
 
@@ -75,7 +73,6 @@ public class QuestionCardController {
                 }
                 gameIcon.setImage(image);
 
-                // Custom size per game (adjust as needed)
                 switch (formattedGameName) {
                     case "valorant":
                         gameIcon.setFitWidth(100);
@@ -85,12 +82,12 @@ public class QuestionCardController {
                         gameIcon.setFitWidth(100);
                         gameIcon.setFitHeight(100);
                         break;
-                    case "league_of_legends":  // Ensure this matches the expected file name
+                    case "league_of_legends":
                         gameIcon.setFitWidth(100);
                         gameIcon.setFitHeight(100);
                         break;
                     default:
-                        gameIcon.setFitWidth(100); // Default size
+                        gameIcon.setFitWidth(100);
                         gameIcon.setFitHeight(100);
                         break;
                 }

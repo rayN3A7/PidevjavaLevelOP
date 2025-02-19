@@ -9,29 +9,24 @@
 
 <VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.forum.CommentCardController" spacing="10" styleClass="comment-card">
     <HBox spacing="20" styleClass="comment-card-hbox">
-        <!-- Vote buttons on the left -->
         <VBox spacing="5" styleClass="vote-box">
             <Button text="▲" fx:id="upvoteButton" styleClass="vote-button"/>
             <Button text="▼" fx:id="downvoteButton" styleClass="vote-button"/>
         </VBox>
 
-        <!-- Comment details and actions -->
         <VBox spacing="10" HBox.hgrow="ALWAYS">
             <Label fx:id="commentAuthor" styleClass="comment-author"/>
 
-            <!-- Editable comment content -->
             <Label fx:id="commentContent" styleClass="comment-content"/>
             <TextField fx:id="editCommentField" visible="false" styleClass="edit-comment-field"/>
 
             <Label fx:id="votesLabel" styleClass="votes-label"/>
 
-            <!-- Action buttons -->
             <HBox spacing="10">
                 <Button fx:id="deleteButton" text="Delete" styleClass="action-button"/>
                 <Button fx:id="updateButton" text="Update" styleClass="action-button"/>
             </HBox>
 
-            <!-- Save and cancel buttons for editing -->
             <HBox fx:id="editButtonsBox" spacing="10" visible="false">
                 <Button fx:id="saveButton" text="Save" styleClass="action-button"/>
                 <Button fx:id="cancelButton" text="Cancel" styleClass="action-button"/>

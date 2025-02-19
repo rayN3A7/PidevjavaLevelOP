@@ -35,7 +35,7 @@ public class AddQuestionController implements Initializable {
     @FXML
     private VBox questionCardContainer;
     @FXML
-    private ComboBox<String> gameComboBox; // Dropdown for selecting games
+    private ComboBox<String> gameComboBox;
     private UtilisateurService us =new UtilisateurService();
     private int userId = SessionManager.getInstance().getUserId();
     private GamesService gamesService = new GamesService();
@@ -45,16 +45,13 @@ public class AddQuestionController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         System.out.println("AddQuestionController initialized");
         loadGames();
-
     }
 
     private void loadGames() {
-
-            List<Games> gamesList = gamesService.getAll();
+        List<Games> gamesList = gamesService.getAll();
         gameComboBox.getItems().setAll(
                 gamesService.getAll().stream().map(Games::getGame_name).toList()
         );
-
     }
 
     @FXML
@@ -68,32 +65,24 @@ public class AddQuestionController implements Initializable {
             return;
         }
 
-
-            Games selectedGameObj = gamesService.getByName(selectedGame);
-            if (selectedGameObj == null) {
-                showAlert("Erreur", "Le jeu sélectionné n'existe pas.");
-                return;
-            }
-
+        Games selectedGameObj = gamesService.getByName(selectedGame);
+        if (selectedGameObj == null) {
+            showAlert("Erreur", "Le jeu sélectionné n'existe pas.");
+            return;
+        }
+        // Utilisateur utilisateur = new Utilisateur(2, "yami", "sellami", "hsouna@gmail.com", "Yamimato", 1256969, "hsouna@1235", Role.COACH);
         Utilisateur utilisateur = us.getOne(userId);
+        Question question = new Question(title, content, selectedGameObj, utilisateur, 0, new Timestamp(System.currentTimeMillis()));
 
-        // Utilisateur user = new Utilisateur(2, "yami", "sellami", "hsouna@gmail.com", "Yamimato", 1256969, "hsouna@1235", Role.COACH);
-            Question question = new Question(title, content, selectedGameObj, utilisateur, 0, new Timestamp(System.currentTimeMillis()));
+        System.out.println("Creating Question: " + question.getTitle() + " | " + question.getContent());
 
-            // Debug print
-            System.out.println("Creating Question: " + question.getTitle() + " | " + question.getContent());
-
-            // Add question to the database
-            questionService.add(question);
+        questionService.add(question);
 
         showSuccessAlert("Succès", "Question ajoutée avec succès !");
-            clearForm();
+        clearForm();
 
-            // Refresh forum page
-            navigateToForumPage(question);
-
-        }
-
+        navigateToForumPage(question);
+    }
 
     private void navigateToForumPage(Question question) {
         try {
@@ -101,12 +90,10 @@ public class AddQuestionController implements Initializable {
             Parent root = loader.load();
 
             ForumController forumController = loader.getController();
-            forumController.refreshQuestions(); // Ensure the questions are refreshed
+            forumController.refreshQuestions();
 
-            // Get the current stage (main window)
             Stage stage = (Stage) submitButton.getScene().getWindow();
 
-            // Set the new scene to the stage
             Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
             stage.setScene(newScene);
             stage.show();
@@ -143,6 +130,7 @@ public class AddQuestionController implements Initializable {
 
         alert.showAndWait();
     }
+
     private void showSuccessAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle(title);
@@ -165,13 +153,4 @@ public class AddQuestionController implements Initializable {
 
         alert.showAndWait();
     }
-        /*private Utilisateur getCurrentUser() {
-        int userId = SessionManager.getInstance().getUserId();
-        if (userId == -1) {
-            return null;
-        }
-        UtilisateurService utilisateurService = new UtilisateurService();
-        return utilisateurService.getOne(userId);
-    }*/
-
 }

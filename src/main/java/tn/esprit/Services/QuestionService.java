@@ -80,7 +80,7 @@ public class QuestionService implements IService<Question> {
     }
 
     public void upvoteQuestion(int questionId) {
-        String query = "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ?";
+        String query = "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ? ";
         try (PreparedStatement ps = connexion.prepareStatement(query)) {
             ps.setInt(1, questionId);
             ps.executeUpdate();
