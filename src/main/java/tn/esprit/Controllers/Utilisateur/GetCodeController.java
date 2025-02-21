@@ -28,8 +28,8 @@ public class GetCodeController {
 
     @FXML
     void handleCode(ActionEvent event) {
-        String userEnteredOtp = txtCode.getText().trim(); // Get the OTP entered by the user
-        String generatedOtp = EmailService.getGeneratedOtp(); // Retrieve the generated OTP
+        String userEnteredOtp = txtCode.getText().trim();
+        String generatedOtp = EmailService.getGeneratedOtp();
 
         // Verify the OTP
         if (userEnteredOtp.equals(generatedOtp)) {
@@ -37,8 +37,7 @@ public class GetCodeController {
             lblError.setText("Code correct !");
             lblError.setStyle("-fx-text-fill: green;");
 
-            // Navigate to the next screen (e.g., reset password screen)
-            // You can add navigation logic here
+
         } else {
             lblError.setText("Code incorrect. Veuillez réessayer.");
             lblError.setStyle("-fx-text-fill: red;");

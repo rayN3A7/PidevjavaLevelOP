@@ -46,7 +46,7 @@ public class LoginController {
 
     @FXML
     void handleLogin(ActionEvent event) {
-        lblError.setText(""); // Clear previous errors
+        lblError.setText("");
         String email = txtUseName.getText().trim();
         String password = txtPsw.getText();
         boolean rememberMe = remamber.isSelected();
