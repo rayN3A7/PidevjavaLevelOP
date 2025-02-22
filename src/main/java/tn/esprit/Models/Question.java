@@ -1,6 +1,7 @@
 package tn.esprit.Models;
 
 import java.sql.Timestamp;
+import java.util.Map;
 
 public class Question {
     private int question_id;
@@ -10,8 +11,33 @@ public class Question {
     private Utilisateur user;
     private int Votes;
     private Timestamp created_at;
+    private Map<String, Integer> reactions;
+    private String userReaction; //
 
     public Question() {
+    }
+
+    public Question(int question_id, String title, String content, Games game, Utilisateur user, int votes, Timestamp created_at, Map<String, Integer> reactions, String userReaction) {
+        this.question_id = question_id;
+        this.title = title;
+        this.content = content;
+        this.game = game;
+        this.user = user;
+        Votes = votes;
+        this.created_at = created_at;
+        this.reactions = reactions;
+        this.userReaction = userReaction;
+    }
+
+    public Question(int question_id, String title, String content, Games game, Utilisateur user, int votes, Timestamp created_at, Map<String, Integer> reactions) {
+        this.question_id = question_id;
+        this.title = title;
+        this.content = content;
+        this.game = game;
+        this.user = user;
+        Votes = votes;
+        this.created_at = created_at;
+        this.reactions = reactions;
     }
 
     public Question(int id, String title, String content, int votes, Games game, Utilisateur user) {
@@ -42,7 +68,21 @@ public class Question {
         this.Votes = 0;
         this.created_at = created_at;
     }
+    public Map<String, Integer> getReactions() {
+        return reactions;
+    }
 
+    public String getUserReaction() {
+        return userReaction;
+    }
+
+    public void setUserReaction(String userReaction) {
+        this.userReaction = userReaction;
+    }
+
+    public void setReactions(Map<String, Integer> reactions) {
+        this.reactions = reactions;
+    }
     public int getQuestion_id() {
         return question_id;
     }

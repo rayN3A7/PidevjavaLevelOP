@@ -1,6 +1,7 @@
 package tn.esprit.Controllers.forum;
 
 import tn.esprit.Models.Question;
+import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.QuestionService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -14,9 +15,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.SessionManager;
 
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class ForumController implements Initializable {
@@ -29,7 +33,8 @@ public class ForumController implements Initializable {
     @FXML
     private TextField searchField;
     private NavbarController navbarController;
-
+    private UtilisateurService us =new UtilisateurService();
+    private int userId = SessionManager.getInstance().getUserId();
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         loadQuestions();
@@ -156,4 +161,35 @@ public class ForumController implements Initializable {
             e.printStackTrace();
         }
     }
-}
+
+
+
+    // ... (previous ForumController code remains unchanged)
+    public void handleReaction(Question question, String emojiUrl) {
+        int userId = SessionManager.getInstance().getUserId(); // Use actual user ID from session
+        QuestionService questionService = new QuestionService();
+
+        // Check if the user has already reacted to this question
+        String existingReaction = questionService.getUserReaction(question.getQuestion_id(), userId);
+        if (existingReaction != null) {
+            // If the user has reacted, remove the existing reaction
+            questionService.removeReaction(question.getQuestion_id(), userId);
+            question.getReactions().remove(existingReaction);
+            if (question.getReactions().containsKey(existingReaction)) {
+                int currentCount = question.getReactions().get(existingReaction);
+                if (currentCount > 1) {
+                    question.getReactions().put(existingReaction, currentCount - 1);
+                } else {
+                    question.getReactions().remove(existingReaction);
+                }
+            }
+        }
+
+        // Add the new reaction
+        questionService.addReaction(question.getQuestion_id(), userId, emojiUrl);
+        // Update the question's reactions and user reaction
+        Map<String, Integer> updatedReactions = questionService.getReactions(question.getQuestion_id());
+        question.setReactions(updatedReactions);
+        question.setUserReaction(emojiUrl); // Set the user's specific reaction (image URL)
+        refreshQuestions(); // Refresh to update the UI with the new reaction
+    }}

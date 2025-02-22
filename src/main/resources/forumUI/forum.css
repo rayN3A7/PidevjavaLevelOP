@@ -1,28 +1,33 @@
-.root {
+/* Existing styles remain, updating for compactness and modern design */
+/*.root {
     -fx-background-color: linear-gradient(to bottom, #091221, #ff007f);
     -fx-padding: 20px;
 }
+
 .main-vbox {
     -fx-padding: 20px 100px 20px 100px;
     -fx-background-color: transparent;
     -fx-alignment: center;
 }
+
 .comment-author {
     -fx-font-weight: bold;
     -fx-text-fill: #ff007f;
 }
+
 .forum-title {
     -fx-padding: 0px 20px 0px 20px;
-
     -fx-font-size: 100px;
     -fx-font-weight: bold;
     -fx-text-fill: white;
 }
-.forum-subtite{
+
+.forum-subtite {
     -fx-font-size: 15px;
     -fx-font-weight: bold;
     -fx-text-fill: white;
 }
+
 .question-card {
     -fx-background-color: #091221;
     -fx-background-radius: 15px;
@@ -30,18 +35,18 @@
     -fx-border-color: #ff007f;
     -fx-border-width: 2px;
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 10, 0.5, 0, 0);
-    -fx-padding: 15px;
-    -fx-spacing: 10px;
+    -fx-padding: 12px;
+    -fx-spacing: 8px;
 }
 
 .question-title {
-    -fx-font-size: 20px;
+    -fx-font-size: 18px;
     -fx-font-weight: bold;
     -fx-text-fill: white;
 }
 
 .question-content {
-    -fx-font-size: 14px;
+    -fx-font-size: 12px;
     -fx-text-fill: #e0e0e0;
 }
 
@@ -58,42 +63,68 @@
     -fx-pref-height: 30px;
     -fx-border-color: #ff007f;
     -fx-padding: 1px 1px 1px 1px;
-
     -fx-border-width: 2px;
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 10, 0.5, 0, 0);
 }
+
 .vote-box {
-    -fx-padding: 5px 50px 5px 5px;
-}
+    -fx-padding: 5px 40px 5px 5px;
+
 .vote-button:hover {
     -fx-background-color: rgba(255, 0, 127, 0.2);
     -fx-border-color: #ff007f;
     -fx-border-radius: 100%;
-
 }
 
 .action-button {
     -fx-background-color: #ff007f;
     -fx-text-fill: white;
-    -fx-border-radius: 5px;
+    -fx-font-size: 12px;
+    -fx-padding: 6px 12px;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 5, 0.5, 0, 2);
+}
+
+.action-button:hover {
+    -fx-background-color: #e6007a;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
+}
+
+.update-delete-button {
+    -fx-background-color: #ff007f;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 6px 12px;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 5, 0.5, 0, 2);
+}
+
+.update-delete-button:hover {
+    -fx-background-color: #e6007a;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
 }
 
 .search-field {
-    -fx-background-color: #ff007f;
+    -fx-background-color: #091221;
     -fx-text-fill: white;
     -fx-prompt-text-fill: #aaaaaa;
     -fx-font-size: 14px;
-    -fx-padding: 10px;
-    -fx-pref-width: 300px;
+    -fx-padding: 8px;
+    -fx-pref-width: 250px;
 }
 
 .create-post-button {
     -fx-background-color: #ff007f;
     -fx-text-fill: white;
     -fx-font-size: 14px;
-    -fx-padding: 10px 20px;
-    -fx-border-radius: 5px;
+    -fx-padding: 8px 16px;
+    -fx-border-radius: 15;
 }
+
 .scroll-pane {
     -fx-background-color: linear-gradient(to bottom, #000000, #ff007f);
 }
@@ -112,23 +143,332 @@
     -fx-text-fill: white;
 }
 
-/* Style for the search field */
+.forum-image {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0.5, 0, 0);
+}
+
+.reaction-label {
+    -fx-font-size: 16px;
+    -fx-text-fill: white;
+    -fx-padding: 4px 10px;
+    -fx-background-color: rgba(255, 0, 127, 0.15);
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.2), 5, 0.5, 0, 1);
+}
+
+.selected-emoji {
+    -fx-font-size: 24px;
+    -fx-text-fill: #091221;
+    -fx-padding: 4px 12px;
+    -fx-background-color: #ff007f;
+    -fx-background-radius: 20;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2);
+    -fx-font-weight: bold;
+}
+
+.reaction-actions {
+    -fx-alignment: center-left;
+    -fx-spacing: 5;
+    -fx-padding: 5 0 0 0;
+}
+
+.action-button {
+    -fx-background-color: #ff007f;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 25;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
+}
+
+.action-button:hover {
+    -fx-background-color: #e6007a;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
+}
+
+.action-button-no-gradient {
+    -fx-background-color: #ff007f;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 25;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
+}
+
+.action-button-no-gradient:hover {
+    -fx-background-color: #e6007a;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
+}
+
+.emoji-picker {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #ff007f;
+    -fx-border-width: 2;
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.2), 8, 0.5, 0, 3);
+    -fx-padding: 15;
+    -fx-spacing: 8;
+}
+
+.emoji-button {
+    -fx-font-family: "Noto Color Emoji";
+    -fx-background-color: transparent;
+    -fx-text-fill: black;
+    -fx-font-size: 36px;
+    -fx-padding: 8px 12px;
+    -fx-background-radius: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 4, 0.5, 0, 1);
+}
+
+.emoji-button:hover {
+    -fx-background-color: rgba(255, 0, 127, 0.15);
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
+}*/
+/* Existing styles remain, updating for graphical emojis and modern appearance */
+/* Existing styles remain, updating for graphical emojis and modern appearance */
+/* Existing styles remain, updating for graphical emojis and reduced size */
+/* Existing styles remain, adding new styles for graphical reaction icons */
+.root {
+    -fx-background-color: linear-gradient(to bottom, #091221, #ff007f);
+    -fx-padding: 20px;
+}
+
+.main-vbox {
+    -fx-padding: 20px 100px 20px 100px;
+    -fx-background-color: transparent;
+    -fx-alignment: center;
+}
+
+.comment-author {
+    -fx-font-weight: bold;
+    -fx-text-fill: #ff007f;
+}
+
+.forum-title {
+    -fx-padding: 0px 20px 0px 20px;
+    -fx-font-size: 100px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.forum-subtite {
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.question-card {
+    -fx-background-color: #091221;
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+    -fx-border-color: #ff007f;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 10, 0.5, 0, 0);
+    -fx-padding: 12px; /* Slightly reduced padding for compactness */
+    -fx-spacing: 8px; /* Reduced spacing for compactness */
+}
+
+.question-title {
+    -fx-font-size: 18px; /* Slightly smaller for compactness */
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.question-content {
+    -fx-font-size: 12px; /* Slightly smaller for compactness */
+    -fx-text-fill: #e0e0e0;
+}
+
+.votes-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #b0b0b0;
+}
+
+.vote-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ff007f;
+    -fx-font-size: 18px;
+    -fx-pref-width: 30px;
+    -fx-pref-height: 30px;
+    -fx-border-color: #ff007f;
+    -fx-padding: 1px 1px 1px 1px;
+    -fx-border-width: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 10, 0.5, 0, 0);
+}
+
+.vote-box {
+    -fx-padding: 5px 40px 5px 5px; /* Reduced padding for compactness */
+}
+
+.vote-button:hover {
+    -fx-background-color: rgba(255, 0, 127, 0.2);
+    -fx-border-color: #ff007f;
+    -fx-border-radius: 100%;
+}
+
+.action-button {
+    -fx-background-color: #ff007f; /* Solid pink for React button */
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 6px 12px; /* Reduced padding for compactness */
+    -fx-background-radius: 15; /* More rounded for modern look */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 5, 0.5, 0, 2);
+}
+
+.action-button:hover {
+    -fx-background-color: #e6007a; /* Darker pink on hover */
+    -fx-scale-x: 1.05; /* Slight scale for modern animation */
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
+}
+
+.update-delete-button {
+    -fx-background-color: #ff007f; /* Solid pink for Update and Delete buttons (no gradient) */
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 6px 12px; /* Reduced padding for compactness */
+    -fx-background-radius: 15; /* More rounded for modern look */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 5, 0.5, 0, 2);
+}
+
+.update-delete-button:hover {
+    -fx-background-color: #e6007a; /* Darker pink on hover */
+    -fx-scale-x: 1.05; /* Slight scale for modern animation */
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
+}
+
 .search-field {
     -fx-background-color: #091221;
     -fx-text-fill: white;
     -fx-prompt-text-fill: #aaaaaa;
     -fx-font-size: 14px;
-    -fx-padding: 10px;
-    -fx-pref-width: 300px;
+    -fx-padding: 8px; /* Reduced padding for compactness */
+    -fx-pref-width: 250px; /* Slightly reduced width for compactness */
 }
 
 .create-post-button {
     -fx-background-color: #ff007f;
-    -fx-text-fill: white;
+    -fx-text-fill: #091221;
     -fx-font-size: 14px;
-    -fx-padding: 10px 20px;
-    -fx-border-radius: 5px;
+    -fx-padding: 8px 16px; /* Reduced padding for compactness */
+    -fx-border-radius: 30; /* More rounded for modern look */
 }
+
+.scroll-pane {
+    -fx-background-color: linear-gradient(to bottom, #000000, #ff007f);
+}
+
+.scroll-pane .viewport {
+    -fx-background-color: linear-gradient(to bottom, #000000, #ff007f);
+}
+
+.vbox-container {
+    -fx-background-color: transparent;
+}
+
+.forum-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
 .forum-image {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0.5, 0, 0);
+}
+
+/* Reaction and Emoji Styles */
+.reaction-label {
+    -fx-font-size: 16px; /* Smaller, cleaner text like social media (for fallbacks) */
+    -fx-text-fill: white;
+    -fx-padding: 4px 10px;
+    -fx-background-color: rgba(255, 0, 127, 0.15); /* Light pink background for reactions */
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.2), 5, 0.5, 0, 1);
+}
+
+.reaction-emoji-icon {
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2); /* Subtle shadow for graphical reaction icons */
+}
+
+.reaction-count-label {
+    -fx-font-size: 14px; /* Smaller count text for compactness */
+    -fx-text-fill: white;
+    -fx-padding: 0 4px; /* Minimal padding for tight fit */
+}
+
+.selected-emoji-image {
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2); /* Subtle shadow for graphical emoji */
+}
+
+.reaction-actions {
+    -fx-alignment: center-left;
+    -fx-spacing: 10;
+    -fx-padding: 5 0 0 0;
+}
+
+.action-button {
+    -fx-background-color: #091221; /* Solid pink for React button, social-media-like */
+    -fx-text-fill: #ff007f;
+    -fx-font-size: 20px;
+    -fx-padding: 4px 4px;
+    -fx-background-radius: 50; /* Rounded buttons for social media feel */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
+}
+
+.action-button:hover {
+    -fx-background-color: #e6007a; /* Darker pink on hover */
+    -fx-scale-x: 1.05; /* Subtle scale for modern animation */
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
+}
+
+.action-button-no-gradient {
+    -fx-background-color: #ff007f; /* Solid pink, no gradient */
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 8px 16px;
+    -fx-background-radius: 25; /* Rounded buttons */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
+}
+
+.action-button-no-gradient:hover {
+    -fx-background-color: #e6007a; /* Darker pink on hover */
+    -fx-scale-x: 1.05; /* Subtle scale for modern animation */
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
+}
+
+.emoji-picker {
+    -fx-background-color: #ffffff; /* White background, like Facebook */
+    -fx-border-color: #ff007f; /* Neon pink border */
+    -fx-border-width: 2;
+    -fx-border-radius: 15;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.2), 8, 0.5, 0, 3); /* Subtle shadow like Facebook */
+    -fx-padding: 15;
+    -fx-spacing: 8;
+}
+
+.emoji-button {
+    -fx-background-color: transparent; /* No background for ImageView, ensuring graphical emojis show */
+    -fx-text-fill: black; /* Not applicable for ImageView, but kept for consistency */
+    -fx-font-size: 36px; /* Not used for images, but kept for reference if Unicode is used */
+    -fx-padding: 0; /* No padding for ImageView, letting the image size define it */
+    -fx-background-radius: 0; /* No radius for clean look */
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 4, 0.5, 0, 1); /* Very subtle shadow for ImageView */
+}
+
+.emoji-button:hover {
+    -fx-background-color: rgba(255, 0, 127, 0.15); /* Light pink background on hover for ImageView */
+    -fx-scale-x: 1.1; /* Subtle scale for Facebook animation */
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
 }

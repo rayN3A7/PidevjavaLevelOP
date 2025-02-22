@@ -12,7 +12,7 @@ public class MainFx extends Application {
 
      @Override
     public void start(Stage primaryStage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Home.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/forum.fxml"));
          Scene scene = new Scene(loader.load());
          primaryStage.setTitle("Application de Forum");
          primaryStage.setWidth(1080);  // Set consistent width
