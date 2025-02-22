@@ -5,29 +5,32 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.Region?>
 
-<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.forum.CommentCardController" spacing="10" styleClass="comment-card">
-    <HBox spacing="20" styleClass="comment-card-hbox">
-        <VBox spacing="5" styleClass="vote-box">
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.forum.CommentCardController" spacing="5" styleClass="comment-card">
+    <HBox spacing="10" styleClass="comment-card-hbox">
+        <VBox spacing="5" styleClass="vote-box" alignment="TOP_LEFT">
             <Button text="▲" fx:id="upvoteButton" styleClass="vote-button"/>
             <Button text="▼" fx:id="downvoteButton" styleClass="vote-button"/>
         </VBox>
-
-        <VBox spacing="10" HBox.hgrow="ALWAYS">
-            <Label fx:id="commentAuthor" styleClass="comment-author"/>
-
-            <Label fx:id="commentContent" styleClass="comment-content"/>
-            <TextField fx:id="editCommentField" visible="false" styleClass="edit-comment-field"/>
-
-            <Label fx:id="votesLabel" styleClass="votes-label"/>
-
-            <HBox spacing="10">
-                <Button fx:id="deleteButton" text="Delete" styleClass="action-button"/>
-                <Button fx:id="updateButton" text="Update" styleClass="action-button"/>
+        <VBox spacing="5" HBox.hgrow="ALWAYS" styleClass="comment-content-vbox">
+            <HBox spacing="5" alignment="CENTER_LEFT">
+                <Label fx:id="commentAuthor" styleClass="comment-author"/>
             </HBox>
-
-            <HBox fx:id="editButtonsBox" spacing="10" visible="false">
+            <Label fx:id="commentContent" styleClass="comment-content" wrapText="true"/>
+            <TextField fx:id="editCommentField" visible="false" styleClass="edit-comment-field"/>
+            <HBox spacing="5" alignment="CENTER_LEFT" styleClass="comment-meta">
+                <Label fx:id="votesLabel" styleClass="votes-label"/>
+                <HBox spacing="4" fx:id="reactionContainer" styleClass="reaction-container"/>
+            </HBox>
+            <HBox spacing="5" alignment="CENTER_LEFT" styleClass="reaction-actions">
+                <Button fx:id="reactButton" text="👍" styleClass="action-button"/>
+                <ImageView fx:id="selectedEmojiImage" styleClass="selected-emoji-image" fitWidth="20" fitHeight="20" preserveRatio="true"/>
+                <Button fx:id="deleteButton" text="Delete" styleClass="update-delete-button"/>
+                <Button fx:id="updateButton" text="Update" styleClass="update-delete-button"/>
+            </HBox>
+            <HBox fx:id="editButtonsBox" spacing="8" visible="false" alignment="CENTER_LEFT">
                 <Button fx:id="saveButton" text="Save" styleClass="action-button"/>
                 <Button fx:id="cancelButton" text="Cancel" styleClass="action-button"/>
             </HBox>

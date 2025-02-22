@@ -22,6 +22,7 @@ import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class QuestionDetailsController {
 
@@ -37,9 +38,9 @@ public class QuestionDetailsController {
     private VBox commentContainer;
 
     private Question currentQuestion;
-   private UtilisateurService us =new UtilisateurService();
+    private UtilisateurService us = new UtilisateurService();
     private CommentaireService commentaireService = new CommentaireService();
-private int userId = SessionManager.getInstance().getUserId();
+    private int userId = SessionManager.getInstance().getUserId();
 
     @FXML
     public void loadQuestionDetails(Question question) {
@@ -56,7 +57,6 @@ private int userId = SessionManager.getInstance().getUserId();
         commentContainer.getChildren().clear();
         List<Commentaire> comments = commentaireService.getAll();
         for (Commentaire comment : comments) {
-
             if (comment.getQuestion() != null && comment.getQuestion().getQuestion_id() == currentQuestion.getQuestion_id()) {
                 createCommentCard(comment);
             }
@@ -80,7 +80,6 @@ private int userId = SessionManager.getInstance().getUserId();
 
     @FXML
     public void postComment() {
-       // Utilisateur utilisateur = new Utilisateur(2, "yami", "sellami", "hsouna@gmail.com", "Yamimato", 1256969, "hsouna@1235", Role.COACH);
         Utilisateur utilisateur = us.getOne(userId);
         if (utilisateur == null) {
             System.out.println("User is not logged in. Please log in first.");
@@ -90,26 +89,24 @@ private int userId = SessionManager.getInstance().getUserId();
         String commentText = commentInput.getText();
 
         if (commentText == null || commentText.trim().isEmpty()) {
-            showAlert("Erreur", "vous ne pouvez pas ajouter un commentaire vide.");
+            showAlert("Erreur", "Vous ne pouvez pas ajouter un commentaire vide.");
             return;
         }
 
         Commentaire commentaire = new Commentaire();
         commentaire.setContenu(commentText);
         commentaire.setUtilisateur(utilisateur);
-        commentaire.setCreation_at(new java.sql.Timestamp(System.currentTimeMillis())); // Set current timestamp
-
+        commentaire.setCreation_at(new java.sql.Timestamp(System.currentTimeMillis()));
         commentaire.setQuestion(currentQuestion);
 
         commentaireService.add(commentaire);
         System.out.println("Comment added successfully!");
 
         createCommentCard(commentaire);
-
         commentInput.clear();
         loadComments();
-
     }
+
     public void handleUpvoteC(Commentaire commentaire, Label votesLabel, Button downvoteButton) {
         commentaireService.upvoteComment(commentaire.getCommentaire_id());
 
@@ -118,7 +115,6 @@ private int userId = SessionManager.getInstance().getUserId();
 
         Platform.runLater(() -> {
             votesLabel.setText("Votes: " + updatedVotes);
-
             if (updatedVotes > 0) {
                 downvoteButton.setDisable(false);
             }
@@ -134,15 +130,14 @@ private int userId = SessionManager.getInstance().getUserId();
 
             Platform.runLater(() -> {
                 votesLabel.setText("Votes: " + updatedVotes);
-
-                // Disable downvote button if votes reach 0
                 downvoteButton.setDisable(updatedVotes == 0);
             });
         }
     }
+
     public void deleteComment(Commentaire commentaire) {
         commentaireService.delete(commentaire);
-        System.out.println("Deleted question: " + commentaire.getContenu());
+        System.out.println("Deleted comment: " + commentaire.getContenu());
         refreshQuestions();
     }
 
@@ -172,6 +167,7 @@ private int userId = SessionManager.getInstance().getUserId();
 
         alert.showAndWait();
     }
+
     @FXML
     private void goToForumPage(ActionEvent event) {
         try {
@@ -186,4 +182,31 @@ private int userId = SessionManager.getInstance().getUserId();
         }
     }
 
+    public void handleReactionC(Commentaire commentaire, String emojiUrl) {
+        int userId = SessionManager.getInstance().getUserId();
+        CommentaireService service = new CommentaireService();
+
+        // Check if the user has already reacted to this comment
+        String existingReaction = service.getUserReaction(commentaire.getCommentaire_id(), userId);
+        if (existingReaction != null) {
+            // If the user has reacted, remove the existing reaction
+            service.removeReaction(commentaire.getCommentaire_id(), userId);
+            commentaire.getReactions().remove(existingReaction);
+            if (commentaire.getReactions().containsKey(existingReaction)) {
+                int currentCount = commentaire.getReactions().get(existingReaction);
+                if (currentCount > 1) {
+                    commentaire.getReactions().put(existingReaction, currentCount - 1);
+                } else {
+                    commentaire.getReactions().remove(existingReaction);
+                }
+            }
+        }
+
+        // Add the new reaction
+        service.addReaction(commentaire.getCommentaire_id(), userId, emojiUrl);
+        // Update the comment's reactions and user reaction
+        Map<String, Integer> updatedReactions = service.getReactions(commentaire.getCommentaire_id());
+        commentaire.setReactions(updatedReactions);
+        commentaire.setUserReaction(emojiUrl); // Set the user's specific reaction (image URL)
+    }
 }

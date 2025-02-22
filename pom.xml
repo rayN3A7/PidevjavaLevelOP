@@ -31,7 +31,11 @@
             <artifactId>json</artifactId>
             <version>20210307</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-imaging</artifactId>
+            <version>1.0-alpha3</version> <!-- Use the latest version available in Maven Central -->
+        </dependency>
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
