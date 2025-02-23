@@ -6,10 +6,10 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0" 
-    styleClass="scroll-pane" stylesheets="@/assets/style/style.css" 
-    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
-    fx:controller="tn.esprit.Controllers.Evenement.AjouterEvenementController">
+<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0"
+            styleClass="scroll-pane" stylesheets="@/assets/style/style.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.Controllers.Evenement.AjouterEvenementController">
 
     <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
         <children>
@@ -45,43 +45,47 @@
                         <VBox spacing="15" HBox.hgrow="ALWAYS" styleClass="form-section">
                             <VBox styleClass="input-group">
                                 <Label text="Nom de l'événement" styleClass="input-label"/>
-                                <TextField fx:id="NomEvent" styleClass="input-field" 
-                                         promptText="Entrez le nom de l'événement"/>
+                                <TextField fx:id="NomEvent" styleClass="input-field"
+                                           promptText="Entrez le nom de l'événement"/>
                             </VBox>
 
                             <HBox spacing="15">
                                 <VBox styleClass="input-group" HBox.hgrow="ALWAYS">
                                     <Label text="Date" styleClass="input-label"/>
-                                    <DatePicker fx:id="DateEvent" styleClass="input-field" 
-                                              promptText="Sélectionnez la date"/>
+                                    <DatePicker fx:id="DateEvent" styleClass="input-field"
+                                                promptText="Sélectionnez la date"/>
+                                </VBox>
+                                <VBox styleClass="input-group">
+                                    <Label text="Heure" styleClass="input-label"/>
+                                    <ComboBox fx:id="TimeEvent" styleClass="input-field" promptText="Sélectionnez l'heure"/>
                                 </VBox>
 
                                 <VBox styleClass="input-group" HBox.hgrow="ALWAYS">
                                     <Label text="Lieu" styleClass="input-label"/>
-                                    <TextField fx:id="LieuEvent" styleClass="input-field" 
-                                             promptText="Entrez le lieu"/>
+                                    <TextField fx:id="LieuEvent" styleClass="input-field"
+                                               promptText="Entrez le lieu"/>
                                 </VBox>
                             </HBox>
 
                             <HBox spacing="15">
                                 <VBox styleClass="input-group" HBox.hgrow="ALWAYS">
                                     <Label text="Nombre de places" styleClass="input-label"/>
-                                    <TextField fx:id="NBPEvent" styleClass="input-field" 
-                                             promptText="Entrez le nombre de places"/>
+                                    <TextField fx:id="NBPEvent" styleClass="input-field"
+                                               promptText="Entrez le nombre de places"/>
                                 </VBox>
 
                                 <VBox styleClass="input-group" HBox.hgrow="ALWAYS">
                                     <Label text="Catégorie" styleClass="input-label"/>
-                                    <ComboBox fx:id="CatEvent" styleClass="input-field" 
-                                            promptText="Sélectionnez la catégorie"/>
+                                    <ComboBox fx:id="CatEvent" styleClass="input-field"
+                                              promptText="Sélectionnez la catégorie"/>
                                 </VBox>
                             </HBox>
 
                             <!-- Action Buttons -->
                             <HBox spacing="15" alignment="CENTER_RIGHT">
-                                <Button fx:id="cancelButton" onAction="#Annuler" 
+                                <Button fx:id="cancelButton" onAction="#Annuler"
                                         text="Annuler" styleClass="cancel-button"/>
-                                <Button fx:id="addEventButton" onAction="#AjouterEvenemnt" 
+                                <Button fx:id="addEventButton" onAction="#AjouterEvenemnt"
                                         text="Ajouter l'événement" styleClass="submit-button"/>
                             </HBox>
                         </VBox>

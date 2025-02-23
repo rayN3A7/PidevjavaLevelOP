@@ -20,6 +20,8 @@ import tn.esprit.Services.Evenement.EvenementService;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Date;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -31,11 +33,14 @@ public class AjouterEvenementController {
     @FXML
     private DatePicker DateEvent;
     @FXML
+    private ComboBox<String> TimeEvent;
+    @FXML
     private ComboBox<String> CatEvent;
 
     @FXML
     private void initialize() {
         GetCategorie();
+        fillTimeComboBox();
     }
     private void GetCategorie(){
         List<Categorieevent> categorieList = ces.getAll();
@@ -44,22 +49,38 @@ public class AjouterEvenementController {
                 .toList();
         CatEvent.getItems().setAll(categories);
     }
+    private void fillTimeComboBox() {
+        List<String> timeOptions = new ArrayList<>();
+        for (int hour = 0; hour < 24; hour++) {
+            for (int minute = 0; minute < 60; minute += 15) { // Incrément de 15 minutes
+                timeOptions.add(String.format("%02d:%02d", hour, minute));
+            }
+        }
+        TimeEvent.getItems().setAll(timeOptions);
+    }
     @FXML
     private void AjouterEvenemnt(){
         try{
-        String nom_event = NomEvent.getText();
-        String lieu_event = LieuEvent.getText();
-        int max_places_event = Integer.parseInt(NBPEvent.getText());
-        Date date = Date.valueOf(DateEvent.getValue());
-            if (date.before(new Date(System.currentTimeMillis()))) {
+            if (DateEvent.getValue() == null || TimeEvent.getValue() == null) {
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez sélectionner une date et une heure.");
+                return;
+            }
+            String nom_event = NomEvent.getText();
+            String lieu_event = LieuEvent.getText();
+            int max_places_event = Integer.parseInt(NBPEvent.getText());
+            String selectedDate = DateEvent.getValue().toString();
+            String selectedTime = TimeEvent.getValue() + ":00";
+            String dateTimeString = selectedDate + " " + selectedTime;
+            Timestamp dateTime = Timestamp.valueOf(dateTimeString);
+            if (dateTime.before(new Date(System.currentTimeMillis()))) {
                 showAlert(Alert.AlertType.ERROR, "Erreur", "La date de l'événement doit être dans le futur.");
                 return;
             }
-        String categorie_event = CatEvent.getValue();
-        int categorie_id = ces.getIdCategorieEvent(categorie_event);
-        Evenement evenement = new Evenement(categorie_id,max_places_event,nom_event,lieu_event,date);
-        es.add(evenement);
-        showAlert(Alert.AlertType.INFORMATION, "Succès", "Evenement ajouté avec succès");
+            String categorie_event = CatEvent.getValue();
+            int categorie_id = ces.getIdCategorieEvent(categorie_event);
+            Evenement evenement = new Evenement(categorie_id,max_places_event,nom_event,lieu_event,dateTime);
+            es.add(evenement);
+            showAlert(Alert.AlertType.INFORMATION, "Succès", "Evenement ajouté avec succès");
         }catch(Exception e){
             showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez vérifier les champs");
         }
@@ -72,6 +93,7 @@ public class AjouterEvenementController {
         NBPEvent.clear();
         DateEvent.getEditor().clear();
         CatEvent.getSelectionModel().clearSelection();
+        TimeEvent.getSelectionModel().clearSelection();
     }
     private void showAlert(Alert.AlertType alertType, String title, String content) {
         Alert alert = new Alert(alertType);

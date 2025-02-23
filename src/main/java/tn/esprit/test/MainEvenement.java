@@ -20,8 +20,8 @@ public class MainEvenement {
         System.out.println("Categorie event Inserer");
         // ces.delete(ce);
 
-        Evenement e = new Evenement(1,7, 1000, "Evenement de Sport", "Stade de Tunis", Date.valueOf("2025-03-20"));
-        es.add(e);
+        //Evenement e = new Evenement(1,7, 1000, "Evenement de Sport", "Stade de Tunis", Date.valueOf("2025-03-20"));
+        //es.add(e);
 
         //es.update(e);
         //es.delete(e);

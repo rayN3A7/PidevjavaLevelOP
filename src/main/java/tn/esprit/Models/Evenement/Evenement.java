@@ -1,16 +1,17 @@
 package tn.esprit.Models.Evenement;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 
 public class Evenement {
     private int id,categorie_id,max_places_event;
     private String nom_event,lieu_event;
-    private Date date_event;
+    private Timestamp date_event;
 
     public Evenement() {
     }
 
-    public Evenement(int id, int categorie_id, int max_places_event, String nom_event, String lieu_event,Date date_event) {
+    public Evenement(int id, int categorie_id, int max_places_event, String nom_event, String lieu_event,Timestamp date_event) {
         this.id = id;
         this.categorie_id = categorie_id;
         this.max_places_event = max_places_event;
@@ -19,7 +20,7 @@ public class Evenement {
         this.date_event = date_event;
     }
 
-    public Evenement(int categorie_id, int max_places_event, String nom_event, String lieu_event,Date date_event) {
+    public Evenement(int categorie_id, int max_places_event, String nom_event, String lieu_event,Timestamp date_event) {
         this.categorie_id = categorie_id;
         this.max_places_event = max_places_event;
         this.nom_event = nom_event;
@@ -68,11 +69,11 @@ public class Evenement {
         this.lieu_event = lieu_event;
     }
 
-    public Date getDate_event() {
+    public Timestamp getDate_event() {
         return date_event;
     }
 
-    public void setDate_event(Date date_event) {
+    public void setDate_event(Timestamp date_event) {
         this.date_event = date_event;
     }
 
