@@ -736,44 +736,65 @@
 /* style.css */
 
 .chat-window {
-    -fx-background-color: #f0f0f0; /* Couleur de fond */
+    -fx-background-color: #f0f0f0;
     -fx-padding: 10;
     -fx-border-radius: 10;
     -fx-background-radius: 10;
 }
 
 .chat-area {
-    -fx-background-color: #ffffff; /* Couleur de fond de la zone de chat */
-    -fx-border-color: #cccccc; /* Couleur de la bordure */
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cccccc;
     -fx-border-radius: 10;
     -fx-padding: 10;
-    -fx-font-size: 14px; /* Taille de la police */
-    -fx-font-family: "Arial"; /* Police */
+    -fx-font-size: 14px;
+    -fx-font-family: "Arial";
 }
 
 .user-input {
-    -fx-background-color: #e6e6e6; /* Couleur de fond du champ de saisie */
-    -fx-border-color: #cccccc; /* Couleur de la bordure */
+    -fx-background-color: #e6e6e6;
+    -fx-border-color: #cccccc;
     -fx-border-radius: 5;
     -fx-padding: 5;
-    -fx-font-size: 14px; /* Taille de la police */
-    -fx-font-family: "Arial"; /* Police */
+    -fx-font-size: 14px;
+    -fx-font-family: "Arial";
 }
 
 .send-button {
-    -fx-background-color: #4CAF50; /* Couleur de fond du bouton */
-    -fx-text-fill: white; /* Couleur du texte */
-    -fx-font-size: 14px; /* Taille de la police */
-    -fx-font-family: "Arial"; /* Police */
-    -fx-padding: 10 20; /* Espacement interne */
-    -fx-border-radius: 5; /* Coins arrondis */
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 5, 0, 0, 1); /* Ombre */
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-family: "Arial";
+    -fx-padding: 10 20;
+    -fx-border-radius: 5;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 5, 0, 0, 1);
 }
 
 .send-button:hover {
-    -fx-background-color: #45a049; /* Couleur de fond au survol */
+    -fx-background-color: #45a049;
 }
 
 .send-button:pressed {
-    -fx-background-color: #388e3c; /* Couleur de fond lors de l'appui */
+    -fx-background-color: #388e3c;
+}
+.export-button {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 5, 0, 0, 0);
+    -fx-transition: all 0.3s ease;
+}
+
+.export-button:hover {
+    -fx-background-color: #5a6268;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 8, 0, 0, 0);
+}
+
+.export-button:pressed {
+    -fx-background-color: #4a5257;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 3, 0, 0, 0);
 }

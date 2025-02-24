@@ -67,7 +67,7 @@
 
                             <Button text="Réserver maintenant" fx:id="reserverButton" onAction="#reserverPlace"
                                     styleClass="book-button" maxWidth="Infinity"/>
-                            <Button text="Exporter Liste des Utilisateurs en PDF" fx:id="exportPDFButton" onAction="#exporterPDF"
+                            <Button text="Exporter en PDF" fx:id="exportPDFButton" onAction="#exporterPDF"
                                     styleClass="export-button" maxWidth="Infinity"/>
 
                         </VBox>
