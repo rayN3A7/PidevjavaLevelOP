@@ -74,7 +74,8 @@ public class QuestionService implements IService<Question> {
                     }
                 }
             }
-
+            UtilisateurService us = new UtilisateurService();
+            us.updateUserPrivilege(user.getId());
             connexion.commit();
             System.out.println("Transaction committed successfully for question ID: " + question.getQuestion_id());
         } catch (SQLException e) {

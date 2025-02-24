@@ -13,7 +13,10 @@
     </VBox>
 
     <VBox fx:id="contentVBox" spacing="8" HBox.hgrow="ALWAYS" minHeight="100" >
-        <Label fx:id="commentAuthor" styleClass="comment-author"/>
+        <HBox spacing="5" alignment="CENTER_LEFT">
+            <Label fx:id="commentAuthor" styleClass="comment-author"/>
+            <ImageView fx:id="crownIcon" fitHeight="20" fitWidth="20" visible="false"/>
+        </HBox>
         <Label fx:id="titleLabel" styleClass="question-title"/>
         <Label fx:id="contentLabel" styleClass="question-content" wrapText="true"/>
         <ImageView fx:id="questionImage" styleClass="question-image" fitWidth="200" fitHeight="150" preserveRatio="true" visible="false" managed="false"/>

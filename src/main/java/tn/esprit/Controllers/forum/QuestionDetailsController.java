@@ -108,32 +108,39 @@ public class QuestionDetailsController {
     }
 
     public void handleUpvoteC(Commentaire commentaire, Label votesLabel, Button downvoteButton) {
-        commentaireService.upvoteComment(commentaire.getCommentaire_id());
-
-        int updatedVotes = commentaireService.getVotes(commentaire.getCommentaire_id());
+        CommentaireService cs = new CommentaireService();
+        int updatedVotes = cs.getVotes(commentaire.getCommentaire_id());
         commentaire.setVotes(updatedVotes);
-
+        cs.upvoteComment(commentaire.getCommentaire_id());
+        commentaire.Com_upvote();
         Platform.runLater(() -> {
             votesLabel.setText("Votes: " + updatedVotes);
+            votesLabel.setVisible(true);
+
             if (updatedVotes > 0) {
                 downvoteButton.setDisable(false);
             }
         });
+        UtilisateurService us = new UtilisateurService();
+        us.updateUserPrivilege(commentaire.getUtilisateur().getId());
     }
 
     public void handleDownvoteC(Commentaire commentaire, Label votesLabel, Button downvoteButton) {
-        if (commentaire.getVotes() > 0) {
-            commentaireService.downvoteComment(commentaire.getCommentaire_id());
-
-            int updatedVotes = commentaireService.getVotes(commentaire.getCommentaire_id());
-            commentaire.setVotes(updatedVotes);
-
-            Platform.runLater(() -> {
-                votesLabel.setText("Votes: " + updatedVotes);
-                downvoteButton.setDisable(updatedVotes == 0);
-            });
-        }
+        CommentaireService cs = new CommentaireService();
+        int updatedVotes = cs.getVotes(commentaire.getCommentaire_id());
+        commentaire.setVotes(updatedVotes);
+        cs.downvoteComment(commentaire.getCommentaire_id());
+        commentaire.Com_downvote();
+        Platform.runLater(() -> {
+            votesLabel.setText("Votes: " + updatedVotes);
+            votesLabel.setVisible(true);
+            downvoteButton.setDisable(updatedVotes == 0);
+        });
+        UtilisateurService us = new UtilisateurService();
+        us.updateUserPrivilege(commentaire.getUtilisateur().getId());
     }
+
+
 
     public void deleteComment(Commentaire commentaire) {
         commentaireService.delete(commentaire);

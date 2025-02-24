@@ -124,6 +124,7 @@ public class ForumController implements Initializable {
 
         int updatedVotes = questionService.getVotes(question.getQuestion_id());
         question.setVotes(updatedVotes);
+        us.updateUserPrivilege(question.getUser().getId());
 
         Platform.runLater(() -> {
             votesLabel.setText("Votes: " + updatedVotes);
@@ -132,6 +133,7 @@ public class ForumController implements Initializable {
                 downvoteButton.setDisable(false);
             }
         });
+
     }
 
     public void handleDownvote(Question question, Label votesLabel, Button downvoteButton) {
@@ -140,12 +142,14 @@ public class ForumController implements Initializable {
 
             int updatedVotes = questionService.getVotes(question.getQuestion_id());
             question.setVotes(updatedVotes);
+            us.updateUserPrivilege(question.getUser().getId());
 
             Platform.runLater(() -> {
                 votesLabel.setText("Votes: " + updatedVotes);
                 downvoteButton.setDisable(updatedVotes == 0);
             });
         }
+
     }
 
     public void updateQuestion(Question question) {

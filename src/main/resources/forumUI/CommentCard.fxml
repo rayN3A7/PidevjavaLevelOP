@@ -17,11 +17,12 @@
         <VBox spacing="5" HBox.hgrow="ALWAYS" styleClass="comment-content-vbox">
             <HBox spacing="5" alignment="CENTER_LEFT">
                 <Label fx:id="commentAuthor" styleClass="comment-author"/>
+                <ImageView fx:id="crownIcon" fitHeight="20" fitWidth="20" visible="false"/>
             </HBox>
             <Label fx:id="commentContent" styleClass="comment-content" wrapText="true"/>
             <TextField fx:id="editCommentField" visible="false" styleClass="edit-comment-field"/>
             <HBox spacing="5" alignment="CENTER_LEFT" styleClass="comment-meta">
-                <Label fx:id="votesLabel" styleClass="votes-label"/>
+                <Label fx:id="votesLabel" styleClass="votes-label"/> <!-- Assuré d'être visible par défaut -->
                 <HBox spacing="4" fx:id="reactionContainer" styleClass="reaction-container"/>
             </HBox>
             <HBox spacing="5" alignment="CENTER_LEFT" styleClass="reaction-actions">
