@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 
 <?import java.net.URL?>
-<AnchorPane fx:controller="tn.esprit.Controllers.Evenement.EvenementCardController" xmlns="http://javafx.com/javafx/8.0.171"
+<AnchorPane fx:controller="tn.esprit.Controllers.Evenement.EvenementCardController" xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1" fx:id="cardContainer"
             stylesheets="@/assets/style/style.css" styleClass="event-card">
 

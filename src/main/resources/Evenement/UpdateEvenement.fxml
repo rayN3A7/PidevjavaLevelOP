@@ -54,10 +54,17 @@
                         </VBox>
 
                         <!-- Date -->
-                        <VBox styleClass="input-group">
-                            <Label text="Date" styleClass="input-label"/>
-                            <DatePicker fx:id="DateEvent" styleClass="input-field"/>
-                        </VBox>
+                        <HBox spacing="15">
+                            <VBox styleClass="input-group" HBox.hgrow="ALWAYS">
+                                <Label text="Date" styleClass="input-label"/>
+                                <DatePicker fx:id="DateEvent" styleClass="input-field"
+                                            promptText="Sélectionnez la date"/>
+                            </VBox>
+                            <VBox styleClass="input-group">
+                                <Label text="Heure" styleClass="input-label"/>
+                                <ComboBox fx:id="TimeEvent" styleClass="input-field" promptText="Sélectionnez l'heure"/>
+                            </VBox>
+                        </HBox>
 
                         <!-- Lieu -->
                         <VBox styleClass="input-group">

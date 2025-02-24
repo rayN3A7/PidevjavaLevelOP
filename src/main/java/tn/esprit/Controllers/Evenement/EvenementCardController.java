@@ -1,5 +1,6 @@
 package tn.esprit.Controllers.Evenement;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -14,6 +15,7 @@ import tn.esprit.Services.Evenement.EvenementService;
 import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 
 public class EvenementCardController {
     @FXML
@@ -29,7 +31,8 @@ public class EvenementCardController {
     public void setData(Evenement event) {
         this.event = event;
         nomLabel.setText(event.getNom_event());
-        dateLabel.setText(event.getDate_event().toString());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        dateLabel.setText(event.getDate_event().toLocalDateTime().format(formatter));
         lieuLabel.setText(event.getLieu_event());
         categorieLabel.setText(ces.getNomCategorieEvent(event.getCategorie_id()));
         placesLabel.setText("Places restantes: " + event.getMax_places_event());
@@ -47,7 +50,7 @@ public class EvenementCardController {
     @FXML
     private void reserverPlace(Evenement e1) {
         int userId = SessionManager.getInstance().getUserId();
-        String userEmail = SessionManager.getInstance().getEmail(); // Récupérer l'email de l'utilisateur connecté
+        String userEmail = SessionManager.getInstance().getEmail();
 
         if (event == null) {
             showAlert(Alert.AlertType.ERROR, "Erreur", "Aucun événement sélectionné !");

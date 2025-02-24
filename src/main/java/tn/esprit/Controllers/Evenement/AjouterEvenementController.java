@@ -20,6 +20,7 @@ import tn.esprit.Services.Evenement.EvenementService;
 import java.io.IOException;
 import java.net.URL;
 import java.sql.Date;
+import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,30 +61,62 @@ public class AjouterEvenementController {
     }
     @FXML
     private void AjouterEvenemnt(){
-        try{
-            if (DateEvent.getValue() == null || TimeEvent.getValue() == null) {
-                showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez sélectionner une date et une heure.");
+        try {
+            // Vérifier que tous les champs sont remplis
+            if (!validateFields()) {
                 return;
             }
-            String nom_event = NomEvent.getText();
-            String lieu_event = LieuEvent.getText();
-            int max_places_event = Integer.parseInt(NBPEvent.getText());
+
+            String nom_event = NomEvent.getText().trim();
+            String lieu_event = LieuEvent.getText().trim();
+            int max_places_event = Integer.parseInt(NBPEvent.getText().trim());
+
             String selectedDate = DateEvent.getValue().toString();
             String selectedTime = TimeEvent.getValue() + ":00";
             String dateTimeString = selectedDate + " " + selectedTime;
             Timestamp dateTime = Timestamp.valueOf(dateTimeString);
-            if (dateTime.before(new Date(System.currentTimeMillis()))) {
+
+            // Vérifier que la date est dans le futur
+            if (dateTime.before(new Timestamp(System.currentTimeMillis()))) {
                 showAlert(Alert.AlertType.ERROR, "Erreur", "La date de l'événement doit être dans le futur.");
                 return;
             }
+
             String categorie_event = CatEvent.getValue();
             int categorie_id = ces.getIdCategorieEvent(categorie_event);
-            Evenement evenement = new Evenement(categorie_id,max_places_event,nom_event,lieu_event,dateTime);
+
+            Evenement evenement = new Evenement(categorie_id, max_places_event, nom_event, lieu_event, dateTime);
             es.add(evenement);
-            showAlert(Alert.AlertType.INFORMATION, "Succès", "Evenement ajouté avec succès");
-        }catch(Exception e){
-            showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez vérifier les champs");
+
+            showAlert(Alert.AlertType.INFORMATION, "Succès", "Événement ajouté avec succès");
+
+        } catch (Exception e) {
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez vérifier les champs.");
         }
+    }
+    private boolean validateFields() {
+        // Vérifier si le nom et le lieu sont vides
+        if (NomEvent.getText().trim().isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Le nom ne peuvent pas être vides.");
+            return false;
+        }
+        if (LieuEvent.getText().trim().isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Le lieu ne peuvent pas être vides.");
+            return false;
+        }
+
+        try {
+            int max_places_event = Integer.parseInt(NBPEvent.getText().trim());
+            if (max_places_event <= 0) {
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Le nombre de places doit être supérieur à zéro.");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez entrer un nombre valide pour les places.");
+            return false;
+        }
+
+        return true;
     }
 
     @FXML

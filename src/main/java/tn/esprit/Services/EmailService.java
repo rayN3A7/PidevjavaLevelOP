@@ -12,6 +12,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -82,10 +85,14 @@ public class EmailService {
             }
             String template = new BufferedReader(new InputStreamReader(inputStream))
                     .lines().collect(Collectors.joining("\n"));
+            Timestamp timestamp = event.getDate_event(); // Récupérer le Timestamp
+            LocalDateTime dateTime = timestamp.toLocalDateTime(); // Convertir en LocalDateTime
 
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            String formattedDate = dateTime.format(formatter);
             String logoUrl = "https://i.postimg.cc/zXFTgVmM/level.png";
             String content = template.replace("{{eventName}}", event.getNom_event())
-                    .replace("{{eventDate}}", event.getDate_event().toString())
+                    .replace("{{eventDate}}", formattedDate)
                     .replace("{{eventLieu}}", event.getLieu_event())
                     .replace("{{eventCategory}}", ces.getNomCategorieEvent(event.getCategorie_id()))
                     .replace("{{logo}}", logoUrl);

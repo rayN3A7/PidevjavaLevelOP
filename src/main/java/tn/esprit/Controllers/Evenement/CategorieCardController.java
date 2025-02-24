@@ -72,11 +72,14 @@ public class CategorieCardController {
             Parent root = loader.load();
             DetailsCategorieController controller = loader.getController();
             controller.initData(categorie);
-            Stage stage = new Stage();
-            stage.setScene(new Scene(root));
-            stage.show();
+
+            // Récupérer la scène actuelle et changer son contenu
+            Stage stage = (Stage) detailsButton.getScene().getWindow();
+            stage.getScene().setRoot(root);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 }

@@ -59,7 +59,8 @@
                                     <Label text="Heure" styleClass="input-label"/>
                                     <ComboBox fx:id="TimeEvent" styleClass="input-field" promptText="Sélectionnez l'heure"/>
                                 </VBox>
-
+                            </HBox>
+                            <HBox>
                                 <VBox styleClass="input-group" HBox.hgrow="ALWAYS">
                                     <Label text="Lieu" styleClass="input-label"/>
                                     <TextField fx:id="LieuEvent" styleClass="input-field"

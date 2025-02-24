@@ -46,7 +46,10 @@
                                     <Label text="Date" styleClass="info-label"/>
                                     <Label fx:id="eventDateLabel" styleClass="info-value"/>
                                 </VBox>
-
+                                <VBox styleClass="info-group">
+                                    <Label text="Heure" styleClass="info-label"/>
+                                    <Label fx:id="TimeEvent" styleClass="info-value"/>
+                                </VBox>
                                 <VBox styleClass="info-group" HBox.hgrow="ALWAYS">
                                     <Label text="Lieu" styleClass="info-label"/>
                                     <Label fx:id="eventLieuLabel" styleClass="info-value"/>
