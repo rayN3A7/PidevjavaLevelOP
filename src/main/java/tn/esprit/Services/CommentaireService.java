@@ -44,6 +44,9 @@ public class CommentaireService implements IService<Commentaire> {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add comment: " + e.getMessage(), e);
         }
+        // After successful addition
+        UtilisateurService us = new UtilisateurService();
+        us.updateUserPrivilege(commentaire.getUtilisateur().getId());
     }
 
     public void upvoteComment(int commentaire_id) {

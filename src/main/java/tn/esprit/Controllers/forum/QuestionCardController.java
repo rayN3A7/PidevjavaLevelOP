@@ -18,6 +18,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
+import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.EmojiService;
 import tn.esprit.Services.QuestionService;
 import tn.esprit.Services.UtilisateurService;
@@ -59,15 +60,26 @@ public class QuestionCardController {
     @FXML
     private VBox contentVBox;
     @FXML
-    private ImageView selectedEmojiImage; // Updated to ImageView for graphical emoji
+    private Label userLabel;
     @FXML
-    private Label selectedEmojiLabel; // Ensure this is included if used
+    private ImageView crownIcon;
+    @FXML
+    private ImageView selectedEmojiImage;
+    @FXML
+    private Label selectedEmojiLabel;
+
     private Question question;
+
     private ForumController forumController;
+
     private int userId = SessionManager.getInstance().getUserId();
+
     private UtilisateurService us = new UtilisateurService();
+
     private QuestionService questionService = new QuestionService();
+
     private static final ExecutorService executorService = Executors.newFixedThreadPool(4);
+
     public void setQuestionData(Question question, ForumController forumController) {
         this.question = question;
         this.forumController = forumController;
@@ -92,6 +104,24 @@ public class QuestionCardController {
 
         // Load image and adjust card size dynamically
         loadQuestionImageAsync();
+        Utilisateur user = question.getUser();
+        commentAuthor.setText(user.getNickname());
+        switch (user.getPrivilege()) {
+            case "top_contributor":
+                commentAuthor.setStyle("-fx-text-fill: silver;");
+                crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png")); // Ensure crown icon exists
+                crownIcon.setVisible(true);
+                break;
+            case "top_fan":
+                commentAuthor.setStyle("-fx-text-fill: gold;");
+                crownIcon.setImage(new Image("/forumUI/icons/crown.png"));
+                crownIcon.setVisible(true);
+                break;
+            default:
+                commentAuthor.setStyle("-fx-text-fill: white;");
+                crownIcon.setVisible(false);
+                break;
+        }
     }
 
     private void loadQuestionImageAsync() {

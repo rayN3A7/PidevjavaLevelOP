@@ -13,6 +13,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.CommentaireService;
 import tn.esprit.Services.EmojiService;
 import tn.esprit.utils.SessionManager;
@@ -34,6 +35,10 @@ public class CommentCardController {
     private Label votesLabel;
     @FXML
     private TextField editCommentField;
+    @FXML
+    private Label userLabel;
+    @FXML
+    private ImageView crownIcon;
     @FXML
     private Button downvoteButton;
     @FXML
@@ -73,8 +78,27 @@ public class CommentCardController {
         updateButton.setOnAction(event -> enableEditMode());
         saveButton.setOnAction(event -> saveUpdatedComment());
         reactButton.setOnAction(e -> showEmojiPicker()); // Add reaction button action
-        displayReactions(); // Display existing reactions
-        displayUserReaction(); // Display user's reaction
+        displayReactions();
+        displayUserReaction();
+        Utilisateur user = commentaire.getUtilisateur();
+        commentAuthor.setText(user.getNickname());
+        switch (user.getPrivilege()) {
+            case "top_contributor":
+                commentAuthor.setStyle("-fx-text-fill: silver;");
+                crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png")); // Ensure crown icon exists
+                crownIcon.setVisible(true);
+                break;
+            case "top_fan":
+                commentAuthor.setStyle("-fx-text-fill: gold;");
+                crownIcon.setImage(new Image("/forumUI/icons/crown.png"));
+                crownIcon.setVisible(true);
+                break;
+            default:
+                commentAuthor.setStyle("-fx-text-fill: white;");
+                crownIcon.setVisible(false);
+                break;
+        }
+
     }
 
     private void enableEditMode() {
