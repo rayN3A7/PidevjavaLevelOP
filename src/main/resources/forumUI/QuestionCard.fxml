@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.control.*?>
@@ -13,20 +12,26 @@
         <Button text="▼" fx:id="downvoteButton" styleClass="vote-button"/>
     </VBox>
 
-    <VBox spacing="10" HBox.hgrow="ALWAYS">
-        <Label fx:id="commentAuthor" styleClass="comment-author"/>
+    <VBox fx:id="contentVBox" spacing="8" HBox.hgrow="ALWAYS" minHeight="100" >
+        <HBox spacing="5" alignment="CENTER_LEFT">
+            <Label fx:id="commentAuthor" styleClass="comment-author"/>
+            <ImageView fx:id="crownIcon" fitHeight="20" fitWidth="20" visible="false"/>
+        </HBox>
         <Label fx:id="titleLabel" styleClass="question-title"/>
-        <Label fx:id="contentLabel" styleClass="question-content"/>
+        <Label fx:id="contentLabel" styleClass="question-content" wrapText="true"/>
+        <ImageView fx:id="questionImage" styleClass="question-image" fitWidth="200" fitHeight="150" preserveRatio="true" visible="false" managed="false"/>
         <Label fx:id="votesLabel" styleClass="votes-label"/>
-        <HBox spacing="10">
-            <Button text="Update" fx:id="updateButton" styleClass="action-button"/>
-            <Button text="Delete" fx:id="deleteButton" styleClass="action-button"/>
+        <HBox spacing="5" fx:id="reactionContainer" styleClass="reaction-container" prefWidth="300"/>
+        <HBox spacing="5" alignment="CENTER_LEFT" styleClass="reaction-actions">
+            <Button text="👍" fx:id="reactButton" styleClass="action-button"/>
+            <ImageView fx:id="selectedEmojiImage" styleClass="selected-emoji-image" fitWidth="20" fitHeight="20" preserveRatio="true"/>
+            <Button text="Update" fx:id="updateButton" styleClass="update-delete-button"/>
+            <Button text="Delete" fx:id="deleteButton" styleClass="update-delete-button"/>
         </HBox>
     </VBox>
 
     <VBox alignment="CENTER_RIGHT" spacing="5">
-        <ImageView fx:id="gameIcon" preserveRatio="true" />
+        <ImageView fx:id="gameIcon" preserveRatio="true"/>
         <Label fx:id="gameNameLabel" styleClass="game-name"/>
     </VBox>
-
 </HBox>

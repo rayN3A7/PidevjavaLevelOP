@@ -2,11 +2,13 @@ package tn.esprit.Services.Evenement;
 
 import tn.esprit.Interfaces.IService;
 import tn.esprit.Models.Evenement.Evenement;
+import tn.esprit.Models.Utilisateur;
 import tn.esprit.utils.MyDatabase;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EvenementService implements IService<Evenement> {
     private List<Evenement> evenements = new ArrayList<>();
@@ -35,7 +37,7 @@ public class EvenementService implements IService<Evenement> {
             st.setInt(1, evenement.getCategorie_id());
             st.setString(2, evenement.getNom_event());
             st.setInt(3, evenement.getMax_places_event());
-            st.setDate(4, evenement.getDate_event());
+            st.setTimestamp(4, evenement.getDate_event());
             st.setString(5, evenement.getLieu_event());
             st.setInt(6, evenement.getId());
             st.executeUpdate();
@@ -69,7 +71,7 @@ public class EvenementService implements IService<Evenement> {
                 e.setMax_places_event(rs.getInt("max_places_event"));
                 e.setLieu_event(rs.getString("lieu_event"));
                 e.setCategorie_id(rs.getInt("categorie_id"));
-                e.setDate_event(rs.getDate("date_event"));
+                e.setDate_event(rs.getTimestamp("date_event"));
                 return e;
             }
         } catch (SQLException e) {
@@ -80,6 +82,7 @@ public class EvenementService implements IService<Evenement> {
 
     @Override
     public List<Evenement> getAll() {
+        evenements.clear();
         String qry = "Select * from evenement";
         try {
             stm = cnx.prepareStatement(qry);
@@ -91,7 +94,7 @@ public class EvenementService implements IService<Evenement> {
                 e.setMax_places_event(rs.getInt("max_places_event"));
                 e.setLieu_event(rs.getString("lieu_event"));
                 e.setCategorie_id(rs.getInt("categorie_id"));
-                e.setDate_event(rs.getDate("date_event"));
+                e.setDate_event(rs.getTimestamp("date_event"));
                 evenements.add(e);
             }
         } catch (SQLException e) {
@@ -116,7 +119,7 @@ public class EvenementService implements IService<Evenement> {
                 e.setMax_places_event(rs.getInt("max_places_event"));
                 e.setLieu_event(rs.getString("lieu_event"));
                 e.setCategorie_id(rs.getInt("categorie_id"));
-                e.setDate_event(rs.getDate("date_event"));
+                e.setDate_event(rs.getTimestamp("date_event"));
                 resultats.add(e);
             }
         } catch (SQLException e) {
@@ -147,7 +150,6 @@ public class EvenementService implements IService<Evenement> {
                     insertReservationStmt.setInt(2, evenementId);
                     insertReservationStmt.executeUpdate();
 
-                    System.out.println("Réservation effectuée avec succès !");
                     return true;
                 } else {
                     System.out.println("Aucune place disponible pour cet événement.");
@@ -162,28 +164,13 @@ public class EvenementService implements IService<Evenement> {
             return false;
         }
     }
-    List<Evenement> getEvenementsByNom(String nom){
-        List<Evenement> resultats = new ArrayList<>();
-        String qry = "Select * from evenement where nom_event = LIKE ?";
-        try{
-            PreparedStatement pre = cnx.prepareStatement(qry);
-            pre.setString(1, "%" + nom + "%");
-            ResultSet rs = pre.executeQuery();
-            while(rs.next()){
-                Evenement e = new Evenement();
-                e.setId(rs.getInt("id"));
-                e.setNom_event(rs.getString("nom_event"));
-                e.setMax_places_event(rs.getInt("max_places_event"));
-                e.setLieu_event(rs.getString("lieu_event"));
-                e.setCategorie_id(rs.getInt("categorie_id"));
-                e.setDate_event(rs.getDate("date_event"));
-                resultats.add(e);
-            }
-        }catch(SQLException e){
-            e.getMessage();
-        }
-        return resultats;
+    public List<Evenement> GetByNom(String nom) {
+        return getAll().stream()
+                .filter(e -> e.getNom_event() != null && e.getNom_event().toLowerCase().contains(nom.toLowerCase()))
+                .distinct()
+                .collect(Collectors.toList());
     }
+
     List<Evenement> getEvenementsByDate(Date date){
         List<Evenement> resultats = new ArrayList<>();
         String qry = "Select * from evenement where date_event = ?";
@@ -198,7 +185,7 @@ public class EvenementService implements IService<Evenement> {
                 e.setMax_places_event(rs.getInt("max_places_event"));
                 e.setLieu_event(rs.getString("lieu_event"));
                 e.setCategorie_id(rs.getInt("categorie_id"));
-                e.setDate_event(rs.getDate("date_event"));
+                e.setDate_event(rs.getTimestamp("date_event"));
                 resultats.add(e);
             }
         }catch(SQLException e){
@@ -220,7 +207,7 @@ public class EvenementService implements IService<Evenement> {
                 e.setMax_places_event(rs.getInt("max_places_event"));
                 e.setLieu_event(rs.getString("lieu_event"));
                 e.setCategorie_id(rs.getInt("categorie_id"));
-                e.setDate_event(rs.getDate("date_event"));
+                e.setDate_event(rs.getTimestamp("date_event"));
                 resultats.add(e);
             }
         }catch(SQLException e){
@@ -231,7 +218,7 @@ public class EvenementService implements IService<Evenement> {
     public boolean reservationExiste(int userId, int eventId) {
         String query = "SELECT COUNT(*) FROM client_evenement WHERE client_id = ? AND evenement_id = ?";
         try (
-             PreparedStatement ps = cnx.prepareStatement(query)) {
+                PreparedStatement ps = cnx.prepareStatement(query)) {
             ps.setInt(1, userId);
             ps.setInt(2, eventId);
             ResultSet rs = ps.executeQuery();
@@ -243,5 +230,19 @@ public class EvenementService implements IService<Evenement> {
         }
         return false;
     }
-
+    public List<String[]> getListeUtilisateursReserves(int eventId) {
+        List<String[]> resultats = new ArrayList<>();
+        String qry = "SELECT u.nom, u.prenom, u.email FROM utilisateur u JOIN client_evenement ce ON u.id = ce.client_id WHERE ce.evenement_id = ?";
+        try {
+            PreparedStatement pre = cnx.prepareStatement(qry);
+            pre.setInt(1, eventId);
+            ResultSet rs = pre.executeQuery();
+            while (rs.next()) {
+                resultats.add(new String[]{rs.getString("nom"), rs.getString("prenom"), rs.getString("email")});
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return resultats;
+    }
 }

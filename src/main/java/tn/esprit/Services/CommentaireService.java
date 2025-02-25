@@ -1,4 +1,5 @@
 package tn.esprit.Services;
+
 import tn.esprit.Interfaces.IService;
 import tn.esprit.Models.Commentaire;
 import tn.esprit.Models.Question;
@@ -6,10 +7,13 @@ import tn.esprit.Models.Utilisateur;
 import tn.esprit.utils.MyDatabase;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CommentaireService implements IService<Commentaire> {
     private static Connection connexion;
+
     public CommentaireService() {
         connexion = MyDatabase.getInstance().getCnx();
     }
@@ -40,6 +44,9 @@ public class CommentaireService implements IService<Commentaire> {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add comment: " + e.getMessage(), e);
         }
+        // After successful addition
+        UtilisateurService us = new UtilisateurService();
+        us.updateUserPrivilege(commentaire.getUtilisateur().getId());
     }
 
     public void upvoteComment(int commentaire_id) {
@@ -95,7 +102,10 @@ public class CommentaireService implements IService<Commentaire> {
                 Question question = new QuestionService().getOne(questionId);
                 Commentaire parentCommentaire = parentCommentaireId != null ? new CommentaireService().getOne(parentCommentaireId) : null;
 
-                return new Commentaire(parentCommentaire, question, utilisateur, creationAt, votes, contenu, commentaireId);
+                Commentaire commentaire = new Commentaire(parentCommentaire, question, utilisateur, creationAt, votes, contenu, commentaireId);
+                commentaire.setReactions(getReactions(commentaireId)); // Load reactions
+                commentaire.setUserReaction(getUserReaction(commentaireId, utilisateurId)); // Load user-specific reaction
+                return commentaire;
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to fetch comment: " + e.getMessage(), e);
@@ -122,6 +132,8 @@ public class CommentaireService implements IService<Commentaire> {
                 Commentaire parentCommentaire = parentCommentaireId != null ? new CommentaireService().getOne(parentCommentaireId) : null;
 
                 Commentaire commentaire = new Commentaire(parentCommentaire, question, utilisateur, creationAt, votes, contenu, commentaireId);
+                commentaire.setReactions(getReactions(commentaireId)); // Load reactions
+                commentaire.setUserReaction(getUserReaction(commentaireId, utilisateurId)); // Load user-specific reaction
                 commentaireList.add(commentaire);
             }
         } catch (SQLException e) {
@@ -180,5 +192,75 @@ public class CommentaireService implements IService<Commentaire> {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete replies: " + e.getMessage(), e);
         }
+    }
+
+    // Reaction methods for comments
+    public void addReaction(int commentaireId, int userId, String emoji) {
+        String existingReaction = getUserReaction(commentaireId, userId);
+        if (existingReaction != null) {
+            removeReaction(commentaireId, userId);
+            updateReactionCount(commentaireId, existingReaction, -1);
+        }
+
+        String query = "INSERT INTO commentaire_reactions (commentaire_id, user_id, emoji) VALUES (?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE emoji = VALUES(emoji)";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, commentaireId);
+            ps.setInt(2, userId);
+            ps.setString(3, emoji);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to add reaction to comment: " + e.getMessage(), e);
+        }
+
+        updateReactionCount(commentaireId, emoji, 1);
+    }
+
+    private void updateReactionCount(int commentaireId, String emoji, int delta) {
+        Map<String, Integer> reactions = getReactions(commentaireId);
+        reactions.put(emoji, reactions.getOrDefault(emoji, 0) + delta);
+    }
+
+    public void removeReaction(int commentaireId, int userId) {
+        String query = "DELETE FROM commentaire_reactions WHERE commentaire_id = ? AND user_id = ?";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, commentaireId);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to remove user reaction from comment: " + e.getMessage(), e);
+        }
+    }
+
+    public Map<String, Integer> getReactions(int commentaireId) {
+        Map<String, Integer> reactionCounts = new HashMap<>();
+        String query = "SELECT emoji, COUNT(*) as count FROM commentaire_reactions WHERE commentaire_id = ? GROUP BY emoji";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, commentaireId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String emoji = rs.getString("emoji");
+                int count = rs.getInt("count");
+                reactionCounts.put(emoji, count);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch reactions for comment: " + e.getMessage(), e);
+        }
+        return reactionCounts;
+    }
+
+    public String getUserReaction(int commentaireId, int userId) {
+        String query = "SELECT emoji FROM commentaire_reactions WHERE commentaire_id = ? AND user_id = ?";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, commentaireId);
+            ps.setInt(2, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("emoji");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch user reaction for comment: " + e.getMessage(), e);
+        }
+        return null;
     }
 }

@@ -1,6 +1,7 @@
 package tn.esprit.Controllers.forum;
 
 import tn.esprit.Models.Question;
+import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.QuestionService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -14,14 +15,18 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.SessionManager;
 
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class ForumController implements Initializable {
     @FXML
-    private VBox questionCardContainer;
+    private VBox questionCardContainer; // Remains private
 
     private final QuestionService questionService = new QuestionService();
     @FXML
@@ -29,6 +34,9 @@ public class ForumController implements Initializable {
     @FXML
     private TextField searchField;
     private NavbarController navbarController;
+    private UtilisateurService us = new UtilisateurService();
+    private int userId = SessionManager.getInstance().getUserId();
+    static final Map<String, javafx.scene.image.Image> imageCache = new HashMap<>(); // Image cache
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -63,6 +71,10 @@ public class ForumController implements Initializable {
         }
     }
 
+    public void refreshQuestions() {
+        loadQuestions();
+    }
+
     public void filterQuestionsByGameName(String gameName) {
         System.out.println("Filtering questions for game: " + gameName);
         List<Question> filteredQuestions = questionService.getQuestionsByGameName(gameName);
@@ -70,23 +82,41 @@ public class ForumController implements Initializable {
         Platform.runLater(() -> {
             questionCardContainer.getChildren().clear();
             for (Question question : filteredQuestions) {
+                System.out.println("Filtered question: Title=" + question.getTitle() + ", Image Path=" + question.getImagePath());
                 addQuestionCard(question);
             }
+            questionCardContainer.requestLayout(); // Force layout update
+            System.out.println("Layout updated for filtered question cards.");
         });
     }
 
+
     public void addQuestionCard(Question question) {
         try {
+            System.out.println("Adding question card for: " + question.getTitle() + " with image path: " + question.getImagePath());
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/QuestionCard.fxml"));
             Parent questionCard = loader.load();
 
             QuestionCardController cardController = loader.getController();
             cardController.setQuestionData(question, this);
 
-            questionCardContainer.getChildren().add(questionCard);
+            Platform.runLater(() -> {
+                questionCardContainer.getChildren().add(questionCard);
+                questionCardContainer.requestLayout(); // Force layout update to ensure image loads
+                System.out.println("Question card added and layout updated for: " + question.getTitle());
+            });
         } catch (Exception e) {
+            System.err.println("Error adding question card: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    // New public method to force UI refresh from other controllers
+    public void forceRefreshUI() {
+        Platform.runLater(() -> {
+            questionCardContainer.requestLayout();
+            System.out.println("Forced UI refresh for question cards.");
+        });
     }
 
     public void handleUpvote(Question question, Label votesLabel, Button downvoteButton) {
@@ -94,6 +124,7 @@ public class ForumController implements Initializable {
 
         int updatedVotes = questionService.getVotes(question.getQuestion_id());
         question.setVotes(updatedVotes);
+        us.updateUserPrivilege(question.getUser().getId());
 
         Platform.runLater(() -> {
             votesLabel.setText("Votes: " + updatedVotes);
@@ -102,19 +133,23 @@ public class ForumController implements Initializable {
                 downvoteButton.setDisable(false);
             }
         });
+
     }
+
     public void handleDownvote(Question question, Label votesLabel, Button downvoteButton) {
         if (question.getVotes() > 0) {
             questionService.downvoteQuestion(question.getQuestion_id());
 
             int updatedVotes = questionService.getVotes(question.getQuestion_id());
             question.setVotes(updatedVotes);
+            us.updateUserPrivilege(question.getUser().getId());
 
             Platform.runLater(() -> {
                 votesLabel.setText("Votes: " + updatedVotes);
                 downvoteButton.setDisable(updatedVotes == 0);
             });
         }
+
     }
 
     public void updateQuestion(Question question) {
@@ -140,9 +175,6 @@ public class ForumController implements Initializable {
         refreshQuestions();
     }
 
-    public void refreshQuestions() {
-        loadQuestions();
-    }
     @FXML
     private void navigateToAddQuestion() {
         try {
@@ -155,5 +187,33 @@ public class ForumController implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void handleReaction(Question question, String emojiUrl) {
+        int userId = SessionManager.getInstance().getUserId(); // Use actual user ID from session
+        QuestionService questionService = new QuestionService();
+
+        // Check if the user has already reacted to this question
+        String existingReaction = questionService.getUserReaction(question.getQuestion_id(), userId);
+        if (existingReaction != null) {
+            // If the user has reacted, remove the existing reaction
+            questionService.removeReaction(question.getQuestion_id(), userId);
+            question.getReactions().remove(existingReaction);
+            if (question.getReactions().containsKey(existingReaction)) {
+                int currentCount = question.getReactions().get(existingReaction);
+                if (currentCount > 1) {
+                    question.getReactions().put(existingReaction, currentCount - 1);
+                } else {
+                    question.getReactions().remove(existingReaction);
+                }
+            }
+        }
+
+        // Add the new reaction
+        questionService.addReaction(question.getQuestion_id(), userId, emojiUrl);
+        // Update the question's reactions and user reaction
+        Map<String, Integer> updatedReactions = questionService.getReactions(question.getQuestion_id());
+        question.setReactions(updatedReactions);
+        question.setUserReaction(emojiUrl); // Set the user's specific reaction (image URL)
     }
 }

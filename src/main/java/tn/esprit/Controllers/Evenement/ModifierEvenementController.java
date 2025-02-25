@@ -38,7 +38,7 @@ public class ModifierEvenementController {
     public void initData(Evenement event) {
         this.eventAModifier = event;
         NomEvent.setText(event.getNom_event());
-        DateEvent.setValue(event.getDate_event().toLocalDate());
+        DateEvent.setValue(event.getDate_event().toLocalDateTime().toLocalDate());
         LieuEvent.setText(event.getLieu_event());
         NBPEvent.setText(String.valueOf(event.getMax_places_event()));
         CatEvent.setValue(ces.getNomCategorieEvent(event.getCategorie_id()));
@@ -59,7 +59,7 @@ public class ModifierEvenementController {
     private void ModifierEvenement() {
         if (eventAModifier != null) {
             eventAModifier.setNom_event(NomEvent.getText());
-            eventAModifier.setDate_event(java.sql.Date.valueOf(DateEvent.getValue()));
+            eventAModifier.setDate_event(java.sql.Timestamp.valueOf(DateEvent.getValue().atStartOfDay()));
             eventAModifier.setLieu_event(LieuEvent.getText());
             eventAModifier.setMax_places_event(Integer.parseInt(NBPEvent.getText()));
             String selectedCategory = CatEvent.getValue();

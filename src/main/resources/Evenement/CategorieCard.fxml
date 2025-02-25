@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.shape.Rectangle?>
+
+<AnchorPane fx:controller="tn.esprit.Controllers.Evenement.CategorieCardController" 
+            xmlns="http://javafx.com/javafx/8.0.171"
+            xmlns:fx="http://javafx.com/fxml/1" 
+            fx:id="cardContainer"
+            stylesheets="@/assets/style/style.css" 
+            styleClass="event-card">
+    
+    <children>
+        <VBox spacing="15" alignment="CENTER" styleClass="card-content">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            
+            <!-- Category Information -->
+            <VBox spacing="8" alignment="CENTER">
+                <Label fx:id="nomLabel" styleClass="event-title"/>
+                <Label fx:id="desclabel" styleClass="event-info" wrapText="true"/>
+            </VBox>
+            
+            <!-- Action Buttons -->
+            <HBox spacing="10" styleClass="event-actions" alignment="CENTER">
+                <Button fx:id="modifierButton" styleClass="edit-button">
+                    <graphic>
+                        <Label text="Modifier" styleClass="button-text"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="supprimerButton" styleClass="delete-button">
+                    <graphic>
+                        <Label text="Supprimer" styleClass="button-text"/>
+                    </graphic>
+                </Button>
+                <Button fx:id="detailsButton" styleClass="view-button">
+                    <graphic>
+                        <Label text="Détails" styleClass="button-text"/>
+                    </graphic>
+                </Button>
+            </HBox>
+        </VBox>
+    </children>
+</AnchorPane>

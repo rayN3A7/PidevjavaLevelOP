@@ -6,10 +6,10 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0" 
-    styleClass="scroll-pane" stylesheets="@/assets/style/style.css" 
-    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
-    fx:controller="tn.esprit.Controllers.Evenement.ModifierEvenementController">
+<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0"
+            styleClass="scroll-pane" stylesheets="@/assets/style/style.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.Controllers.Evenement.ModifierEvenementController">
 
     <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
         <children>
@@ -20,7 +20,7 @@
                 <padding>
                     <Insets top="20" right="30" bottom="20" left="30"/>
                 </padding>
-                
+
                 <!-- Title Section with Navigation -->
                 <HBox alignment="CENTER_LEFT" spacing="20" styleClass="header-section">
                     <VBox spacing="5">
@@ -49,8 +49,8 @@
                         <!-- Nom -->
                         <VBox styleClass="input-group">
                             <Label text="Nom de l'événement" styleClass="input-label"/>
-                            <TextField fx:id="NomEvent" styleClass="input-field" 
-                                     promptText="Entrez le nom de l'événement"/>
+                            <TextField fx:id="NomEvent" styleClass="input-field"
+                                       promptText="Entrez le nom de l'événement"/>
                         </VBox>
 
                         <!-- Date -->
@@ -62,15 +62,15 @@
                         <!-- Lieu -->
                         <VBox styleClass="input-group">
                             <Label text="Lieu" styleClass="input-label"/>
-                            <TextField fx:id="LieuEvent" styleClass="input-field" 
-                                     promptText="Entrez le lieu de l'événement"/>
+                            <TextField fx:id="LieuEvent" styleClass="input-field"
+                                       promptText="Entrez le lieu de l'événement"/>
                         </VBox>
 
                         <!-- Nombre de places -->
                         <VBox styleClass="input-group">
                             <Label text="Nombre de places" styleClass="input-label"/>
-                            <TextField fx:id="NBPEvent" styleClass="input-field" 
-                                     promptText="Entrez le nombre de places disponibles"/>
+                            <TextField fx:id="NBPEvent" styleClass="input-field"
+                                       promptText="Entrez le nombre de places disponibles"/>
                         </VBox>
 
                         <!-- Catégorie -->
@@ -81,9 +81,9 @@
 
                         <!-- Buttons -->
                         <HBox spacing="15" alignment="CENTER" styleClass="button-container">
-                            <Button fx:id="cancelButton" onAction="#Annuler" 
+                            <Button fx:id="cancelButton" onAction="#Annuler"
                                     text="Réinitialiser" styleClass="cancel-button"/>
-                            <Button fx:id="addEventButton" onAction="#ModifierEvenement" 
+                            <Button fx:id="addEventButton" onAction="#ModifierEvenement"
                                     text="Enregistrer les modifications" styleClass="submit-button"/>
                         </HBox>
                     </VBox>

@@ -101,7 +101,89 @@ public class UtilisateurService implements IService<Utilisateur> {
 
         return utilisateurs;
     }
+    //new
+    public int getUserActivityCount(int userId) {
+        int count = 0;
+        String questionQuery = "SELECT COUNT(*) FROM Questions WHERE Utilisateur_id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(questionQuery)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                count += rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to count questions: " + e.getMessage(), e);
+        }
 
+        String commentQuery = "SELECT COUNT(*) FROM Commentaire WHERE utilisateur_id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(commentQuery)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                count += rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to count comments: " + e.getMessage(), e);
+        }
+
+        return count;
+    }
+
+    public int getUserVoteCount(int userId) {
+        int totalVotes = 0;
+
+        // Votes from questions
+        String questionVoteQuery = "SELECT SUM(Votes) FROM Questions WHERE Utilisateur_id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(questionVoteQuery)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                totalVotes += rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to count question votes: " + e.getMessage(), e);
+        }
+
+        // Votes from comments
+        String commentVoteQuery = "SELECT SUM(Votes) FROM Commentaire WHERE utilisateur_id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(commentVoteQuery)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                totalVotes += rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to count comment votes: " + e.getMessage(), e);
+        }
+
+        return totalVotes;
+    }
+
+    // Updated method to calculate activity and votes, then set privilege
+    public void updateUserPrivilege(int userId) {
+        int activityCount = getUserActivityCount(userId); // Questions + Comments
+        int voteCount = getUserVoteCount(userId);         // Total votes
+
+        String privilege;
+        if (activityCount >= 5 && voteCount > 10) {
+            privilege = "top_fan"; // Gold crown
+        } else if (activityCount >= 5) {
+            privilege = "top_contributor"; // Silver crown
+        } else {
+            privilege = "regular";
+        }
+
+        String query = "UPDATE Utilisateur SET privilege = ? WHERE id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(query)) {
+            ps.setString(1, privilege);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+            System.out.println("Updated privilege for user " + userId + " to " + privilege);
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to update privilege: " + e.getMessage(), e);
+        }
+    }
+    //new
 
 
 
@@ -274,13 +356,14 @@ public class UtilisateurService implements IService<Utilisateur> {
         return false;
     }
 
+
     public Utilisateur getOne(int id) {
         String query = "SELECT * FROM Utilisateur WHERE id = ?";
         try (PreparedStatement ps = cnx.prepareStatement(query)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return new Utilisateur(
+                Utilisateur user = new Utilisateur(
                         rs.getInt("id"),
                         rs.getString("email"),
                         rs.getString("mot_passe"),
@@ -288,15 +371,15 @@ public class UtilisateurService implements IService<Utilisateur> {
                         rs.getString("nom"),
                         rs.getInt("numero"),
                         rs.getString("prenom"),
-                        Role.valueOf(rs.getString("role")) 
+                        Role.valueOf(rs.getString("role"))
                 );
+                user.setPrivilege(rs.getString("privilege") != null ? rs.getString("privilege") : "regular");                return user;
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Erreur lors de la récupération de l'utilisateur", e);
+            throw new RuntimeException("Failed to fetch user: " + e.getMessage(), e);
         }
         return null;
     }
-
     public boolean loginUser(String email, String password, boolean rememberMe) {
         Utilisateur user = getByEmail(email);
 

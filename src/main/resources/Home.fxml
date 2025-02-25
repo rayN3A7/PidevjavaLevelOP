@@ -130,6 +130,15 @@
                 <children>
                     <Label styleClass="footer-text" text="© 2025 LEVEL UP - Tous droits réservés" />
                 </children>
+                <Button fx:id="chatbotButton" onAction="#openChatbotDialog" styleClass="chatbot-btn">
+                    <graphic>
+                        <ImageView fitHeight="30" fitWidth="30">
+                            <image>
+                                <Image url="@assets/image/chatbot-icon.png" />
+                            </image>
+                        </ImageView>
+                    </graphic>
+                </Button>
             </HBox>
 
         </children>
