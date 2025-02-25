@@ -10,16 +10,16 @@ public class SessionManager {
     private int userId;
     private Role role;
     private String email;
-    private boolean rememberMe; // 🔹 NEW: Controls if session is saved
+    private boolean rememberMe;
 
-    private static final String SESSION_FILE = "session.txt"; // File for session storage
+    private static final String SESSION_FILE = "session.txt";
 
     private SessionManager() {
         this.userId = -1;
         this.role = null;
         this.email = null;
         this.rememberMe = false;
-        loadSession(); // Load session if it was saved
+        loadSession();
     }
 
     public static SessionManager getInstance() {
@@ -33,12 +33,12 @@ public class SessionManager {
         this.userId = userId;
         this.role = role;
         this.email = email;
-        this.rememberMe = rememberMe; // 🔹 Store user choice
+        this.rememberMe = rememberMe;
 
         if (rememberMe) {
             saveSession();
         } else {
-            clearSession(); // 🔹 If not remembered, ensure no session is saved
+            clearSession();
         }
     }
 
@@ -47,7 +47,7 @@ public class SessionManager {
         this.role = null;
         this.email = null;
         this.rememberMe = false;
-        clearSession(); // Always clear session on logout
+        clearSession();
     }
 
     public boolean isLoggedIn() {
@@ -70,7 +70,7 @@ public class SessionManager {
         return rememberMe;
     }
 
-    // ✅ Save session if "rememberMe" is true
+
     private void saveSession() {
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(SESSION_FILE))) {
             writer.write(userId + "\n" + role.name() + "\n" + email + "\n" + rememberMe);
@@ -79,7 +79,7 @@ public class SessionManager {
         }
     }
 
-    // ✅ Load session from file (only if "rememberMe" was true)
+
     private void loadSession() {
         if (Files.exists(Paths.get(SESSION_FILE))) {
             try (BufferedReader reader = Files.newBufferedReader(Paths.get(SESSION_FILE))) {
@@ -89,7 +89,7 @@ public class SessionManager {
                 this.rememberMe = Boolean.parseBoolean(reader.readLine());
 
                 if (!rememberMe) {
-                    clearSession(); // 🔹 If rememberMe is false, clear session
+                    clearSession();
                 }
             } catch (IOException e) {
                 System.out.println("Failed to load session: " + e.getMessage());
@@ -97,7 +97,7 @@ public class SessionManager {
         }
     }
 
-    // ✅ Clear session file when logging out or when "rememberMe" is false
+
     private void clearSession() {
         try {
             Files.deleteIfExists(Paths.get(SESSION_FILE));

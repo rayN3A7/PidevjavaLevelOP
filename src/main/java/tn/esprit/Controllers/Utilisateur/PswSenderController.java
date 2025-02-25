@@ -39,7 +39,7 @@ public class PswSenderController {
         }
         String email = txtEmail.getText().trim(); // Get the email from the text field
 
-        // Check if the email exists in the database
+
         if (us.emailExists(email)) {
             // Generate OTP
             String otp = em.generateOtp();
