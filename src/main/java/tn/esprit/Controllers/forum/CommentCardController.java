@@ -50,11 +50,11 @@ public class CommentCardController {
     @FXML
     private Button saveButton;
     @FXML
-    private Button reactButton; // New button for reactions
+    private Button reactButton;
     @FXML
-    private HBox reactionContainer; // Container for displaying reactions
+    private HBox reactionContainer;
     @FXML
-    private ImageView selectedEmojiImage; // ImageView for the user's selected emoji
+    private ImageView selectedEmojiImage;
 
     private Commentaire commentaire;
     private QuestionDetailsController questionDetailsController;
@@ -62,7 +62,7 @@ public class CommentCardController {
     private int userId = SessionManager.getInstance().getUserId();
     private static final ExecutorService executorService = Executors.newFixedThreadPool(4);
 
-    public void init(Commentaire commentaire, QuestionDetailsController questionDetailsController) {
+    public void setCommentData(Commentaire commentaire, QuestionDetailsController questionDetailsController) {
         this.questionDetailsController = questionDetailsController;
         this.commentaire = commentaire;
         commentAuthor.setText(commentaire.getUtilisateur().getNickname());
@@ -77,15 +77,15 @@ public class CommentCardController {
 
         updateButton.setOnAction(event -> enableEditMode());
         saveButton.setOnAction(event -> saveUpdatedComment());
-        reactButton.setOnAction(e -> showEmojiPicker()); // Add reaction button action
+        reactButton.setOnAction(e -> showEmojiPicker());
         displayReactions();
         displayUserReaction();
         Utilisateur user = commentaire.getUtilisateur();
         commentAuthor.setText(user.getNickname());
-        switch (user.getPrivilege()) {
+        switch (user.getPrivilege() != null ? user.getPrivilege() : "regular") {
             case "top_contributor":
                 commentAuthor.setStyle("-fx-text-fill: silver;");
-                crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png")); // Ensure crown icon exists
+                crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png"));
                 crownIcon.setVisible(true);
                 break;
             case "top_fan":
@@ -98,9 +98,7 @@ public class CommentCardController {
                 crownIcon.setVisible(false);
                 break;
         }
-
     }
-
     private void enableEditMode() {
         editCommentField.setText(commentaire.getContenu());
         editCommentField.setVisible(true);

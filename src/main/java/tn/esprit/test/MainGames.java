@@ -9,7 +9,7 @@ public class MainGames {
         GamesService gamesService = new GamesService();
 
         // Add a new game
-        Games newGame = new Games("League of Legends");
+        Games newGame = new Games("League of Legends", "C:\\xampp\\htdocs\\img\\games\\game_1626950730000_Valorant.jpg", "MOBA");
         gamesService.add(newGame);
         System.out.println("Game added successfully.");
 

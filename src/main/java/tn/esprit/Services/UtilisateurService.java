@@ -101,7 +101,6 @@ public class UtilisateurService implements IService<Utilisateur> {
 
         return utilisateurs;
     }
-    //new
     public int getUserActivityCount(int userId) {
         int count = 0;
         String questionQuery = "SELECT COUNT(*) FROM Questions WHERE Utilisateur_id = ?";
@@ -132,7 +131,6 @@ public class UtilisateurService implements IService<Utilisateur> {
     public int getUserVoteCount(int userId) {
         int totalVotes = 0;
 
-        // Votes from questions
         String questionVoteQuery = "SELECT SUM(Votes) FROM Questions WHERE Utilisateur_id = ?";
         try (PreparedStatement ps = cnx.prepareStatement(questionVoteQuery)) {
             ps.setInt(1, userId);
@@ -144,7 +142,6 @@ public class UtilisateurService implements IService<Utilisateur> {
             throw new RuntimeException("Failed to count question votes: " + e.getMessage(), e);
         }
 
-        // Votes from comments
         String commentVoteQuery = "SELECT SUM(Votes) FROM Commentaire WHERE utilisateur_id = ?";
         try (PreparedStatement ps = cnx.prepareStatement(commentVoteQuery)) {
             ps.setInt(1, userId);
@@ -159,29 +156,36 @@ public class UtilisateurService implements IService<Utilisateur> {
         return totalVotes;
     }
 
-    // Updated method to calculate activity and votes, then set privilege
-    public void updateUserPrivilege(int userId) {
-        int activityCount = getUserActivityCount(userId); // Questions + Comments
-        int voteCount = getUserVoteCount(userId);         // Total votes
+    public String updateUserPrivilege(int userId) {
+        Utilisateur user = getOne(userId);
+        String oldPrivilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
 
-        String privilege;
+        int activityCount = getUserActivityCount(userId);
+        int voteCount = getUserVoteCount(userId);
+
+        String newPrivilege;
         if (activityCount >= 5 && voteCount > 10) {
-            privilege = "top_fan"; // Gold crown
+            newPrivilege = "top_fan";
         } else if (activityCount >= 5) {
-            privilege = "top_contributor"; // Silver crown
+            newPrivilege = "top_contributor";
         } else {
-            privilege = "regular";
+            newPrivilege = "regular";
         }
 
-        String query = "UPDATE Utilisateur SET privilege = ? WHERE id = ?";
-        try (PreparedStatement ps = cnx.prepareStatement(query)) {
-            ps.setString(1, privilege);
-            ps.setInt(2, userId);
-            ps.executeUpdate();
-            System.out.println("Updated privilege for user " + userId + " to " + privilege);
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to update privilege: " + e.getMessage(), e);
+        if (!newPrivilege.equals(oldPrivilege)) {
+            String query = "UPDATE Utilisateur SET privilege = ? WHERE id = ?";
+            try (PreparedStatement ps = cnx.prepareStatement(query)) {
+                ps.setString(1, newPrivilege);
+                ps.setInt(2, userId);
+                ps.executeUpdate();
+                System.out.println("Updated privilege for user " + userId + " from " + oldPrivilege + " to " + newPrivilege);
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to update privilege: " + e.getMessage(), e);
+            }
+            return newPrivilege;
         }
+
+        return null;
     }
     //new
 
