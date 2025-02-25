@@ -1,13 +1,18 @@
 package tn.esprit.Controllers.forum;
 
+import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.MediaView;
 import javafx.stage.Popup;
 import javafx.util.Duration;
+import tn.esprit.Models.Games;
 import tn.esprit.Models.Question;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -20,6 +25,7 @@ import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.EmojiService;
+import tn.esprit.Services.GamesService;
 import tn.esprit.Services.QuestionService;
 import tn.esprit.Services.UtilisateurService;
 import tn.esprit.utils.SessionManager;
@@ -32,54 +38,42 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class QuestionCardController {
-    @FXML
-    private Label commentAuthor;
-    @FXML
-    private Label titleLabel;
-    @FXML
-    private Label contentLabel;
-    @FXML
-    private ImageView questionImage; // Ensure this field exists
+    @FXML private Label commentAuthor;
+    @FXML private Label titleLabel;
+    @FXML private Label contentLabel;
+    @FXML private VBox mediaContainer;
+    @FXML private ImageView questionImage;
+    @FXML private VBox videoWrapper;
+    @FXML private MediaView questionVideo;
+    @FXML private HBox videoControlBar;
+    @FXML private Button playPauseButton;
+    @FXML private Slider progressSlider;
+    @FXML private Label timeLabel;
+    @FXML private Slider volumeSlider;
+    @FXML private Button fullScreenButton;
+    @FXML private Label votesLabel;
+    @FXML private Button reactButton;
+    @FXML private Button upvoteButton;
+    @FXML private Button downvoteButton;
+    @FXML private Button updateButton;
+    @FXML private Button deleteButton;
+    @FXML private ImageView gameIcon;
+    @FXML private VBox contentVBox;
+    @FXML private ImageView crownIcon;
+    @FXML private ImageView selectedEmojiImage;
+   // New play/pause button
     @FXML
     private HBox reactionContainer;
 
-    @FXML
-    private Label votesLabel;
-    @FXML
-    private Button reactButton;
-    @FXML
-    private Button upvoteButton;
-    @FXML
-    private Button downvoteButton;
-    @FXML
-    private Button updateButton;
-    @FXML
-    private Button deleteButton;
-    @FXML
-    private ImageView gameIcon;
-    @FXML
-    private VBox contentVBox;
-    @FXML
-    private Label userLabel;
-    @FXML
-    private ImageView crownIcon;
-    @FXML
-    private ImageView selectedEmojiImage;
-    @FXML
-    private Label selectedEmojiLabel;
-
     private Question question;
-
     private ForumController forumController;
-
     private int userId = SessionManager.getInstance().getUserId();
-
     private UtilisateurService us = new UtilisateurService();
-
     private QuestionService questionService = new QuestionService();
-
+    private GamesService gamesService = new GamesService();
     private static final ExecutorService executorService = Executors.newFixedThreadPool(4);
-
+    private MediaPlayer mediaPlayer;    // Store MediaPlayer instance for control
+    private boolean isFullScreen = false; // Track full-screen state
     public void setQuestionData(Question question, ForumController forumController) {
         this.question = question;
         this.forumController = forumController;
@@ -102,14 +96,13 @@ public class QuestionCardController {
         displayReactions();
         displayUserReaction();
 
-        // Load image and adjust card size dynamically
-        loadQuestionImageAsync();
+        loadQuestionMediaAsync();
         Utilisateur user = question.getUser();
         commentAuthor.setText(user.getNickname());
-        switch (user.getPrivilege()) {
+        switch (user.getPrivilege() != null ? user.getPrivilege() : "regular") {
             case "top_contributor":
                 commentAuthor.setStyle("-fx-text-fill: silver;");
-                crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png")); // Ensure crown icon exists
+                crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png"));
                 crownIcon.setVisible(true);
                 break;
             case "top_fan":
@@ -124,50 +117,162 @@ public class QuestionCardController {
         }
     }
 
-    private void loadQuestionImageAsync() {
-        String imagePath = question.getImagePath();
-        if (imagePath != null && !imagePath.isEmpty()) {
+    private void loadQuestionMediaAsync() {
+        String mediaPath = question.getMediaPath();
+        String mediaType = question.getMediaType();
+        if (mediaPath != null && !mediaPath.isEmpty() && mediaType != null) {
             executorService.submit(() -> {
                 try {
-                    System.out.println("Attempting to load image from path (async): " + imagePath);
-                    File file = new File(imagePath);
+                    File file = new File(mediaPath);
                     if (file.exists()) {
                         String fileUri = file.toURI().toString();
-                        Image image = new Image(fileUri, 200, 150, true, true);
-                        if (!image.isError()) {
+                        if ("image".equals(mediaType)) {
+                            Image image = new Image(fileUri, 500, 350, true, true); // Match FXML sizes
+                            if (!image.isError()) {
+                                Platform.runLater(() -> {
+                                    questionImage.setImage(image);
+                                    questionImage.setVisible(true);
+                                    questionImage.setManaged(true);
+                                    videoWrapper.setVisible(false); // Hide video components
+                                    videoWrapper.setManaged(false);
+                                    mediaContainer.setVisible(true);
+                                    mediaContainer.setManaged(true);
+                                    if (!contentVBox.getParent().getStyleClass().contains("has-image")) {
+                                        contentVBox.getParent().getStyleClass().add("has-image");
+                                    }
+                                });
+                            } else {
+                                System.err.println("Failed to load image: " + mediaPath);
+                                Platform.runLater(() -> resetMediaState());
+                            }
+                        } else if ("video".equals(mediaType)) {
+                            Media media = new Media(fileUri);
+                            mediaPlayer = new MediaPlayer(media);
+                            mediaPlayer.setAutoPlay(false);
                             Platform.runLater(() -> {
-                                questionImage.setImage(image);
-                                questionImage.setVisible(true);
-                                questionImage.setManaged(true);
-                                // Apply the has-image class to the question-card HBox
-                                if (!contentVBox.getParent().getStyleClass().contains("has-image")) {
-                                    contentVBox.getParent().getStyleClass().add("has-image");
-                                }
-                                System.out.println("Successfully loaded image (async): " + imagePath);
+                                questionVideo.setMediaPlayer(mediaPlayer);
+                                videoWrapper.setVisible(true);
+                                videoWrapper.setManaged(true);
+                                questionImage.setVisible(false); // Hide image
+                                questionImage.setManaged(false);
+                                mediaContainer.setVisible(true);
+                                mediaContainer.setManaged(true);
+                                setupVideoControls();
+                                videoControlBar.prefWidthProperty().bind(questionVideo.fitWidthProperty());
                             });
-                        } else {
-                            System.err.println("Failed to load image (async): " + imagePath + " - " + image.getException());
-                            Platform.runLater(() -> resetImageState());
                         }
                     } else {
-                        System.err.println("Image file not found (async): " + imagePath);
-                        Platform.runLater(() -> resetImageState());
+                        System.err.println("Media file not found: " + mediaPath);
+                        Platform.runLater(() -> resetMediaState());
                     }
                 } catch (Exception e) {
-                    System.err.println("Error loading question image (async): " + e.getMessage());
-                    Platform.runLater(() -> resetImageState());
+                    System.err.println("Error loading question media: " + e.getMessage());
+                    Platform.runLater(() -> resetMediaState());
                 }
             });
         } else {
-            System.out.println("No image path provided for question (async): " + question.getQuestion_id());
-            Platform.runLater(() -> resetImageState());
+            Platform.runLater(() -> resetMediaState());
+        }
+    }
+    private void setupVideoControls() {
+        playPauseButton.setOnAction(event -> {
+            if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                mediaPlayer.pause();
+                playPauseButton.setText("▶");
+            } else {
+                mediaPlayer.play();
+                playPauseButton.setText("⏸");
+            }
+        });
+
+        mediaPlayer.currentTimeProperty().addListener((obs, old, newValue) -> {
+            if (!progressSlider.isValueChanging()) {
+                double duration = mediaPlayer.getTotalDuration().toSeconds();
+                double current = newValue.toSeconds();
+                progressSlider.setValue(current / duration * 100);
+                updateTimeLabel(current, duration);
+            }
+        });
+        progressSlider.valueChangingProperty().addListener((obs, wasChanging, isChanging) -> {
+            if (!isChanging) {
+                double duration = mediaPlayer.getTotalDuration().toSeconds();
+                mediaPlayer.seek(Duration.seconds(progressSlider.getValue() * duration / 100));
+            }
+        });
+        progressSlider.setOnMouseDragged(event -> {
+            double duration = mediaPlayer.getTotalDuration().toSeconds();
+            mediaPlayer.seek(Duration.seconds(progressSlider.getValue() * duration / 100));
+        });
+
+        volumeSlider.valueProperty().addListener((obs, old, newValue) -> {
+            mediaPlayer.setVolume(newValue.doubleValue() / 100.0);
+        });
+
+        fullScreenButton.setOnAction(event -> toggleFullScreen());
+
+        videoControlBar.setOpacity(1.0);
+        FadeTransition fade = new FadeTransition(Duration.seconds(0.3), videoControlBar);
+        fade.setToValue(0.0);
+        videoWrapper.setOnMouseMoved(event -> {
+            videoControlBar.setOpacity(1.0);
+            fade.stop();
+        });
+        videoWrapper.setOnMouseExited(event -> {
+            if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                fade.playFromStart();
+            }
+        });
+
+        mediaPlayer.setOnReady(() -> {
+            progressSlider.setMax(100);
+            updateTimeLabel(0, mediaPlayer.getTotalDuration().toSeconds());
+        });
+    }
+
+    private void updateTimeLabel(double current, double duration) {
+        int currentMins = (int) (current / 60);
+        int currentSecs = (int) (current % 60);
+        int durationMins = (int) (duration / 60);
+        int durationSecs = (int) (duration % 60);
+        timeLabel.setText(String.format("%d:%02d / %d:%02d", currentMins, currentSecs, durationMins, durationSecs));
+    }
+
+    private void toggleFullScreen() {
+        Stage stage = (Stage) questionVideo.getScene().getWindow();
+        if (!isFullScreen) {
+            stage.setFullScreen(true);
+            questionVideo.fitWidthProperty().unbind();
+            questionVideo.fitHeightProperty().unbind();
+            questionVideo.setFitWidth(stage.getWidth());
+            questionVideo.setFitHeight(stage.getHeight() - videoControlBar.getHeight());
+            videoControlBar.prefWidthProperty().bind(stage.widthProperty());
+            fullScreenButton.setText("⤹");
+            isFullScreen = true;
+        } else {
+            stage.setFullScreen(false);
+            questionVideo.setFitWidth(500);
+            questionVideo.setFitHeight(350);
+            videoControlBar.prefWidthProperty().bind(questionVideo.fitWidthProperty());
+            fullScreenButton.setText("⛶");
+            isFullScreen = false;
         }
     }
 
-    private void resetImageState() {
+    private void resetMediaState() {
         questionImage.setImage(null);
         questionImage.setVisible(false);
         questionImage.setManaged(false);
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.dispose();
+            mediaPlayer = null;
+        }
+        questionVideo.setMediaPlayer(null);
+        videoWrapper.setVisible(false);
+        videoWrapper.setManaged(false);
+        mediaContainer.setVisible(false);
+        mediaContainer.setManaged(false);
+        videoControlBar.prefWidthProperty().unbind();
         contentVBox.getParent().getStyleClass().remove("has-image");
     }
 
@@ -376,39 +481,18 @@ public class QuestionCardController {
     }
 
     private void setGameIcon(String gameName) {
-        if (gameName != null && !gameName.isEmpty()) {
-            String formattedGameName = gameName.toLowerCase().replace(" ", "_");
-            String filePath = "/forumUI/icons/" + formattedGameName + ".png";
-
-            System.out.println("Looking for game icon at: " + filePath);
-
-            try {
-                Image image = new Image(getClass().getResourceAsStream(filePath));
-                if (image.isError()) {
-                    throw new Exception("Image load error");
+        Games game = gamesService.getByName(gameName); // Assuming gamesService is initialized
+        if (game != null && game.getImagePath() != null && !game.getImagePath().isEmpty()) {
+            File file = new File(game.getImagePath());
+            if (file.exists()) {
+                Image image = new Image(file.toURI().toString(), 100, 100, true, true);
+                if (!image.isError()) {
+                    gameIcon.setImage(image);
+                } else {
+                    System.err.println("Failed to load game image: " + game.getImagePath());
                 }
-                gameIcon.setImage(image);
-
-                switch (formattedGameName) {
-                    case "valorant":
-                        gameIcon.setFitWidth(100);
-                        gameIcon.setFitHeight(80);
-                        break;
-                    case "overwatch":
-                        gameIcon.setFitWidth(100);
-                        gameIcon.setFitHeight(100);
-                        break;
-                    case "league_of_legends":
-                        gameIcon.setFitWidth(100);
-                        gameIcon.setFitHeight(100);
-                        break;
-                    default:
-                        gameIcon.setFitWidth(100);
-                        gameIcon.setFitHeight(100);
-                        break;
-                }
-            } catch (Exception e) {
-                System.out.println("Game icon not found for: " + gameName + " at path: " + filePath);
+            } else {
+                System.out.println("Game image file not found: " + game.getImagePath());
             }
         }
     }

@@ -26,3 +26,32 @@
     -fx-text-fill: #222;
     -fx-border-color: #ff007f;
 }
+.privilege-alert {
+    -fx-background-color: #091221; /* Dark background */
+    -fx-border-color: #ff007f; /* Neon cyan border */
+    -fx-background-radius: 15;
+    -fx-border-radius: 15;
+    -fx-border-width: 2;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 10, 0.5, 0, 0);
+}
+
+.privilege-alert .label {
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.privilege-alert .button {
+    -fx-background-color: #ff007f;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 8 16;
+    -fx-background-radius: 15;
+}
+
+.privilege-alert .button:hover {
+    -fx-background-color: #e6007a;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}

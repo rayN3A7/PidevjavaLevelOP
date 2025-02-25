@@ -44,21 +44,17 @@ public class QuestionService implements IService<Question> {
         }
 
         try {
-            System.out.println("Starting transaction to add question: " + question.getTitle());
-            System.out.println("User ID: " + user.getId() + ", Game ID: " + game.getGame_id() + ", Image Path: " + question.getImagePath());
-
             connexion.setAutoCommit(false);
 
-            String query = "INSERT INTO Questions (title, content, game_id, Utilisateur_id, Votes, image_path) VALUES (?, ?, ?, ?, ?, ?)";
+            String query = "INSERT INTO Questions (title, content, game_id, Utilisateur_id, Votes, media_path, media_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement st = connexion.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
                 st.setString(1, question.getTitle());
                 st.setString(2, question.getContent());
                 st.setInt(3, game.getGame_id());
                 st.setInt(4, user.getId());
                 st.setInt(5, question.getVotes());
-                st.setString(6, question.getImagePath()); // Save the image path
-                System.out.println("Executing SQL: " + query.replace("?", "'?'") + " with values: " + question.getTitle() + ", " + question.getContent() + ", " + game.getGame_id() + ", " + user.getId() + ", " + question.getVotes() + ", " + question.getImagePath());
-
+                st.setString(6, question.getMediaPath());
+                st.setString(7, question.getMediaType());
                 int affectedRows = st.executeUpdate();
                 if (affectedRows == 0) {
                     throw new RuntimeException("Failed to insert question, no rows affected.");
@@ -68,20 +64,15 @@ public class QuestionService implements IService<Question> {
                     if (generatedKeys.next()) {
                         int questionId = generatedKeys.getInt(1);
                         question.setQuestion_id(questionId);
-                        System.out.println("Question added successfully with ID: " + questionId + " and image path: " + question.getImagePath());
                     } else {
                         throw new RuntimeException("Failed to insert question, no ID generated.");
                     }
                 }
             }
-            UtilisateurService us = new UtilisateurService();
-            us.updateUserPrivilege(user.getId());
             connexion.commit();
-            System.out.println("Transaction committed successfully for question ID: " + question.getQuestion_id());
         } catch (SQLException e) {
             if (connexion != null) {
                 try {
-                    System.err.println("Transaction is being rolled back due to: " + e.getMessage());
                     connexion.rollback();
                 } catch (SQLException ex) {
                     System.err.println("Error during rollback: " + ex.getMessage());
@@ -92,7 +83,6 @@ public class QuestionService implements IService<Question> {
             if (connexion != null) {
                 try {
                     connexion.setAutoCommit(true);
-                    System.out.println("Auto-commit restored to true.");
                 } catch (SQLException ex) {
                     System.err.println("Error restoring auto-commit mode: " + ex.getMessage());
                 }
@@ -147,15 +137,16 @@ public class QuestionService implements IService<Question> {
                 int votes = rs.getInt("Votes");
                 int gameId = rs.getInt("game_id");
                 int userId = rs.getInt("utilisateur_id");
-                String imagePath = rs.getString("image_path");
-                System.out.println("Retrieved question with ID: " + questionId + " and image path: " + imagePath);
+                String mediaPath = rs.getString("media_path");
+                String mediaType = rs.getString("media_type");
 
                 Games game = new GamesService().getOne(gameId);
                 Utilisateur user = new UtilisateurService().getOne(userId);
                 Question question = new Question(questionId, title, content, votes, game, user);
+                question.setMediaPath(mediaPath);
+                question.setMediaType(mediaType);
                 question.setReactions(getReactions(questionId));
                 question.setUserReaction(getUserReaction(questionId, userId));
-                question.setImagePath(imagePath);
                 return question;
             }
         } catch (SQLException e) {
@@ -177,15 +168,16 @@ public class QuestionService implements IService<Question> {
                 int votes = rs.getInt("Votes");
                 int gameId = rs.getInt("game_id");
                 int userId = rs.getInt("Utilisateur_id");
-                String imagePath = rs.getString("image_path");
-                System.out.println("Retrieved question with ID: " + id + " and image path: " + imagePath);
+                String mediaPath = rs.getString("media_path");
+                String mediaType = rs.getString("media_type");
 
                 Games game = new GamesService().getOne(gameId);
                 Utilisateur user = new UtilisateurService().getOne(userId);
                 Question question = new Question(id, title, content, votes, game, user);
+                question.setMediaPath(mediaPath);
+                question.setMediaType(mediaType);
                 question.setReactions(getReactions(id));
                 question.setUserReaction(getUserReaction(id, userId));
-                question.setImagePath(imagePath);
                 questionList.add(question);
             }
         } catch (SQLException e) {
@@ -196,13 +188,14 @@ public class QuestionService implements IService<Question> {
 
     @Override
     public void update(Question question) {
-        String query = "UPDATE Questions SET title = ?, content = ?, Votes = ?, image_path = ? WHERE question_id = ?";
+        String query = "UPDATE Questions SET title = ?, content = ?, Votes = ?, media_path = ?, media_type = ? WHERE question_id = ?";
         try (PreparedStatement ps = connexion.prepareStatement(query)) {
             ps.setString(1, question.getTitle());
             ps.setString(2, question.getContent());
             ps.setInt(3, question.getVotes());
-            ps.setString(4, question.getImagePath());
-            ps.setInt(5, question.getQuestion_id());
+            ps.setString(4, question.getMediaPath());
+            ps.setString(5, question.getMediaType());
+            ps.setInt(6, question.getQuestion_id());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update question: " + e.getMessage(), e);

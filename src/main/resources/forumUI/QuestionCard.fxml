@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.media.MediaView?>
 
 <HBox spacing="10" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="tn.esprit.Controllers.forum.QuestionCardController" styleClass="question-card">
@@ -19,7 +19,27 @@
         </HBox>
         <Label fx:id="titleLabel" styleClass="question-title"/>
         <Label fx:id="contentLabel" styleClass="question-content" wrapText="true"/>
-        <ImageView fx:id="questionImage" styleClass="question-image" fitWidth="200" fitHeight="150" preserveRatio="true" visible="false" managed="false"/>
+        <VBox fx:id="mediaContainer" styleClass="media-container" prefWidth="500" prefHeight="350" visible="false" managed="false">
+            <ImageView fx:id="questionImage" fitWidth="500" fitHeight="350" preserveRatio="true" visible="false" managed="false"/>
+            <VBox fx:id="videoWrapper" styleClass="video-wrapper" visible="false" managed="false">
+                <MediaView fx:id="questionVideo" fitWidth="500" preserveRatio="true"/>
+                <HBox fx:id="videoControlBar" styleClass="video-control-bar" visible="true" managed="true" prefWidth="-Infinity" HBox.hgrow="ALWAYS">
+                    <Button fx:id="playPauseButton" text="▶" styleClass="video-control-button">
+                        <tooltip>
+                            <Tooltip text="Play/Pause"/>
+                        </tooltip>
+                    </Button>
+                    <Slider fx:id="progressSlider" styleClass="progress-slider" min="0" max="100" value="0" HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="timeLabel" text="0:00 / 0:00" styleClass="time-label"/>
+                    <Slider fx:id="volumeSlider" styleClass="volume-slider" min="0" max="100" value="100" prefWidth="100"/>
+                    <Button fx:id="fullScreenButton" text="⛶" styleClass="video-control-button">
+                        <tooltip>
+                            <Tooltip text="Full Screen"/>
+                        </tooltip>
+                    </Button>
+                </HBox>
+            </VBox>
+        </VBox>
         <Label fx:id="votesLabel" styleClass="votes-label"/>
         <HBox spacing="5" fx:id="reactionContainer" styleClass="reaction-container" prefWidth="300"/>
         <HBox spacing="5" alignment="CENTER_LEFT" styleClass="reaction-actions">

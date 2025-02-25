@@ -244,3 +244,79 @@
     -fx-scale-y: 1.1;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
 }
+/* Remove fixed size constraints and allow flexible scaling */
+
+
+/* Ensure ImageView scales naturally */
+.question-image {
+    -fx-border-color: #ff69b4;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-background-color: #1a1a1a;
+}
+
+/* Video control bar styling */
+.video-wrapper {
+    -fx-background-color: black; /* Black background like YouTube */
+    -fx-alignment: center;
+}
+
+.video-control-bar {
+    -fx-background-color: rgba(254, 3, 105, 0.9); /* Semi-transparent pink */
+    -fx-padding: 5;
+    -fx-spacing: 10;
+    -fx-alignment: center-left;
+    -fx-background-radius: 0 0 8 8;
+    -fx-max-width: infinity;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 5, 0, 0, 2);
+    -fx-transition: opacity 0.3s; /* For fade effect */
+}
+
+.video-control-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 4px 8px;
+    -fx-background-radius: 15;
+}
+
+.video-control-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.2);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.progress-slider {
+    -fx-pref-height: 10;
+}
+
+.progress-slider .track {
+    -fx-background-color: #e0e0e0;
+    -fx-pref-height: 4;
+}
+
+.progress-slider .thumb {
+    -fx-background-color: #ff007f;
+    -fx-pref-width: 12;
+    -fx-pref-height: 12;
+}
+
+.volume-slider {
+    -fx-pref-height: 10;
+}
+
+.volume-slider .track {
+    -fx-background-color: #e0e0e0;
+    -fx-pref-height: 4;
+}
+
+.volume-slider .thumb {
+    -fx-background-color: #ff007f;
+    -fx-pref-width: 12;
+    -fx-pref-height: 12;
+}
+
+.time-label {
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+}
