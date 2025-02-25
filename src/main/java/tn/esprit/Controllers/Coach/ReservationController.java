@@ -1,30 +1,30 @@
 package tn.esprit.Controllers.Coach;
 
+import java.sql.Date;
+import java.time.LocalDate;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.stage.Stage;
 import tn.esprit.Models.Reservation;
 import tn.esprit.Models.Session_game;
 import tn.esprit.Services.ServiceReservation;
 import tn.esprit.utils.SessionManager;
 
-import java.sql.Date;
-import java.time.LocalDate;
-
 public class ReservationController {
 
-    @FXML
-    private DatePicker datePicker;
-    @FXML
-    private TextField sessionIdField;
+    @FXML private DatePicker datePicker;
+    @FXML private Label statusLabel;
+
+    private int sessionId; // Stocker l'ID de session en privé
     private int clientId = SessionManager.getInstance().getUserId();
-    @FXML
-    private Label statusLabel;
 
     private final ServiceReservation serviceReservation = new ServiceReservation();
 
@@ -32,7 +32,6 @@ public class ReservationController {
     private void handleAddReservation() {
         try {
             LocalDate localDate = datePicker.getValue();
-            int sessionId = Integer.parseInt(sessionIdField.getText());
 
             if (localDate == null) {
                 showAlert("Erreur", "Veuillez sélectionner une date valide.");
@@ -40,7 +39,7 @@ public class ReservationController {
             }
 
             if (clientId <= 0 || sessionId <= 0) {
-                showAlert("Erreur", "Les identifiants doivent être des nombres positifs.");
+                showAlert("Erreur", "Informations de réservation invalides.");
                 return;
             }
 
@@ -52,47 +51,55 @@ public class ReservationController {
 
             // Créer une session avec l'ID spécifié
             Session_game session = new Session_game();
-            session.setId(sessionId); // Définir l'ID de la session
+            session.setId(sessionId);
 
-            // Créer une nouvelle réservation avec la session et le client
-            Reservation newReservation = new Reservation(Date.valueOf(localDate), session, clientId);
+            // Créer une nouvelle réservation
+            Reservation reservation = new Reservation(
+                    Date.valueOf(localDate),
+                    session,
+                    clientId
+            );
 
-            // Ajouter la réservation
-            serviceReservation.add(newReservation);
+            serviceReservation.add(reservation);
+            statusLabel.setText("Réservation effectuée avec succès !");
+            statusLabel.setStyle("-fx-text-fill: #2ecc71;");
 
-            statusLabel.setText("Réservation ajoutée avec succès !");
-            statusLabel.setStyle("-fx-text-fill: green;");
-            clearFields();
-        } catch (NumberFormatException e) {
-            showAlert("Erreur", "Veuillez saisir des identifiants numériques valides.");
+            // Rediriger vers la page des réservations après un court délai
+            new Thread(() -> {
+                try {
+                    Thread.sleep(1500);
+                    javafx.application.Platform.runLater(() -> goToMyReservations());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+        } catch (Exception e) {
+            showAlert("Erreur", "Erreur lors de la réservation: " + e.getMessage());
         }
     }
 
     @FXML
     private void handleDeleteReservation() {
         try {
-            int sessionId = Integer.parseInt(sessionIdField.getText());
-
             if (clientId <= 0 || sessionId <= 0) {
-                showAlert("Erreur", "Les identifiants doivent être des nombres positifs.");
+                showAlert("Erreur", "Informations de réservation invalides.");
                 return;
             }
 
-            // Récupérer la réservation par client_id et session_id
             Reservation reservationToDelete = serviceReservation.getReservationByClientAndSession(clientId, sessionId);
 
             if (reservationToDelete != null) {
-                // Supprimer la réservation
                 serviceReservation.delete(reservationToDelete);
                 statusLabel.setText("Réservation supprimée avec succès !");
                 statusLabel.setStyle("-fx-text-fill: red;");
             } else {
-                showAlert("Erreur", "Aucune réservation trouvée pour ce client et cette session.");
+                showAlert("Erreur", "Aucune réservation trouvée pour cette session.");
             }
 
             clearFields();
-        } catch (NumberFormatException e) {
-            showAlert("Erreur", "Veuillez saisir des identifiants numériques valides.");
+        } catch (Exception e) {
+            showAlert("Erreur", "Erreur lors de la suppression: " + e.getMessage());
         }
     }
 
@@ -105,17 +112,34 @@ public class ReservationController {
 
     private void clearFields() {
         datePicker.setValue(null);
-        sessionIdField.clear();
     }
+
     @FXML
-    private void ListReservationC(ActionEvent event)throws Exception{
+    private void ListReservationC(ActionEvent event) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/verifier_reservation.fxml"));
-        Parent signInRoot = loader.load();
-        Scene signInScene = new Scene(signInRoot);
-
-
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
         Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        window.setScene(signInScene);
+        window.setScene(scene);
         window.show();
+    }
+
+    public void initData(int sessionId) {
+        this.sessionId = sessionId; // Stocker l'ID de session
+    }
+
+    @FXML
+    private void goToMyReservations() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/my_sessions.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            Stage stage = (Stage) datePicker.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Erreur lors de la navigation vers Mes Réservations");
+        }
     }
 }

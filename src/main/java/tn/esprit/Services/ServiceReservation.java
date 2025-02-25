@@ -1,15 +1,18 @@
 package tn.esprit.Services;
 
-import tn.esprit.Models.Reservation;
-import tn.esprit.Models.Session_game;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
 import tn.esprit.Interfaces.IService;
 import tn.esprit.Models.Reservation;
 import tn.esprit.Models.Session_game;
 import tn.esprit.utils.MyDatabase;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ServiceReservation implements IService<Reservation> {
     private Connection cnx;
@@ -161,5 +164,63 @@ public class ServiceReservation implements IService<Reservation> {
     @Override
     public Reservation getOne(int id) {
         return null;
+    }
+
+    public List<Reservation> getReservationsByCoachId(int coachId) {
+        List<Reservation> reservations = new ArrayList<>();
+        String qry = "SELECT r.* FROM reservation r " +
+                "JOIN session_game s ON r.session_id_id = s.id " +
+                "WHERE s.coach_id = ?";
+
+        try (PreparedStatement pstm = cnx.prepareStatement(qry)) {
+            pstm.setInt(1, coachId);
+            ResultSet rs = pstm.executeQuery();
+
+            while (rs.next()) {
+                Reservation reservation = new Reservation();
+                reservation.setId(rs.getInt("id"));
+                reservation.setdate_reservation(rs.getDate("date_reservation"));
+                reservation.setClient_id(rs.getInt("client_id"));
+
+                // Récupérer la session associée
+                ServiceSession serviceSession = new ServiceSession();
+                Session_game session = serviceSession.getSessionById(rs.getInt("session_id_id"));
+                reservation.setSession(session);
+
+                reservations.add(reservation);
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la récupération des réservations : " + e.getMessage());
+        }
+
+        return reservations;
+    }
+
+    public List<Reservation> getReservationsByClientId(int clientId) {
+        List<Reservation> reservations = new ArrayList<>();
+        String qry = "SELECT * FROM reservation WHERE client_id = ?";
+
+        try (PreparedStatement pstm = cnx.prepareStatement(qry)) {
+            pstm.setInt(1, clientId);
+            ResultSet rs = pstm.executeQuery();
+
+            while (rs.next()) {
+                Reservation reservation = new Reservation();
+                reservation.setId(rs.getInt("id"));
+                reservation.setdate_reservation(rs.getDate("date_reservation"));
+                reservation.setClient_id(rs.getInt("client_id"));
+
+                // Récupérer la session associée
+                ServiceSession serviceSession = new ServiceSession();
+                Session_game session = serviceSession.getSessionById(rs.getInt("session_id_id"));
+                reservation.setSession(session);
+
+                reservations.add(reservation);
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la récupération des réservations du client : " + e.getMessage());
+        }
+
+        return reservations;
     }
 }
