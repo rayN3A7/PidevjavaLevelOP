@@ -6,6 +6,7 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.image.ImageView?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="tn.esprit.Controllers.forum.QuestionDetailsController" stylesheets="@Qdetails.css">
     <top>
@@ -18,12 +19,12 @@
                 <VBox spacing="10">
                     <Label fx:id="questionTitle" styleClass="question-title"/>
                     <Label fx:id="questionContent" styleClass="question-content"/>
+                    <ImageView fx:id="gameImageView" fitWidth="200" fitHeight="150" preserveRatio="true"/> <!-- New ImageView -->
                     <Label fx:id="questionVotes" styleClass="votes-label"/>
                 </VBox>
 
                 <VBox spacing="15">
                     <Label text="Comments" styleClass="comments-title"/>
-
                     <ScrollPane fitToWidth="true">
                         <VBox fx:id="commentContainer" styleClass="comments-container">
                         </VBox>
@@ -42,5 +43,4 @@
             <Button text="Retour au Forum" onAction="#goToForumPage" styleClass="action-button"/>
         </VBox>
     </bottom>
-
 </BorderPane>

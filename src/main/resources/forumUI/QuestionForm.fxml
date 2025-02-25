@@ -27,10 +27,9 @@
 
             <ComboBox fx:id="gameComboBox" promptText="Choisissez un jeu" styleClass="combo-box"/>
 
-            <Button fx:id="uploadImageButton" text="Upload Image" style="-fx-background-color: #ff007f; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px 20px; -fx-border-radius: 5px;"
-                    onAction="#handleUploadImage"/>
+            <Button fx:id="uploadMediaButton" text="Upload Media" style="-fx-background-color: #ff007f; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px 20px; -fx-border-radius: 5px;" onAction="#handleUploadMedia"/>
 
-            <ImageView fx:id="uploadedImageView" styleClass="question-image" fitWidth="150" fitHeight="50" preserveRatio="true"/> <!-- New ImageView for uploaded image -->
+            <ImageView fx:id="uploadedImageView" styleClass="question-image" fitWidth="150" fitHeight="50" preserveRatio="true"/>
 
             <Button fx:id="submitButton" text="Ajouter" onAction="#handleSubmit"
                     style="-fx-background-color: #ff007f; -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 10px 20px; -fx-border-radius: 5px;"/>

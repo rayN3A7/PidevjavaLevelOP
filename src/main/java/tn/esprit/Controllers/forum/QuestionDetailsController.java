@@ -1,13 +1,12 @@
 package tn.esprit.Controllers.forum;
 
+import javafx.animation.FadeTransition;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import tn.esprit.Models.Commentaire;
-import tn.esprit.Models.Question;
-import tn.esprit.Models.Role;
-import tn.esprit.Models.Utilisateur;
+import javafx.util.Duration;
+import tn.esprit.Models.*;
 import tn.esprit.Services.CommentaireService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -17,9 +16,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import tn.esprit.Services.GamesService;
 import tn.esprit.Services.UtilisateurService;
 import tn.esprit.utils.SessionManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -36,18 +37,30 @@ public class QuestionDetailsController {
     private TextField commentInput;
     @FXML
     private VBox commentContainer;
-
+    @FXML
+    private ImageView gameImageView;
     private Question currentQuestion;
     private UtilisateurService us = new UtilisateurService();
     private CommentaireService commentaireService = new CommentaireService();
     private int userId = SessionManager.getInstance().getUserId();
-
+    private GamesService gamesService = new GamesService(); // New service instance
     @FXML
     public void loadQuestionDetails(Question question) {
         this.currentQuestion = question;
         questionTitle.setText(question.getTitle());
         questionContent.setText(question.getContent());
         questionVotes.setText("Votes: " + question.getVotes());
+
+        Games game = gamesService.getByName(question.getGame().getGame_name());
+        if (game != null && game.getImagePath() != null && !game.getImagePath().isEmpty()) {
+            File file = new File(game.getImagePath());
+            if (file.exists()) {
+                Image image = new Image(file.toURI().toString(), 200, 150, true, true);
+                if (!image.isError()) {
+                    gameImageView.setImage(image);
+                }
+            }
+        }
 
         loadComments();
     }
@@ -70,7 +83,7 @@ public class QuestionDetailsController {
             VBox commentCard = loader.load();
 
             CommentCardController commentCardController = loader.getController();
-            commentCardController.init(comment, this);
+            commentCardController.setCommentData(comment, this);
 
             commentContainer.getChildren().add(commentCard);
         } catch (IOException e) {
@@ -113,24 +126,70 @@ public class QuestionDetailsController {
         commentaire.setVotes(updatedVotes);
         cs.upvoteComment(commentaire.getCommentaire_id());
         commentaire.Com_upvote();
+
+        String newPrivilege = us.updateUserPrivilege(commentaire.getUtilisateur().getId());
+        if (newPrivilege != null) {
+            showPrivilegeAlert(newPrivilege);
+            refreshQuestions();
+        }
+
         Platform.runLater(() -> {
             votesLabel.setText("Votes: " + updatedVotes);
             votesLabel.setVisible(true);
-
             if (updatedVotes > 0) {
                 downvoteButton.setDisable(false);
             }
         });
-        UtilisateurService us = new UtilisateurService();
-        us.updateUserPrivilege(commentaire.getUtilisateur().getId());
     }
 
+    private void showPrivilegeAlert(String privilege) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle("Félicitations!");
+        alert.setHeaderText(null);
+
+        String message = privilege.equals("top_contributor") ?
+                "Vous avez obtenu le badge Top Contributor ! Bravo pour votre contribution à la communauté !" :
+                "Vous êtes maintenant un Top Fan ! Votre passion a porté ses fruits!";
+        alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource(
+                privilege.equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png"
+        ).toExternalForm()));
+        icon.setFitHeight(60);
+        icon.setFitWidth(60);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("privilege-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toString()));
+
+        ButtonType okButton = new ButtonType("GG!", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(500), alert.getDialogPane());
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        alert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (isShowing) fadeIn.play();
+        });
+
+        alert.showAndWait();
+    }
     public void handleDownvoteC(Commentaire commentaire, Label votesLabel, Button downvoteButton) {
         CommentaireService cs = new CommentaireService();
         int updatedVotes = cs.getVotes(commentaire.getCommentaire_id());
         commentaire.setVotes(updatedVotes);
         cs.downvoteComment(commentaire.getCommentaire_id());
         commentaire.Com_downvote();
+
+        String newPrivilege = us.updateUserPrivilege(commentaire.getUtilisateur().getId());
+        if (newPrivilege != null) {
+            showPrivilegeAlert(newPrivilege);
+            refreshQuestions();
+        }
+
         Platform.runLater(() -> {
             votesLabel.setText("Votes: " + updatedVotes);
             votesLabel.setVisible(true);
@@ -193,10 +252,8 @@ public class QuestionDetailsController {
         int userId = SessionManager.getInstance().getUserId();
         CommentaireService service = new CommentaireService();
 
-        // Check if the user has already reacted to this comment
         String existingReaction = service.getUserReaction(commentaire.getCommentaire_id(), userId);
         if (existingReaction != null) {
-            // If the user has reacted, remove the existing reaction
             service.removeReaction(commentaire.getCommentaire_id(), userId);
             commentaire.getReactions().remove(existingReaction);
             if (commentaire.getReactions().containsKey(existingReaction)) {
@@ -209,11 +266,9 @@ public class QuestionDetailsController {
             }
         }
 
-        // Add the new reaction
         service.addReaction(commentaire.getCommentaire_id(), userId, emojiUrl);
-        // Update the comment's reactions and user reaction
         Map<String, Integer> updatedReactions = service.getReactions(commentaire.getCommentaire_id());
         commentaire.setReactions(updatedReactions);
-        commentaire.setUserReaction(emojiUrl); // Set the user's specific reaction (image URL)
+        commentaire.setUserReaction(emojiUrl);
     }
 }

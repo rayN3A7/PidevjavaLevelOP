@@ -1,7 +1,5 @@
 package tn.esprit.Controllers.forum;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 import javafx.application.Platform;
 import tn.esprit.Models.Games;
 import tn.esprit.Models.Question;
@@ -26,6 +24,9 @@ import tn.esprit.utils.SessionManager;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -40,7 +41,7 @@ public class AddQuestionController implements Initializable {
     @FXML
     private VBox questionCardContainer;
     @FXML
-    private Button uploadImageButton;
+    private Button uploadMediaButton;
     @FXML
     private ImageView uploadedImageView;
     @FXML
@@ -50,7 +51,8 @@ public class AddQuestionController implements Initializable {
     private int userId = SessionManager.getInstance().getUserId();
     private GamesService gamesService = new GamesService();
     private QuestionService questionService = new QuestionService();
-    private String lastImagePath;
+    private String lastMediaPath;
+    private String lastMediaType;  // New field to store media type
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -66,53 +68,53 @@ public class AddQuestionController implements Initializable {
     }
 
     @FXML
-    private void handleUploadImage(ActionEvent event) {
+    private void handleUploadMedia(ActionEvent event) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select Question Image");
+        fileChooser.setTitle("Select Question Media");
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+                new FileChooser.ExtensionFilter("Media Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.mp4")
         );
 
-        Stage stage = (Stage) uploadImageButton.getScene().getWindow();
+        Stage stage = (Stage) uploadMediaButton.getScene().getWindow();
         File selectedFile = fileChooser.showOpenDialog(stage);
 
         if (selectedFile != null) {
             try {
-                // Define the destination directory
                 String destinationDir = "C:\\xampp\\htdocs\\img";
                 Path destinationPath = Paths.get(destinationDir);
 
-                // Create directory if it doesn’t exist
                 if (!Files.exists(destinationPath)) {
                     Files.createDirectories(destinationPath);
                 }
 
-                // Generate a unique filename (e.g., question_<timestamp>_<original_name>)
                 String fileName = "question_" + System.currentTimeMillis() + "_" + selectedFile.getName();
                 Path targetPath = destinationPath.resolve(fileName);
-
-                // Copy the file to the destination
                 Files.copy(selectedFile.toPath(), targetPath);
 
-                // Store the absolute file path for database and loading
-                lastImagePath = targetPath.toString();
+                lastMediaPath = targetPath.toString();
+                String fileExtension = selectedFile.getName().substring(selectedFile.getName().lastIndexOf(".") + 1).toLowerCase();
 
-                // Display the uploaded image immediately in uploadedImageView
-                Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
-                if (!image.isError()) {
-                    uploadedImageView.setImage(image);
-                    showSuccessAlert("Succès", "Image uploaded successfully to: " + lastImagePath);
+                if (fileExtension.equals("mp4")) {
+                    lastMediaType = "video";
+                    uploadedImageView.setImage(null); // Clear image view for videos
+                    showSuccessAlert("Succès", "Video uploaded successfully to: " + lastMediaPath);
                 } else {
-                    showAlert("Erreur", "Failed to load image preview: " + image.getException().getMessage());
+                    lastMediaType = "image";
+                    Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
+                    if (!image.isError()) {
+                        uploadedImageView.setImage(image);
+                        showSuccessAlert("Succès", "Image uploaded successfully to: " + lastMediaPath);
+                    } else {
+                        showAlert("Erreur", "Failed to load image preview: " + image.getException().getMessage());
+                    }
                 }
             } catch (IOException e) {
-                showAlert("Erreur", "Failed to upload image: " + e.getMessage());
+                showAlert("Erreur", "Failed to upload media: " + e.getMessage());
                 e.printStackTrace();
             }
         }
     }
 
-    // Rest of the methods remain unchanged
     @FXML
     private void handleSubmit(ActionEvent event) {
         String title = titleField.getText().trim();
@@ -136,9 +138,10 @@ public class AddQuestionController implements Initializable {
             return;
         }
 
-        String imagePath = lastImagePath != null ? lastImagePath : null;
-        Question question = new Question(title, content, selectedGameObj, utilisateur, 0, new Timestamp(System.currentTimeMillis()), imagePath);
-        System.out.println("Creating Question: Title=" + question.getTitle() + ", Content=" + question.getContent() + ", Game ID=" + question.getGame().getGame_id() + ", User ID=" + question.getUser().getId() + ", Image Path=" + question.getImagePath());
+        String mediaPath = lastMediaPath != null ? lastMediaPath : null;
+        String mediaType = lastMediaType != null ? lastMediaType : "image"; // Default to image if not set
+        Question question = new Question(title, content, selectedGameObj, utilisateur, 0, new Timestamp(System.currentTimeMillis()), mediaPath, mediaType);
+        System.out.println("Creating Question: Title=" + question.getTitle() + ", Content=" + question.getContent() + ", Game ID=" + question.getGame().getGame_id() + ", User ID=" + question.getUser().getId() + ", Media Path=" + question.getMediaPath() + ", Media Type=" + question.getMediaType());
 
         try {
             questionService.add(question);
@@ -167,8 +170,7 @@ public class AddQuestionController implements Initializable {
 
             Platform.runLater(() -> {
                 forumController.loadQuestions();
-                forumController.forceRefreshUI();
-                System.out.println("Forced UI update after adding question: " + question.getTitle() + " with image: " + question.getImagePath());
+                System.out.println("Forced UI update after adding question: " + question.getTitle() + " with media: " + question.getMediaPath());
             });
         } catch (Exception e) {
             e.printStackTrace();
@@ -179,7 +181,8 @@ public class AddQuestionController implements Initializable {
         titleField.clear();
         contentField.clear();
         gameComboBox.setValue(null);
-        lastImagePath = null;
+        lastMediaPath = null;
+        lastMediaType = null;
         uploadedImageView.setImage(null);
     }
 
