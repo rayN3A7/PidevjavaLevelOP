@@ -2,12 +2,15 @@ package tn.esprit.Controllers.Utilisateur;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import tn.esprit.Models.Demande;
 import tn.esprit.Models.Games;
 import tn.esprit.Services.DemandeService;
@@ -35,6 +38,9 @@ public class AddCoachController {
     @FXML
     private ComboBox<String> cbgames;
 
+    @FXML
+    private Button btnGoToHome;
+
 
 
     @FXML
@@ -50,6 +56,7 @@ public class AddCoachController {
     public void initialize() {
         // Call the method to populate the ComboBox
         populateGamesComboBox();
+        btnGoToHome.setOnAction(event -> navigateToHome2());
     }
 
     private void populateGamesComboBox() {
@@ -81,6 +88,7 @@ public class AddCoachController {
 
         if (selectedFile != null) {
             lblCVStatus.setText("Fichier sélectionné : " + selectedFile.getName());
+            lblCVStatus.setStyle("-fx-text-fill: green;");
         } else {
             lblCVStatus.setText("Aucun fichier sélectionné");
         }
@@ -105,12 +113,47 @@ public class AddCoachController {
                 // Add the demande to the database
                 demandeService.add(demande);
 
+
+
                 System.out.println("Demande submitted successfully!");
+                navigateToHome();
             } catch (IOException e) {
                 System.out.println("Error reading file: " + e.getMessage());
             }
         } else {
             System.out.println("No file selected!");
+        }
+    }
+
+    private void navigateToHome() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Home.fxml"));
+            Stage stage = (Stage) ((btnGoToLogin != null && btnGoToLogin.getScene() != null) ?
+                    btnGoToLogin.getScene().getWindow() :
+                    Stage.getWindows().stream().filter(Window::isShowing).findFirst().orElse(null));
+
+            if (stage == null) {
+                System.out.println("Error: Could not determine the active stage.");
+                return;
+            }
+
+            stage.setScene(new Scene(loader.load()));
+            stage.show();
+        } catch (IOException e) {
+            System.out.println("Error loading Home.fxml");
+            e.printStackTrace();
+        }
+    }
+
+    private void navigateToHome2() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Home.fxml"));
+            Stage stage = (Stage) btnGoToHome.getScene().getWindow();
+            stage.setScene(new Scene(loader.load()));
+            stage.show();
+        } catch (IOException e) {
+            System.out.println("errorr");
+            e.printStackTrace();
         }
     }
 

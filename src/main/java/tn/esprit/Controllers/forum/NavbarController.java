@@ -51,9 +51,11 @@ public class NavbarController implements Initializable {
                 SessionManager.getInstance().logout();
                 navigateTo("Home");
             });
-            if(SessionManager.getInstance().getRole().equals(Role.CLIENT)) {
+            if (SessionManager.getInstance().getRole().equals(Role.CLIENT)) {
+                joinUs.setText("Join Us");
                 joinUs.setOnAction(event -> navigateTo("gestion Utilisateur/addCoach/addCo"));
-            }else if(SessionManager.getInstance().getRole().equals(Role.ADMIN)) {
+            } else if (SessionManager.getInstance().getRole().equals(Role.ADMIN)) {
+                joinUs.setText("Demande");
                 joinUs.setOnAction(event -> navigateTo("gestion Utilisateur/addCoach/displayDemand"));
             }
         }else {
