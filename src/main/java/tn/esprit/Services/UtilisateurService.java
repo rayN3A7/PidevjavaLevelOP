@@ -360,7 +360,7 @@ public class UtilisateurService implements IService<Utilisateur> {
         return false;
     }
 
-
+@Override
     public Utilisateur getOne(int id) {
         String query = "SELECT * FROM Utilisateur WHERE id = ?";
         try (PreparedStatement ps = cnx.prepareStatement(query)) {

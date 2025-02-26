@@ -22,10 +22,10 @@
             <Label fx:id="commentContent" styleClass="comment-content" wrapText="true"/>
             <TextField fx:id="editCommentField" visible="false" styleClass="edit-comment-field"/>
             <HBox spacing="5" alignment="CENTER_LEFT" styleClass="comment-meta">
-                <Label fx:id="votesLabel" styleClass="votes-label"/> <!-- Assuré d'être visible par défaut -->
+                <Label fx:id="votesLabel" styleClass="votes-label"  visible="true"/>
                 <HBox spacing="4" fx:id="reactionContainer" styleClass="reaction-container"/>
             </HBox>
-            <HBox spacing="5" alignment="CENTER_LEFT" styleClass="reaction-actions">
+            <HBox  alignment="CENTER_LEFT" styleClass="reaction-actions">
                 <Button fx:id="reactButton" text="👍" styleClass="action-button"/>
                 <ImageView fx:id="selectedEmojiImage" styleClass="selected-emoji-image" fitWidth="20" fitHeight="20" preserveRatio="true"/>
                 <Button fx:id="deleteButton" text="Delete" styleClass="update-delete-button"/>
