@@ -131,6 +131,7 @@ public class ForumController implements Initializable {
 
 
         Platform.runLater(() -> {
+
             votesLabel.setText("Votes: " + updatedVotes);
             UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(question.getUser().getId());
             if (change.isChanged()) {
@@ -150,13 +151,13 @@ public class ForumController implements Initializable {
             question.setVotes(updatedVotes);
 
             Platform.runLater(() -> {
-                votesLabel.setText("Votes: " + updatedVotes);
-                downvoteButton.setDisable(updatedVotes == 0);
                 UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(question.getUser().getId());
                 if (change.isChanged()) {
                     showPrivilegeAlert(change);
                     refreshQuestions();
                 }
+                votesLabel.setText("Votes: " + updatedVotes);
+                downvoteButton.setDisable(updatedVotes == 0);
             });
         }
     }
@@ -265,7 +266,7 @@ public class ForumController implements Initializable {
     }
 
     public void handleReaction(Question question, String emojiUrl) {
-        int userId = SessionManager.getInstance().getUserId(); // Use actual user ID from session
+        int userId = SessionManager.getInstance().getUserId();
         QuestionService questionService = new QuestionService();
 
         String existingReaction = questionService.getUserReaction(question.getQuestion_id(), userId);
@@ -285,6 +286,6 @@ public class ForumController implements Initializable {
         questionService.addReaction(question.getQuestion_id(), userId, emojiUrl);
         Map<String, Integer> updatedReactions = questionService.getReactions(question.getQuestion_id());
         question.setReactions(updatedReactions);
-        question.setUserReaction(emojiUrl); // Set the user's specific reaction (image URL)
+        question.setUserReaction(emojiUrl);
     }
 }

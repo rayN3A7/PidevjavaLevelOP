@@ -11,7 +11,9 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import tn.esprit.Models.Produit;
+import tn.esprit.Models.Role;
 import tn.esprit.Services.ProduitService;
+import tn.esprit.utils.SessionManager;
 
 public class ShopController {
 
@@ -36,18 +38,13 @@ public class ShopController {
     }
 
     private boolean isAdmin() {
-        try {
-            String[] sessionInfo = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("session.txt"))).split("\n");
-            if (sessionInfo.length >= 2) {
-                String role = sessionInfo[1].trim();
-                return "ADMIN".equalsIgnoreCase(role);
-            }
-            return false;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+        Role role = SessionManager.getInstance().getRole();
+        if (role.name().equals("ADMIN")) {
+            return true;
         }
+        return false;
     }
+
 
     @FXML
     public void handleProductManagement() {

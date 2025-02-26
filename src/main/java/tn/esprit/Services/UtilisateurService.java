@@ -480,7 +480,7 @@ public class UtilisateurService implements IService<Utilisateur> {
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to update privilege: " + e.getMessage(), e);
             }
-            user.setPrivilege(newPrivilege); // Update the user's privilege in the object
+            user.setPrivilege(newPrivilege);
         }
 
         return new PrivilegeChange(oldPrivilege, newPrivilege);
