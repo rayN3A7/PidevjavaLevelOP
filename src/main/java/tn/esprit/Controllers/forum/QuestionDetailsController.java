@@ -77,21 +77,6 @@ public class QuestionDetailsController {
     }
 
     @FXML
-    private void createCommentCard(Commentaire comment) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/CommentCard.fxml"));
-            VBox commentCard = loader.load();
-
-            CommentCardController commentCardController = loader.getController();
-            commentCardController.setCommentData(comment, this);
-
-            commentContainer.getChildren().add(commentCard);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
     public void postComment() {
         Utilisateur utilisateur = us.getOne(userId);
         if (utilisateur == null) {
@@ -114,12 +99,34 @@ public class QuestionDetailsController {
 
         commentaireService.add(commentaire);
         System.out.println("Comment added successfully!");
+        UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
 
         createCommentCard(commentaire);
         commentInput.clear();
         loadComments();
+        if (change.isChanged()) {
+            showPrivilegeAlert(change);
+            refreshQuestions();
+
+        }
+
     }
 
+    @FXML
+    private void createCommentCard(Commentaire comment) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/CommentCard.fxml"));
+            VBox commentCard = loader.load();
+
+            CommentCardController commentCardController = loader.getController();
+            commentCardController.setCommentData(comment, this);
+            commentContainer.getChildren().add(commentCard);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
     public void handleUpvoteC(Commentaire commentaire, Label votesLabel, Button downvoteButton) {
         CommentaireService cs = new CommentaireService();
         int updatedVotes = cs.getVotes(commentaire.getCommentaire_id());
@@ -127,45 +134,63 @@ public class QuestionDetailsController {
         cs.upvoteComment(commentaire.getCommentaire_id());
         commentaire.Com_upvote();
 
-        String newPrivilege = us.updateUserPrivilege(commentaire.getUtilisateur().getId());
-        if (newPrivilege != null) {
-            showPrivilegeAlert(newPrivilege);
-            refreshQuestions();
-        }
-
         Platform.runLater(() -> {
+
             votesLabel.setText("Votes: " + updatedVotes);
             votesLabel.setVisible(true);
+            UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
+            if (change.isChanged()) {
+                showPrivilegeAlert(change);
+                refreshQuestions();
+            }
             if (updatedVotes > 0) {
                 downvoteButton.setDisable(false);
             }
         });
     }
 
-    private void showPrivilegeAlert(String privilege) {
+    private void showPrivilegeAlert(UtilisateurService.PrivilegeChange change) {
+        if (!change.isChanged()) return;
+
         Alert alert = new Alert(Alert.AlertType.NONE);
-        alert.setTitle("Félicitations!");
         alert.setHeaderText(null);
+        String oldPrivilege = change.getOldPrivilege();
+        String newPrivilege = change.getNewPrivilege();
+        boolean isPromotion = getPrivilegeRank(newPrivilege) > getPrivilegeRank(oldPrivilege);
 
-        String message = privilege.equals("top_contributor") ?
-                "Vous avez obtenu le badge Top Contributor ! Bravo pour votre contribution à la communauté !" :
-                "Vous êtes maintenant un Top Fan ! Votre passion a porté ses fruits!";
-        alert.setContentText(message);
+        if (isPromotion) {
+            alert.setTitle("Félicitations!");
+            String message = switch (newPrivilege) {
+                case "top_contributor" -> "Vous êtes passé de Regular à Top Contributor ! Bravo pour votre contribution !";
+                case "top_fan" -> "Vous êtes maintenant un Top Fan depuis " + oldPrivilege + " ! Votre passion est récompensée !";
+                default -> "Privilege mis à jour !";
+            };
+            alert.setContentText(message);
 
-        ImageView icon = new ImageView(new Image(getClass().getResource(
-                privilege.equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png"
-        ).toExternalForm()));
-        icon.setFitHeight(60);
-        icon.setFitWidth(60);
-        alert.setGraphic(icon);
+            ImageView icon = new ImageView(new Image(getClass().getResource(
+                    newPrivilege.equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png"
+            ).toExternalForm()));
+            icon.setFitHeight(60);
+            icon.setFitWidth(60);
+            alert.setGraphic(icon);
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toString()));
+        } else {
+            alert.setTitle("Mise à jour de privilège");
+            String message = switch (oldPrivilege) {
+                case "top_contributor" -> "Désolé, vous êtes redescendu de Top Contributor à Regular.";
+                case "top_fan" -> "Désolé, vous êtes passé de Top Fan à " + newPrivilege + ".";
+                default -> "Privilege mis à jour.";
+            };
+            alert.setContentText(message);
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
+        }
 
         alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
         alert.getDialogPane().getStyleClass().add("privilege-alert");
 
-        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toString()));
-
-        ButtonType okButton = new ButtonType("GG!", ButtonBar.ButtonData.OK_DONE);
+        ButtonType okButton = new ButtonType(isPromotion ? "GG!" : "OK", ButtonBar.ButtonData.OK_DONE);
         alert.getButtonTypes().setAll(okButton);
 
         FadeTransition fadeIn = new FadeTransition(Duration.millis(500), alert.getDialogPane());
@@ -177,6 +202,15 @@ public class QuestionDetailsController {
 
         alert.showAndWait();
     }
+
+    private int getPrivilegeRank(String privilege) {
+        return switch (privilege) {
+            case "regular" -> 0;
+            case "top_contributor" -> 1;
+            case "top_fan" -> 2;
+            default -> -1;
+        };
+    }
     public void handleDownvoteC(Commentaire commentaire, Label votesLabel, Button downvoteButton) {
         CommentaireService cs = new CommentaireService();
         int updatedVotes = cs.getVotes(commentaire.getCommentaire_id());
@@ -184,27 +218,29 @@ public class QuestionDetailsController {
         cs.downvoteComment(commentaire.getCommentaire_id());
         commentaire.Com_downvote();
 
-        String newPrivilege = us.updateUserPrivilege(commentaire.getUtilisateur().getId());
-        if (newPrivilege != null) {
-            showPrivilegeAlert(newPrivilege);
-            refreshQuestions();
-        }
+
 
         Platform.runLater(() -> {
             votesLabel.setText("Votes: " + updatedVotes);
             votesLabel.setVisible(true);
+            UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
+            if (change.isChanged()) {
+                showPrivilegeAlert(change);
+                refreshQuestions();
+            }
             downvoteButton.setDisable(updatedVotes == 0);
         });
-        UtilisateurService us = new UtilisateurService();
-        us.updateUserPrivilege(commentaire.getUtilisateur().getId());
+
     }
-
-
 
     public void deleteComment(Commentaire commentaire) {
         commentaireService.delete(commentaire);
         System.out.println("Deleted comment: " + commentaire.getContenu());
-        refreshQuestions();
+        UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
+        if (change.isChanged()) {
+            showPrivilegeAlert(change);
+            refreshQuestions();
+        }
     }
 
     public void refreshQuestions() {
