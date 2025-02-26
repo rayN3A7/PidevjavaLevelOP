@@ -26,10 +26,10 @@
             </HBox>
 
 
-            <ScrollPane fitToWidth="true" 
-                       style="-fx-background-color: transparent;
+            <ScrollPane fitToWidth="true"
+                        style="-fx-background-color: transparent;
                               -fx-background: transparent;">
-                <VBox fx:id="reservationsContainer" 
+                <VBox fx:id="reservationsContainer"
                       spacing="15"
                       style="-fx-background-color: #0D1D36;
                              -fx-padding: 30;
@@ -47,7 +47,7 @@
                                -fx-border-color: #0585e6;
                                -fx-border-radius: 20;
                                -fx-padding: 10 20;" />
-                   
+
                 <Button onAction="#exportToExcel"
                         text="Exporter en Excel"
                         style="-fx-background-color: #0585e6;

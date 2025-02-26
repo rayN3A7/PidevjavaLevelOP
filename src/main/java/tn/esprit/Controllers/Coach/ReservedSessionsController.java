@@ -1,5 +1,7 @@
 package tn.esprit.Controllers.Coach;
 
+import java.util.List;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -10,22 +12,20 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import javafx.stage.FileChooser;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import tn.esprit.Models.Reservation;
 import tn.esprit.Models.Session_game;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.ServiceReservation;
 import tn.esprit.Services.UtilisateurService;
 import tn.esprit.utils.SessionManager;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ReservedSessionsController {
     @FXML
@@ -42,59 +42,59 @@ public class ReservedSessionsController {
     private void loadReservedSessions() {
         // Obtenir l'ID du coach connecté
         int coachId = SessionManager.getInstance().getUserId();
-        
+
         // Obtenir toutes les réservations
         List<Reservation> reservations = serviceReservation.getReservationsByCoachId(coachId);
-        
+
         reservationsContainer.getChildren().clear();
-        
+
         for (Reservation reservation : reservations) {
             Session_game session = reservation.getSession();
             Utilisateur client = utilisateurService.getOne(reservation.getClient_id());
-            
+
             // Créer une carte pour chaque réservation
             VBox reservationCard = new VBox(10);
             reservationCard.setStyle("-fx-background-color: #162942; " +
-                                   "-fx-padding: 20; " +
-                                   "-fx-background-radius: 10; " +
-                                   "-fx-margin: 10;");
-            
+                    "-fx-padding: 20; " +
+                    "-fx-background-radius: 10; " +
+                    "-fx-margin: 10;");
+
             // Informations de la session
             Label gameLabel = new Label("Jeu: " + session.getGame());
             gameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
-            
+
             Label priceLabel = new Label("Prix: " + session.getprix() + " DT");
             priceLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
-            
+
             Label durationLabel = new Label("Durée: " + session.getduree_session());
             durationLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
-            
+
             // Informations du client
             Label clientLabel = new Label("Client: " + client.getNom() + " " + client.getPrenom());
             clientLabel.setStyle("-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;");
-            
+
             Label emailLabel = new Label("Email: " + client.getEmail());
             emailLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
-            
+
             Label dateLabel = new Label("Date de réservation: " + reservation.getdate_reservation());
             dateLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
-            
+
             reservationCard.getChildren().addAll(
-                gameLabel,
-                priceLabel,
-                durationLabel,
-                clientLabel,
-                emailLabel,
-                dateLabel
+                    gameLabel,
+                    priceLabel,
+                    durationLabel,
+                    clientLabel,
+                    emailLabel,
+                    dateLabel
             );
-            
+
             // Add Send Meet Link button
             Button sendMeetLinkButton = new Button("Envoyer lien Meet");
             sendMeetLinkButton.setStyle("-fx-background-color: #0585e6; " +
-                                      "-fx-text-fill: white; " +
-                                      "-fx-font-size: 14px; " +
-                                      "-fx-padding: 8 15; " +
-                                      "-fx-background-radius: 20; " );
+                    "-fx-text-fill: white; " +
+                    "-fx-font-size: 14px; " +
+                    "-fx-padding: 8 15; " +
+                    "-fx-background-radius: 20; " );
 
             sendMeetLinkButton.setOnAction(e -> {
                 String clientEmail = client.getEmail();
@@ -103,7 +103,7 @@ public class ReservedSessionsController {
 
             // Add the button to your card
             reservationCard.getChildren().add(sendMeetLinkButton);
-            
+
             reservationsContainer.getChildren().add(reservationCard);
         }
     }
@@ -126,25 +126,25 @@ public class ReservedSessionsController {
         try {
             // Générer le lien Meet
             String meetLink = "https://meet.google.com/" + generateRandomMeetId();
-            
+
             // Préparer le contenu de l'email
             String subject = "Lien Google Meet pour votre session de coaching";
             String body = String.format("Bonjour,\n\nVoici votre lien pour la session de coaching %s :\n%s\n\nÀ bientôt !",
                     session.getGame(), meetLink);
-            
+
             // Encoder les paramètres pour l'URL
             subject = java.net.URLEncoder.encode(subject, "UTF-8");
             body = java.net.URLEncoder.encode(body, "UTF-8");
-            
+
             // Créer l'URL mailto
             String mailtoUrl = String.format("mailto:%s?subject=%s&body=%s",
                     clientEmail, subject, body);
-            
+
             // Ouvrir le client email par défaut
             java.awt.Desktop.getDesktop().mail(new java.net.URI(mailtoUrl));
-            
+
             showAlert("Succès", "Le client email a été ouvert avec le lien Meet", Alert.AlertType.INFORMATION);
-            
+
         } catch (Exception e) {
             showAlert("Erreur", "Erreur lors de l'envoi: " + e.getMessage(), Alert.AlertType.ERROR);
             e.printStackTrace();
@@ -226,7 +226,7 @@ public class ReservedSessionsController {
             fileChooser.setTitle("Enregistrer le fichier Excel");
             fileChooser.setInitialFileName(fileName);
             fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Excel Files", "*.xlsx")
+                    new FileChooser.ExtensionFilter("Excel Files", "*.xlsx")
             );
             File file = fileChooser.showSaveDialog(reservationsContainer.getScene().getWindow());
 

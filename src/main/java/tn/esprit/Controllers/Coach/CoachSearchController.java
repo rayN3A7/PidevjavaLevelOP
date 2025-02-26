@@ -1,5 +1,8 @@
 package tn.esprit.Controllers.Coach;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,15 +20,12 @@ import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.ServiceSession;
 import tn.esprit.Services.UtilisateurService;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class CoachSearchController {
     @FXML
     private ComboBox<String> coachIdField;
     @FXML
     private Label resultLabel;
-    
+
     private List<Utilisateur> Coach = new ArrayList<>();
     private final ServiceSession serviceSession = new ServiceSession();
     private UtilisateurService us = new UtilisateurService();
@@ -50,7 +50,7 @@ public class CoachSearchController {
                     .filter(coach -> coach.getNom().equals(Coachname))
                     .findFirst()
                     .orElse(null);
-            
+
             if (selectedCoach != null) {
                 Utilisateur e1 = us.getByEmail(selectedCoach.getEmail());
                 List<Session_game> sessions = serviceSession.getSessionsByCoachId(e1.getId());
@@ -58,55 +58,55 @@ public class CoachSearchController {
                 if (sessions.isEmpty()) {
                     resultLabel.setText("Aucune session trouvée pour ce coach.");
                 } else {
-
+                    // Clear previous content
                     resultLabel.setText("");
-                    
 
+                    // Create a VBox to hold all sessions
                     VBox sessionsContainer = new VBox(15);
                     sessionsContainer.setStyle("-fx-padding: 10 0;");
 
                     for (Session_game session : sessions) {
-
+                        // Create a card for each session
                         VBox sessionCard = new VBox(8);
                         sessionCard.setStyle("-fx-background-color: #162942; " +
-                                          "-fx-padding: 15; " +
-                                          "-fx-background-radius: 8;");
+                                "-fx-padding: 15; " +
+                                "-fx-background-radius: 8;");
 
                         // Session details
                         Label gameLabel = new Label("Jeu: " + session.getGame());
                         gameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
-                        
+
                         Label priceLabel = new Label("Prix: " + session.getprix() + " DT");
                         priceLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
-                        
+
                         Label durationLabel = new Label("Durée: " + session.getduree_session());
                         durationLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
 
                         // Create check availability button
                         Button checkButton = new Button("Vérifier disponibilité");
                         checkButton.setStyle("-fx-background-color: #0585e6; " +
-                                          "-fx-text-fill: white; " +
-                                          "-fx-font-size: 14px; " +
-                                          "-fx-padding: 8 15; " +
-                                          "-fx-background-radius: 20; "
-                                          );
+                                "-fx-text-fill: white; " +
+                                "-fx-font-size: 14px; " +
+                                "-fx-padding: 8 15; " +
+                                "-fx-background-radius: 20; "
+                        );
 
-
+                        // Button action
                         final int sessionId = session.getId();
                         checkButton.setOnAction(event -> navigateToVerification(event));
 
-
+                        // Add all elements to the card
                         sessionCard.getChildren().addAll(
-                            gameLabel,
-                            priceLabel,
-                            durationLabel,
-                            checkButton
+                                gameLabel,
+                                priceLabel,
+                                durationLabel,
+                                checkButton
                         );
 
                         sessionsContainer.getChildren().add(sessionCard);
                     }
 
-
+                    // Replace the text label with the sessions container
                     if (resultLabel.getParent() instanceof Pane) {
                         ((Pane) resultLabel.getParent()).getChildren().add(sessionsContainer);
                     }
