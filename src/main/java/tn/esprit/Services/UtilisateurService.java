@@ -156,7 +156,21 @@ public class UtilisateurService implements IService<Utilisateur> {
         return totalVotes;
     }
 
-    public String updateUserPrivilege(int userId) {
+    public class PrivilegeChange {
+        private final String oldPrivilege;
+        private final String newPrivilege;
+
+        public PrivilegeChange(String oldPrivilege, String newPrivilege) {
+            this.oldPrivilege = oldPrivilege;
+            this.newPrivilege = newPrivilege;
+        }
+
+        public String getOldPrivilege() { return oldPrivilege; }
+        public String getNewPrivilege() { return newPrivilege; }
+        public boolean isChanged() { return !oldPrivilege.equals(newPrivilege); }
+    }
+
+    public PrivilegeChange updateUserPrivilege(int userId) {
         Utilisateur user = getOne(userId);
         String oldPrivilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
 
@@ -182,12 +196,11 @@ public class UtilisateurService implements IService<Utilisateur> {
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to update privilege: " + e.getMessage(), e);
             }
-            return newPrivilege;
+            user.setPrivilege(newPrivilege); // Update the user's privilege in the object
         }
 
-        return null;
+        return new PrivilegeChange(oldPrivilege, newPrivilege);
     }
-    //new
 
 
 
