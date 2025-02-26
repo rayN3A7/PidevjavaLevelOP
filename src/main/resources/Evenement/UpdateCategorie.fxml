@@ -6,10 +6,10 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0" 
-    styleClass="scroll-pane" stylesheets="@/assets/style/style.css" 
-    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
-    fx:controller="tn.esprit.Controllers.Evenement.ModifierCategorieController">
+<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0"
+            styleClass="scroll-pane" stylesheets="@/assets/style/style.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.Controllers.Evenement.ModifierCategorieController">
 
     <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
         <children>
@@ -20,7 +20,7 @@
                 <padding>
                     <Insets top="20" right="30" bottom="20" left="30"/>
                 </padding>
-                
+
                 <!-- Title Section with Navigation -->
                 <HBox alignment="CENTER_LEFT" spacing="20" styleClass="header-section">
                     <VBox spacing="5">
@@ -49,23 +49,23 @@
                         <!-- Nom -->
                         <VBox styleClass="input-group">
                             <Label text="Nom de la catégorie" styleClass="input-label"/>
-                            <TextField fx:id="NomCategorie" styleClass="input-field" 
-                                     promptText="Entrez le nom de la catégorie"/>
+                            <TextField fx:id="NomCategorie" styleClass="input-field"
+                                       promptText="Entrez le nom de la catégorie"/>
                         </VBox>
 
                         <!-- Description -->
                         <VBox styleClass="input-group">
                             <Label text="Description" styleClass="input-label"/>
-                            <TextArea fx:id="DescCategorie" styleClass="input-field" 
-                                    promptText="Entrez la description de la catégorie"
-                                    wrapText="true" prefRowCount="4"/>
+                            <TextArea fx:id="DescCategorie" styleClass="input-field"
+                                      promptText="Entrez la description de la catégorie"
+                                      wrapText="true" prefRowCount="4"/>
                         </VBox>
 
                         <!-- Buttons -->
                         <HBox spacing="15" alignment="CENTER" styleClass="button-container">
-                            <Button fx:id="cancelButton" onAction="#Annuler" 
+                            <Button fx:id="cancelButton" onAction="#Annuler"
                                     text="Réinitialiser" styleClass="cancel-button"/>
-                            <Button fx:id="addEventButton" onAction="#ModifierCategorie" 
+                            <Button fx:id="addEventButton" onAction="#ModifierCategorie"
                                     text="Enregistrer les modifications" styleClass="submit-button"/>
                         </HBox>
                     </VBox>

@@ -81,6 +81,7 @@ public class CategorieEvService implements IService<Categorieevent> {
 
     @Override
     public List<Categorieevent> getAll() {
+        categorieEvents.clear();
         String qry = "Select * from categorie_event";
         try {
             stm = cnx.createStatement();
@@ -99,23 +100,10 @@ public class CategorieEvService implements IService<Categorieevent> {
     }
 
     public List<Categorieevent> rechercheByNom(String nom) {
-        List<Categorieevent> resultats = new ArrayList<>(); // Pour stocker les résultats trouvés
-        String qry = "SELECT * FROM categorie_event WHERE nom LIKE ?";
-        try {
-            PreparedStatement pre = cnx.prepareStatement(qry);
-            pre.setString(1, "%" + nom + "%");
-            ResultSet rs = pre.executeQuery();
-            while (rs.next()) {
-                Categorieevent e = new Categorieevent();
-                e.setId(rs.getInt("id"));
-                e.setNom(rs.getString("nom"));
-                e.setDescriptioncategorie(rs.getString("desc_categorie_event"));
-                resultats.add(e);
-            }
-        } catch (SQLException e) {
-            e.getMessage();
-        }
-        return resultats;
+        return getAll().stream()
+                .filter(c -> c.getNom() != null && c.getNom().toLowerCase().contains(nom.toLowerCase()))
+                .distinct()
+                .toList();
     }
     public void GetByNom(String nom){
         String qry = "SELECT * FROM categorie_event WHERE nom ?";

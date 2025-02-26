@@ -1,7 +1,5 @@
 package tn.esprit.Services;
 
-
-
 import tn.esprit.Interfaces.IService;
 import tn.esprit.Models.Games;
 import tn.esprit.utils.MyDatabase;
@@ -19,9 +17,11 @@ public class GamesService implements IService<Games> {
 
     @Override
     public void add(Games games) {
-        String query = "INSERT INTO Games (game_name) VALUES (?)";
+        String query = "INSERT INTO Games (game_name, image_path, game_type) VALUES (?, ?, ?)";
         try (PreparedStatement ps = connexion.prepareStatement(query)) {
             ps.setString(1, games.getGame_name());
+            ps.setString(2, games.getImagePath());
+            ps.setString(3, games.getGameType());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -35,7 +35,8 @@ public class GamesService implements IService<Games> {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return new Games(rs.getInt("game_id"), rs.getString("game_name"));
+                return new Games(rs.getInt("game_id"), rs.getString("game_name"),
+                        rs.getString("image_path"), rs.getString("game_type"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -49,7 +50,8 @@ public class GamesService implements IService<Games> {
         String query = "SELECT * FROM Games";
         try (Statement st = connexion.createStatement(); ResultSet rs = st.executeQuery(query)) {
             while (rs.next()) {
-                gamesList.add(new Games(rs.getInt("game_id"), rs.getString("game_name")));
+                gamesList.add(new Games(rs.getInt("game_id"), rs.getString("game_name"),
+                        rs.getString("image_path"), rs.getString("game_type")));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -59,10 +61,12 @@ public class GamesService implements IService<Games> {
 
     @Override
     public void update(Games games) {
-        String query = "UPDATE Games SET game_name = ? WHERE game_id = ?";
+        String query = "UPDATE Games SET game_name = ?, image_path = ?, game_type = ? WHERE game_id = ?";
         try (PreparedStatement ps = connexion.prepareStatement(query)) {
             ps.setString(1, games.getGame_name());
-            ps.setInt(2, games.getGame_id());
+            ps.setString(2, games.getImagePath());
+            ps.setString(3, games.getGameType());
+            ps.setInt(4, games.getGame_id());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -86,7 +90,8 @@ public class GamesService implements IService<Games> {
             ps.setString(1, name);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return new Games(rs.getInt("game_id"), rs.getString("game_name"));
+                return new Games(rs.getInt("game_id"), rs.getString("game_name"),
+                        rs.getString("image_path"), rs.getString("game_type"));
             }
         } catch (SQLException e) {
             e.printStackTrace();

@@ -1,46 +1,60 @@
 package tn.esprit.Services;
 
-
 import tn.esprit.Interfaces.IService;
 import tn.esprit.Models.Games;
 import tn.esprit.Models.Question;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.utils.MyDatabase;
-
+import tn.esprit.utils.SessionManager;
+import tn.esprit.Services.UtilisateurService;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class QuestionService implements IService<Question> {
     private static Connection connexion;
+    private UtilisateurService us = new UtilisateurService();
+    private int userId = SessionManager.getInstance().getUserId();
 
     public QuestionService() {
         connexion = MyDatabase.getInstance().getCnx();
     }
+
+    // In QuestionService.java
 
     @Override
     public void add(Question question) {
         Utilisateur user = question.getUser();
         Games game = question.getGame();
 
-        if (user == null) {
-            throw new IllegalArgumentException("User cannot be null when adding a question.");
+        if (user == null || user.getId() <= 0) {
+            throw new IllegalArgumentException("User cannot be null or have invalid ID when adding a question. User: " + user);
         }
-        if (game == null) {
-            throw new IllegalArgumentException("Game cannot be null when adding a question.");
+        if (game == null || game.getGame_id() <= 0) {
+            throw new IllegalArgumentException("Game cannot be null or have invalid ID when adding a question. Game: " + game);
         }
+        if (question.getTitle() == null || question.getTitle().trim().isEmpty()) {
+            throw new IllegalArgumentException("Title cannot be null or empty when adding a question.");
+        }
+        if (question.getContent() == null || question.getContent().trim().isEmpty()) {
+            throw new IllegalArgumentException("Content cannot be null or empty when adding a question.");
+        }
+
         try {
             connexion.setAutoCommit(false);
 
-            String query = "INSERT INTO Questions (title, content, game_id, Utilisateur_id, Votes) VALUES (?, ?, ?, ?, ?)";
+            String query = "INSERT INTO Questions (title, content, game_id, Utilisateur_id, Votes, media_path, media_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement st = connexion.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
                 st.setString(1, question.getTitle());
                 st.setString(2, question.getContent());
                 st.setInt(3, game.getGame_id());
                 st.setInt(4, user.getId());
                 st.setInt(5, question.getVotes());
-
+                st.setString(6, question.getMediaPath());
+                st.setString(7, question.getMediaType());
                 int affectedRows = st.executeUpdate();
                 if (affectedRows == 0) {
                     throw new RuntimeException("Failed to insert question, no rows affected.");
@@ -50,18 +64,15 @@ public class QuestionService implements IService<Question> {
                     if (generatedKeys.next()) {
                         int questionId = generatedKeys.getInt(1);
                         question.setQuestion_id(questionId);
-                        System.out.println("Question ajoutée avec ID: " + questionId);
                     } else {
                         throw new RuntimeException("Failed to insert question, no ID generated.");
                     }
                 }
             }
-
             connexion.commit();
         } catch (SQLException e) {
             if (connexion != null) {
                 try {
-                    System.err.println("Transaction is being rolled back");
                     connexion.rollback();
                 } catch (SQLException ex) {
                     System.err.println("Error during rollback: " + ex.getMessage());
@@ -80,7 +91,7 @@ public class QuestionService implements IService<Question> {
     }
 
     public void upvoteQuestion(int questionId) {
-        String query = "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ? ";
+        String query = "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ?";
         try (PreparedStatement ps = connexion.prepareStatement(query)) {
             ps.setInt(1, questionId);
             ps.executeUpdate();
@@ -126,10 +137,17 @@ public class QuestionService implements IService<Question> {
                 int votes = rs.getInt("Votes");
                 int gameId = rs.getInt("game_id");
                 int userId = rs.getInt("utilisateur_id");
+                String mediaPath = rs.getString("media_path");
+                String mediaType = rs.getString("media_type");
 
                 Games game = new GamesService().getOne(gameId);
                 Utilisateur user = new UtilisateurService().getOne(userId);
-                return new Question(questionId, title, content, votes, game, user);
+                Question question = new Question(questionId, title, content, votes, game, user);
+                question.setMediaPath(mediaPath);
+                question.setMediaType(mediaType);
+                question.setReactions(getReactions(questionId));
+                question.setUserReaction(getUserReaction(questionId, userId));
+                return question;
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to fetch question: " + e.getMessage(), e);
@@ -141,7 +159,8 @@ public class QuestionService implements IService<Question> {
     public List<Question> getAll() {
         List<Question> questionList = new ArrayList<>();
         String query = "SELECT * FROM Questions ORDER BY question_id DESC";
-        try (Statement st = connexion.createStatement(); ResultSet rs = st.executeQuery(query)) {
+        try (Statement st = connexion.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+            ResultSet rs = st.executeQuery(query);
             while (rs.next()) {
                 int id = rs.getInt("question_id");
                 String title = rs.getString("title");
@@ -149,10 +168,16 @@ public class QuestionService implements IService<Question> {
                 int votes = rs.getInt("Votes");
                 int gameId = rs.getInt("game_id");
                 int userId = rs.getInt("Utilisateur_id");
+                String mediaPath = rs.getString("media_path");
+                String mediaType = rs.getString("media_type");
 
                 Games game = new GamesService().getOne(gameId);
                 Utilisateur user = new UtilisateurService().getOne(userId);
                 Question question = new Question(id, title, content, votes, game, user);
+                question.setMediaPath(mediaPath);
+                question.setMediaType(mediaType);
+                question.setReactions(getReactions(id));
+                question.setUserReaction(getUserReaction(id, userId));
                 questionList.add(question);
             }
         } catch (SQLException e) {
@@ -163,12 +188,14 @@ public class QuestionService implements IService<Question> {
 
     @Override
     public void update(Question question) {
-        String query = "UPDATE Questions SET title = ?, content = ?, Votes = ? WHERE question_id = ?";
+        String query = "UPDATE Questions SET title = ?, content = ?, Votes = ?, media_path = ?, media_type = ? WHERE question_id = ?";
         try (PreparedStatement ps = connexion.prepareStatement(query)) {
             ps.setString(1, question.getTitle());
             ps.setString(2, question.getContent());
             ps.setInt(3, question.getVotes());
-            ps.setInt(4, question.getQuestion_id());
+            ps.setString(4, question.getMediaPath());
+            ps.setString(5, question.getMediaType());
+            ps.setInt(6, question.getQuestion_id());
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update question: " + e.getMessage(), e);
@@ -254,5 +281,74 @@ public class QuestionService implements IService<Question> {
                 .collect(Collectors.toList());
         System.out.println("Filtered questions: " + filteredQuestions.size());
         return filteredQuestions;
+    }
+
+    public void addReaction(int questionId, int userId, String emoji) {
+        String existingReaction = getUserReaction(questionId, userId);
+        if (existingReaction != null) {
+            removeReaction(questionId, userId);
+            updateReactionCount(questionId, existingReaction, -1);
+        }
+
+        String query = "INSERT INTO question_reactions (question_id, user_id, emoji) VALUES (?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE emoji = VALUES(emoji)";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, questionId);
+            ps.setInt(2, userId);
+            ps.setString(3, emoji);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to add reaction: " + e.getMessage(), e);
+        }
+
+        updateReactionCount(questionId, emoji, 1);
+    }
+
+    private void updateReactionCount(int questionId, String emoji, int delta) {
+        Map<String, Integer> reactions = getReactions(questionId);
+        reactions.put(emoji, reactions.getOrDefault(emoji, 0) + delta);
+    }
+
+    public void removeReaction(int questionId, int userId) {
+        String query = "DELETE FROM question_reactions WHERE question_id = ? AND user_id = ?";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, questionId);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to remove user reaction: " + e.getMessage(), e);
+        }
+    }
+
+    public Map<String, Integer> getReactions(int questionId) {
+        Map<String, Integer> reactionCounts = new HashMap<>();
+        String query = "SELECT emoji, COUNT(*) as count FROM question_reactions WHERE question_id = ? GROUP BY emoji";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, questionId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                String emoji = rs.getString("emoji");
+                int count = rs.getInt("count");
+                reactionCounts.put(emoji, count);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch reactions: " + e.getMessage(), e);
+        }
+        return reactionCounts;
+    }
+
+    public String getUserReaction(int questionId, int userId) {
+        String query = "SELECT emoji FROM question_reactions WHERE question_id = ? AND user_id = ?";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, questionId);
+            ps.setInt(2, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("emoji");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch user reaction: " + e.getMessage(), e);
+        }
+        return null;
     }
 }

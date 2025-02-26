@@ -6,10 +6,10 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0" 
-    styleClass="scroll-pane" stylesheets="@/assets/style/style.css" 
-    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
-    fx:controller="tn.esprit.Controllers.Evenement.ListeCategorieController">
+<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0"
+            styleClass="scroll-pane" stylesheets="@/assets/style/style.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.Controllers.Evenement.ListeCategorieController">
 
     <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
         <children>
@@ -20,7 +20,7 @@
                 <padding>
                     <Insets top="20" right="30" bottom="20" left="30"/>
                 </padding>
-                
+
                 <!-- Header Section -->
                 <HBox alignment="CENTER_LEFT" spacing="20" styleClass="list-header">
                     <VBox spacing="5">
@@ -29,9 +29,9 @@
                     </VBox>
                     <Region HBox.hgrow="ALWAYS"/>
                     <HBox spacing="10" alignment="CENTER_RIGHT">
-                        <TextField fx:id="searchField" promptText="Rechercher une catégorie..." 
-                                 styleClass="search-field" onKeyReleased="#Search"/>
-                        <Button fx:id="addCategoryButton" onAction="#ButtonAjouterCategorie" 
+                        <TextField fx:id="searchField" promptText="Rechercher une catégorie..."
+                                   styleClass="search-field" onKeyReleased="#Search"/>
+                        <Button fx:id="addCategoryButton" onAction="#ButtonAjouterCategorie"
                                 styleClass="add-button">
                             <graphic>
                                 <HBox spacing="10" alignment="CENTER">
@@ -42,7 +42,7 @@
                                 </HBox>
                             </graphic>
                         </Button>
-                        <Button fx:id="EvenementButton" onAction="#ListeEvenemnt"
+                        <Button fx:id="EvenementButton" onAction="#ListeEvenement"
                                 styleClass="list-button">
                             <graphic>
                                 <HBox spacing="10" alignment="CENTER">
@@ -71,7 +71,7 @@
                 </GridPane>
 
                 <!-- List Content -->
-                <VBox fx:id="eventContainer" spacing="10" styleClass="list-content"/>
+                <FlowPane fx:id="eventContainer" alignment="CENTER" hgap="20" vgap="20" />
             </VBox>
 
             <!-- Footer -->

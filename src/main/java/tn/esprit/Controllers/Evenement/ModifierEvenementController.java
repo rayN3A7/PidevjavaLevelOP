@@ -17,6 +17,11 @@ import tn.esprit.Services.Evenement.CategorieEvService;
 import tn.esprit.Services.Evenement.EvenementService;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ModifierEvenementController {
@@ -30,6 +35,8 @@ public class ModifierEvenementController {
     private TextField NBPEvent;
     @FXML
     private ComboBox<String> CatEvent;
+    @FXML
+    private ComboBox<String> TimeEvent;
 
     private Evenement eventAModifier;
     private final EvenementService es = new EvenementService();
@@ -37,14 +44,29 @@ public class ModifierEvenementController {
 
     public void initData(Evenement event) {
         this.eventAModifier = event;
+
+        // Extraire la date et l'heure depuis Timestamp
+        Timestamp eventTimestamp = event.getDate_event();
+        LocalDateTime eventDateTime = eventTimestamp.toLocalDateTime();
+
+        // Séparer la date et l'heure
+        LocalDate datePart = eventDateTime.toLocalDate();
+        LocalTime timePart = eventDateTime.toLocalTime();
+
+        // Formater l'heure en HH:mm
+        String formattedTime = String.format("%02d:%02d", timePart.getHour(), timePart.getMinute());
+
+        // Remplir les champs
         NomEvent.setText(event.getNom_event());
-        DateEvent.setValue(event.getDate_event().toLocalDate());
+        DateEvent.setValue(datePart);
         LieuEvent.setText(event.getLieu_event());
         NBPEvent.setText(String.valueOf(event.getMax_places_event()));
         CatEvent.setValue(ces.getNomCategorieEvent(event.getCategorie_id()));
+        TimeEvent.setValue(formattedTime);
     }
     @FXML
     private void initialize() {
+        fillTimeComboBox();
         GetCategorie();
     }
     private void GetCategorie(){
@@ -58,19 +80,57 @@ public class ModifierEvenementController {
     @FXML
     private void ModifierEvenement() {
         if (eventAModifier != null) {
-            eventAModifier.setNom_event(NomEvent.getText());
-            eventAModifier.setDate_event(java.sql.Date.valueOf(DateEvent.getValue()));
-            eventAModifier.setLieu_event(LieuEvent.getText());
-            eventAModifier.setMax_places_event(Integer.parseInt(NBPEvent.getText()));
-            String selectedCategory = CatEvent.getValue();
-            int categoryId = ces.getIdCategorieEvent(selectedCategory);
-            eventAModifier.setCategorie_id(categoryId);
+            try {
+                // Vérifier que tous les champs sont remplis
+                if (NomEvent.getText().trim().isEmpty() || LieuEvent.getText().trim().isEmpty() ||
+                        NBPEvent.getText().trim().isEmpty() || DateEvent.getValue() == null ||
+                        TimeEvent.getValue() == null || CatEvent.getValue() == null) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "Tous les champs doivent être remplis.");
+                    return;
+                }
 
-            es.update(eventAModifier);
-            showAlert(Alert.AlertType.INFORMATION, "Succès", "Evenement modifié avec succès");
-        }else{
-            showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez vérifier les champs");
+                eventAModifier.setNom_event(NomEvent.getText());
+                eventAModifier.setLieu_event(LieuEvent.getText());
+                eventAModifier.setMax_places_event(Integer.parseInt(NBPEvent.getText()));
+
+                String selectedCategory = CatEvent.getValue();
+                int categoryId = ces.getIdCategorieEvent(selectedCategory);
+                eventAModifier.setCategorie_id(categoryId);
+
+                // Récupérer la date et l'heure sélectionnées
+                LocalDate selectedDate = DateEvent.getValue();
+                LocalTime selectedTime = LocalTime.parse(TimeEvent.getValue());
+                LocalDateTime dateTime = LocalDateTime.of(selectedDate, selectedTime);
+
+                // Vérifier que la date est dans le futur
+                if (dateTime.isBefore(LocalDateTime.now())) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "La date de l'événement doit être dans le futur.");
+                    return;
+                }
+
+                // Convertir LocalDateTime en Timestamp et enregistrer
+                eventAModifier.setDate_event(Timestamp.valueOf(dateTime));
+
+                es.update(eventAModifier);
+                showAlert(Alert.AlertType.INFORMATION, "Succès", "Événement modifié avec succès");
+
+            } catch (NumberFormatException e) {
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Le nombre de places doit être un nombre valide.");
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Une erreur est survenue. Veuillez réessayer.");
+            }
+        } else {
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Aucun événement sélectionné pour modification.");
         }
+    }
+    private void fillTimeComboBox() {
+        List<String> timeOptions = new ArrayList<>();
+        for (int hour = 0; hour < 24; hour++) {
+            for (int minute = 0; minute < 60; minute += 15) { // Incrément de 15 minutes
+                timeOptions.add(String.format("%02d:%02d", hour, minute));
+            }
+        }
+        TimeEvent.getItems().setAll(timeOptions);
     }
     @FXML
     private void Annuler() {

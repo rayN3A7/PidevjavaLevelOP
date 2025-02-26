@@ -35,9 +35,10 @@
 
 .comments-container {
     -fx-padding: 10px;
-    -fx-spacing: 20px;
+    -fx-spacing: 10px; /* Reduced spacing between comments */
 }
 
+/* Compact Comment Card Styling */
 .comment-card {
     -fx-background-color: #0f1b2b;
     -fx-background-radius: 15px;
@@ -45,8 +46,10 @@
     -fx-border-color: #ff007f;
     -fx-border-width: 2px;
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.3), 10, 0.5, 0, 0);
-    -fx-padding: 20px;
-    -fx-spacing: 10px;
+    -fx-padding: 10px; /* Reduced padding from 20px to 10px for compactness */
+    -fx-spacing: 5px; /* Reduced spacing to match FXML */
+    -fx-min-height: 80px; /* Smaller default height */
+    -fx-max-width: 600px; /* Limit width for consistency */
 }
 
 .comment-card-hbox {
@@ -54,46 +57,136 @@
 }
 
 .vote-box {
-    -fx-alignment: center;
-    -fx-spacing: 10px;
-    -fx-padding: 10% 0 0 0;
+    -fx-alignment: top-left;
+    -fx-padding: 0;
+    -fx-spacing: 2px;
+}
+
+/* Enhanced Vote Button Styling */
+
+
+.votes-label {
+    -fx-font-size: 12px;
+    -fx-text-fill: #b0b0b0;
 }
 
 .vote-button {
     -fx-background-color: transparent;
     -fx-text-fill: #ff007f;
-    -fx-font-size: 24px;
-    -fx-padding: 5px;
-    -fx-pref-width: 40px;
-    -fx-pref-height: 40px;
+    -fx-font-size: 18px;
+    -fx-pref-width: 30px;
+    -fx-pref-height: 30px;
     -fx-border-color: #ff007f;
+    -fx-padding: 1px 1px 1px 1px;
     -fx-border-width: 2px;
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 10, 0.5, 0, 0);
+}
+
+.vote-box {
+    -fx-padding: 5px 40px 5px 5px; /* Reduced padding for compactness */
 }
 
 .vote-button:hover {
     -fx-background-color: rgba(255, 0, 127, 0.2);
     -fx-border-color: #ff007f;
     -fx-border-radius: 100%;
-
 }
 
+/* Comment Author Styling */
 .comment-author {
     -fx-font-weight: bold;
     -fx-text-fill: #ff007f;
 }
 
+/* Responsive Comment Content Styling */
 .comment-content {
     -fx-font-size: 14px;
     -fx-text-fill: #dcdcdc;
-    -fx-line-spacing: 1.5;
+    -fx-line-spacing: 1.2;
+    -fx-wrap-text: true;
+    -fx-max-width: 450px;
+    -fx-padding: 0 0 5px 0;
 }
 
+/* Comment Content VBox Styling */
+.comment-content-vbox {
+    -fx-min-height: 60px; /* Compact default height for content */
+    -fx-max-width: 500px; /* Matches card width minus vote box */
+}
+
+/* Enhanced Action Button Styling (for React, Delete, Update, Save, Cancel) */
 .action-button {
-    -fx-background-color: #ff007f;
+    -fx-background-color: linear-gradient(to right, #ff007f, #ff69b4); /* Neon Pink gradient */
     -fx-text-fill: white;
-    -fx-border-radius: 20px;
-    -fx-padding: 8px 12px;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 20px; /* Slightly larger padding for emphasis */
+    -fx-background-radius: 25px; /* More rounded for modern look */
+    -fx-border-color: transparent; /* Remove border for cleaner look */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 3); /* Subtle shadow */
+}
+
+.action-button:hover {
+    -fx-background-color: linear-gradient(to right, #e6007a, #ff4dab); /* Darker gradient on hover */
+    -fx-scale-x: 1.1; /* Slightly larger scale for animation */
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.6), 12, 0.5, 0, 4); /* Enhanced shadow on hover */
+    -fx-cursor: hand; /* Change cursor to indicate interactivity */
+}
+
+/* Enhanced Update/Delete Button Styling (specific for Delete and Update) */
+.update-delete-button {
+    -fx-background-color: linear-gradient(to right, #ff007f, #ff69b4); /* Neon Pink gradient */
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 20px; /* Slightly larger padding for emphasis */
+    -fx-background-radius: 25px; /* More rounded for modern look */
+    -fx-border-color: transparent; /* Remove border for cleaner look */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 3); /* Subtle shadow */
+}
+
+.update-delete-button:hover {
+    -fx-background-color: linear-gradient(to right, #e6007a, #ff4dab); /* Darker gradient on hover */
+    -fx-scale-x: 1.1; /* Slightly larger scale for animation */
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.6), 12, 0.5, 0, 4); /* Enhanced shadow on hover */
+    -fx-cursor: hand; /* Change cursor to indicate interactivity */
+}
+
+/* Enhanced Create Comment Button Styling */
+.create-comment-button {
+    -fx-background-color: linear-gradient(to right, #ff007f, #ff69b4); /* Neon Pink gradient */
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 12px 24px; /* Larger padding for emphasis */
+    -fx-background-radius: 30px; /* More rounded for modern look */
+    -fx-border-color: transparent; /* Remove border for cleaner look */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 10, 0.5, 0, 4); /* Enhanced shadow */
+}
+
+.create-comment-button:hover {
+    -fx-background-color: linear-gradient(to right, #e6007a, #ff4dab); /* Darker gradient on hover */
+    -fx-scale-x: 1.1; /* Slightly larger scale for animation */
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.6), 14, 0.5, 0, 5); /* Enhanced shadow on hover */
+    -fx-cursor: hand; /* Change cursor to indicate interactivity */
+}
+
+/* Enhanced Back Button Styling */
+.back-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-padding: 8px 16px; /* Larger padding for emphasis */
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 6, 0.5, 0, 2); /* Subtle shadow */
+}
+
+.back-button:hover {
+    -fx-text-fill: #ff69b4; /* Lighter neon pink for hover */
+    -fx-scale-x: 1.1; /* Slight scale for animation */
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgba(255, 105, 180, 0.4), 8, 0.5, 0, 3); /* Enhanced shadow on hover */
+    -fx-cursor: hand; /* Change cursor to indicate interactivity */
 }
 
 .comment-input {
@@ -104,22 +197,6 @@
     -fx-border-radius: 5px;
 }
 
-.create-comment-button {
-    -fx-background-color: #ff007f;
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
-    -fx-padding: 10px 20px;
-    -fx-border-radius: 5px;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0.5, 0, 0);
-}
-
-.action-button {
-    -fx-background-color: #091221;
-    -fx-text-fill: white;
-    -fx-border-radius: 50%;
-    -fx-padding: 8px 12px;
-}
-
 .scroll-pane {
     -fx-background-color: transparent;
 }
@@ -127,14 +204,29 @@
 .scroll-pane .viewport {
     -fx-background-color: transparent;
 }
-.back-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: white;
-    -fx-font-size: 20px;
-    -fx-padding: 5px 10px;
-    -fx-border-color: transparent;
+
+/* Comment Card Reaction Styles */
+.comment-card .reaction-container {
+    -fx-alignment: center-left;
+    -fx-spacing: 5;
 }
 
-.back-button:hover {
-    -fx-text-fill: #ff007f;
+.comment-card .reaction-emoji-icon {
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2); /* Subtle shadow for graphical reaction icons */
+}
+
+.comment-card .reaction-count-label {
+    -fx-font-size: 14px; /* Smaller count text for compactness */
+    -fx-text-fill: white;
+    -fx-padding: 0 4px; /* Minimal padding for tight fit */
+}
+
+.comment-card .selected-emoji-image {
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2); /* Subtle shadow for graphical emoji */
+}
+
+.comment-card .reaction-actions {
+    -fx-alignment: center-left;
+    -fx-spacing: 5; /* Reduced spacing for compactness */
+    -fx-padding: 2px 0 0 0; /* Reduced padding for compactness */
 }

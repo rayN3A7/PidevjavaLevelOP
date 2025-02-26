@@ -6,10 +6,10 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
 
-<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0" 
-    styleClass="scroll-pane" stylesheets="@/assets/style/style.css" 
-    xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
-    fx:controller="tn.esprit.Controllers.Evenement.DetailsEvenementController">
+<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0"
+            styleClass="scroll-pane" stylesheets="@/assets/style/style.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.Controllers.Evenement.DetailsEvenementController">
 
     <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
         <children>
@@ -46,7 +46,10 @@
                                     <Label text="Date" styleClass="info-label"/>
                                     <Label fx:id="eventDateLabel" styleClass="info-value"/>
                                 </VBox>
-
+                                <VBox styleClass="info-group">
+                                    <Label text="Heure" styleClass="info-label"/>
+                                    <Label fx:id="TimeEvent" styleClass="info-value"/>
+                                </VBox>
                                 <VBox styleClass="info-group" HBox.hgrow="ALWAYS">
                                     <Label text="Lieu" styleClass="info-label"/>
                                     <Label fx:id="eventLieuLabel" styleClass="info-value"/>
@@ -67,6 +70,9 @@
 
                             <Button text="Réserver maintenant" fx:id="reserverButton" onAction="#reserverPlace"
                                     styleClass="book-button" maxWidth="Infinity"/>
+                            <Button text="Exporter en PDF" fx:id="exportPDFButton" onAction="#exporterPDF"
+                                    styleClass="export-button" maxWidth="Infinity"/>
+
                         </VBox>
                     </HBox>
                 </children>

@@ -1,47 +1,49 @@
 package tn.esprit.Models;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Question {
     private int question_id;
     private String title;
     private String content;
+    private int votes;
     private Games game;
     private Utilisateur user;
-    private int Votes;
-    private Timestamp created_at;
+    private Timestamp date;
+    private String mediaPath;
+    private String mediaType;
+    private Map<String, Integer> reactions = new HashMap<>();
+    private String userReaction;
+
 
     public Question() {
+        this.reactions = new HashMap<>();
     }
 
-    public Question(int id, String title, String content, int votes, Games game, Utilisateur user) {
-        this.question_id = id;
+    public Question(String title, String content, Games game, Utilisateur user, int votes, Timestamp date, String mediaPath, String mediaType) {
         this.title = title;
         this.content = content;
-        this.Votes = votes;
         this.game = game;
         this.user = user;
+        this.votes = votes;
+        this.date = date;
+        this.mediaPath = mediaPath;
+        this.mediaType = mediaType;
+        this.reactions = new HashMap<>();
     }
 
-
-    public Question(int question_id, String title, String content, Games game, Utilisateur user, int votes, Timestamp created_at) {
+    public Question(int question_id, String title, String content, int votes, Games game, Utilisateur user) {
         this.question_id = question_id;
         this.title = title;
         this.content = content;
+        this.votes = votes;
         this.game = game;
         this.user = user;
-        this.Votes = votes;
-        this.created_at = created_at;
+        this.reactions = new HashMap<>();
     }
 
-    public Question(String title, String content, Games game, Utilisateur user, int votes, Timestamp created_at) {
-        this.title = title;
-        this.content = content;
-        this.game = game;
-        this.user = user;
-        this.Votes = 0;
-        this.created_at = created_at;
-    }
 
     public int getQuestion_id() {
         return question_id;
@@ -50,79 +52,64 @@ public class Question {
     public void setQuestion_id(int question_id) {
         this.question_id = question_id;
     }
-
     public String getTitle() {
         return title;
     }
-
     public void setTitle(String title) {
         this.title = title;
     }
-
     public String getContent() {
         return content;
     }
-
     public void setContent(String content) {
         this.content = content;
     }
-
+    public int getVotes() {
+        return votes;
+    }
+    public void setVotes(int votes) {
+        this.votes = votes;
+    }
     public Games getGame() {
         return game;
     }
-
     public void setGame(Games game) {
         this.game = game;
     }
-
     public Utilisateur getUser() {
         return user;
     }
-
     public void setUser(Utilisateur user) {
         this.user = user;
     }
-
-    public int getVotes() {
-        return Votes;
+    public Timestamp getDate() {
+        return date;
     }
-
-    public void setVotes(int votes) {
-        this.Votes = votes;
+    public void setDate(Timestamp date) {
+        this.date = date;
     }
-
-    public Timestamp getCreated_at() {
-        return created_at;
+    public String getMediaPath() {
+        return mediaPath;
     }
-
-    public void setCreated_at(Timestamp created_at) {
-        this.created_at = created_at;
+    public void setMediaPath(String mediaPath) {
+        this.mediaPath = mediaPath;
     }
-    public void upvote() {
-        if (this.Votes == 0) {
-            this.Votes++;
-        }
-
+    public String getMediaType() {
+        return mediaType;
     }
-
-    public void downvote() {
-        if (this.Votes > 0) {
-            this.Votes--;
-        }
+    public void setMediaType(String mediaType) {
+        this.mediaType = mediaType;
     }
-
-
-
-    @Override
-    public String toString() {
-        return "Question{" +
-                "question_id=" + question_id +
-                ", title='" + title + '\'' +
-                ", content='" + content + '\'' +
-                ", game=" + game +
-                ", user=" + user +
-                ", Votes=" + Votes +
-                ", created_at=" + created_at +
-                '}';
+    public Map<String, Integer> getReactions() {
+        return reactions;
+    }
+    public void setReactions(Map<String, Integer> reactions) {
+        this.reactions = reactions;
+    }
+    public String getUserReaction() {
+        return userReaction;
+    }
+    public void setUserReaction(String userReaction) {
+        this.userReaction = userReaction;
     }
 }

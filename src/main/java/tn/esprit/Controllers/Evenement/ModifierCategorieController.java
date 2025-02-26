@@ -29,10 +29,10 @@ public class ModifierCategorieController {
     @FXML
     public void ModifierCategorie() {
         if(ce !=null){
-        ce.setNom(NomCategorie.getText());
-        ce.setDescriptioncategorie(DescCategorie.getText());
-        ces.update(ce);
-        showAlert(Alert.AlertType.INFORMATION,"Succès","Catégorie modifiée avec succès");
+            ce.setNom(NomCategorie.getText());
+            ce.setDescriptioncategorie(DescCategorie.getText());
+            ces.update(ce);
+            showAlert(Alert.AlertType.INFORMATION,"Succès","Catégorie modifiée avec succès");
         }else{
             showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez vérifier les champs");
         }

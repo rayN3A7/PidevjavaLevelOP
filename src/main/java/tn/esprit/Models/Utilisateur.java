@@ -19,15 +19,7 @@ public class Utilisateur  {
     private int numero;
     private String prenom;
     private Role role;
-    private String privilege = "regular";
-
-    // New getters and setters
-    public String getPrivilege() {
-        return privilege;
-    }
-    public void setPrivilege(String privilege) {
-        this.privilege = privilege;
-    }
+    private String privilege = "regular"; // Default privilege
 
     public Utilisateur(int id, String email, String motPasse, String nickname, String nom, int numero, String prenom, Role role) {
         this.id = id;
@@ -75,7 +67,14 @@ public class Utilisateur  {
     public Utilisateur() {
     }
 
+    // New getters and setters
+    public String getPrivilege() {
+        return privilege;
+    }
 
+    public void setPrivilege(String privilege) {
+        this.privilege = privilege;
+    }
 
     private String hashPassword(String motPasse) {
         return BCrypt.hashpw(motPasse, BCrypt.gensalt(12));
@@ -142,8 +141,8 @@ public class Utilisateur  {
     public String toString() {
         return "Utilisateur{" +
                 "id=" + id +
-
                 ", email='" + email + '\'' +
+                ", motPasse='" + motPasse + '\'' +
                 ", nickname='" + nickname + '\'' +
                 ", nom='" + nom + '\'' +
                 ", numero=" + numero +

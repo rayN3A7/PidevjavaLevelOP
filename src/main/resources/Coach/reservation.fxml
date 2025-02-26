@@ -1,60 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.DatePicker?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.TitledPane?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
 
-<?import javafx.scene.control.ComboBox?>
-<BorderPane prefHeight="700.0" prefWidth="1024.0" style="-fx-background-color: linear-gradient(to bottom, #091221, #0236a5);" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Coach.ReservationController">
+<BorderPane prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: #091221;" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Coach.ReservationController">
 
     <top>
         <fx:include source="../forumUI/navbar.fxml" />
     </top>
 
     <center>
-        <VBox alignment="CENTER" spacing="20" style="-fx-padding: 30px; -fx-alignment: center; -fx-background-radius: 20px; -fx-border-radius: 20px; -fx-effect: dropshadow(gaussian, rgba(2,54,165,0.7), 15, 0.6, 0, 6);">
-
-            <Label style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: white;" text="Gestion des Réservations" />
-
-            <TitledPane collapsible="false" style="-fx-font-size: 18px; -fx-text-fill: black; -fx-background-color: rgba(5,133,230,0.85); -fx-background-radius: 20px; -fx-border-radius: 20px; -fx-effect: dropshadow(gaussian, rgba(2,54,165,0.7), 15, 0.6, 0, 6);" text="Détails de la Réservation">
-
-                <content>
-                    <GridPane hgap="15" style="-fx-padding: 20px; -fx-background-color: rgba(5,133,230,0.85);" vgap="12">
-                        <Label style="-fx-font-size: 16px; -fx-text-fill: black;" text="Date de réservation:" textFill="#1b1a1a" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                        <DatePicker fx:id="datePicker" style="-fx-pref-width: 200px;                             -fx-background-color: white; -fx-border-radius: 8px;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-
-
-                        <Label style="-fx-font-size: 16px; -fx-text-fill: black;" text="ID de la Session:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                        <TextField fx:id="sessionIdField" promptText="Entrez l'ID de la session" style="-fx-pref-width: 200px; -fx-background-color: white;                             -fx-border-radius: 8px;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                        <Label fx:id="statusLabel" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
-                        <columnConstraints>
-                            <ColumnConstraints />
-                            <ColumnConstraints />
-                        </columnConstraints>
-                        <rowConstraints>
-                            <RowConstraints />
-                            <RowConstraints />
-                            <RowConstraints />
-                        </rowConstraints>
-                    </GridPane>
-                </content>
-            </TitledPane>
-
-            <HBox alignment="CENTER" spacing="20">
-                <Button onAction="#handleAddReservation" style="-fx-background-color: linear-gradient(to right, #fe0369, #ff6699); -fx-text-fill: white;                     -fx-font-size: 16px; -fx-padding: 12px; -fx-background-radius: 12px;                     -fx-border-radius: 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.4, 0, 4);" text="Ajouter" />
-
-                <Button onAction="#handleDeleteReservation" style="-fx-background-color: linear-gradient(to right, #d0025b, #ff6699); -fx-text-fill: white;                     -fx-font-size: 16px; -fx-padding: 12px; -fx-background-radius: 12px;                     -fx-border-radius: 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.4, 0, 4);" text="Supprimer" />
+        <VBox spacing="40" style="-fx-padding: 50;">
+            <HBox alignment="CENTER_LEFT" spacing="30">
+                <VBox>
+                    <Label text="Réservation de Session"
+                           style="-fx-font-size: 42px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: white;
+                                  -fx-effect: dropshadow(gaussian, #fe0369, 10, 0.5, 0, 0);" />
+                    <Label text="Réservez votre session de coaching personnalisée"
+                           style="-fx-font-size: 18px;
+                                  -fx-text-fill: #8899A6;" />
+                </VBox>
             </HBox>
 
-             <Button onAction="#ListReservationC" style="-fx-background-color: linear-gradient(to right, #2980B9, #6DD5FA); -fx-text-fill: white;                     -fx-font-size: 16px; -fx-padding: 12px; -fx-background-radius: 12px;                     -fx-border-radius: 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.4, 0, 4);" text="Vérifier la Réservation" />
+            <HBox alignment="CENTER" spacing="30">
+                <VBox spacing="25" style="-fx-background-color: #0D1D36;
+                                        -fx-background-radius: 20;
+                                        -fx-padding: 40;
+                                        -fx-min-width: 600;
+                                        -fx-effect: dropshadow(gaussian, rgba(254,3,105,0.2), 20, 0.5, 0, 5);">
+
+                    <VBox spacing="10">
+                        <Label text="Date de la Session"
+                               style="-fx-font-size: 18px;
+                                      -fx-font-weight: bold;
+                                      -fx-text-fill: white;" />
+                        <DatePicker fx:id="datePicker"
+                                    style="-fx-pref-width: 520;
+                                         -fx-background-color: #162942;
+                                         -fx-text-fill: white;
+                                         -fx-font-size: 14px;" />
+                    </VBox>
+
+
+                    <Label fx:id="statusLabel"
+                           style="-fx-font-size: 14px;
+                                  -fx-text-fill: #8899A6;" />
+
+                    <HBox spacing="20" alignment="CENTER_RIGHT" style="-fx-padding: 20 0 0 0;">
+                        <Button onAction="#handleAddReservation"
+                                text="Confirmer la Réservation"
+                                style="-fx-background-color: #fe0369;
+                                       -fx-text-fill: white;
+                                       -fx-font-size: 16px;
+                                       -fx-padding: 15 30;
+                                       -fx-background-radius: 30;
+                                       " />
+                    </HBox>
+                </VBox>
+            </HBox>
+
+            <HBox spacing="20" alignment="CENTER">
+                <Button onAction="#ListReservationC"
+                        text="Vérifier les Réservations →"
+                        style="-fx-background-color: #0585e6;
+                               -fx-text-fill: white;
+                               -fx-font-size: 16px;
+                               -fx-padding: 12 25;
+                               -fx-background-radius: 25;" />
+
+                <Button onAction="#goToMyReservations"
+                        text="Mes Réservations →"
+                        style="-fx-background-color: #fe0369;
+                               -fx-text-fill: white;
+                               -fx-font-size: 16px;
+                               -fx-padding: 12 25;
+                               -fx-background-radius: 25;" />
+            </HBox>
         </VBox>
     </center>
 </BorderPane>

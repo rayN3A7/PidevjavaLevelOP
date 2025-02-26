@@ -1,132 +1,160 @@
 package tn.esprit.Controllers.Coach;
 
+import java.util.List;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import tn.esprit.Models.Role;
 import tn.esprit.Models.Session_game;
-import tn.esprit.Models.Utilisateur;
+import tn.esprit.Services.ServiceReservation;
 import tn.esprit.Services.ServiceSession;
-import tn.esprit.Services.UtilisateurService;
 import tn.esprit.utils.SessionManager;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SearchSessionController {
     @FXML
-    private ComboBox<String> coachIdField;
-    @FXML
-    private Button searchButton;
-    @FXML
-    private Label resultLabel;
-    @FXML private TextArea sessionsTextArea;
-    private List<Utilisateur> Coach = new ArrayList<>();
+    private VBox sessionsContainer;
 
     String userRole = SessionManager.getInstance().getRole().name();
 
     private final ServiceSession serviceSession = new ServiceSession();
-    private UtilisateurService us = new UtilisateurService();
+    private final ServiceReservation serviceReservation = new ServiceReservation();
 
     @FXML
-    private void initialize() {
-        GetCoach();
+    public void initialize() {
+        showSessions();
     }
 
-    public void GetCoach(){
-        Coach = us.getByRole("coach");
-        List<String> lcoach =  Coach.stream().map(Utilisateur::getNom)
-                .toList();
-        coachIdField.getItems().setAll(lcoach);
-    }
     @FXML
     private void showSessions() {
         List<Session_game> sessions = serviceSession.getAll();
-        StringBuilder sessionListText = new StringBuilder();
+        sessionsContainer.getChildren().clear();
+        sessionsContainer.setSpacing(15);
 
         for (Session_game session : sessions) {
-            sessionListText.append("Jeu: ").append(session.getGame())
-                    .append("\nPrix: ").append(session.getprix()).append(" DT")
-                    .append("\nDurée: ").append(session.getduree_session())
-                    .append("\n--------------------\n");
+            VBox sessionCard = createSessionCard(session);
+            sessionsContainer.getChildren().add(sessionCard);
         }
-        sessionsTextArea.setText(sessionListText.toString());
     }
 
+    private VBox createSessionCard(Session_game session) {
+        VBox sessionCard = new VBox(12);
+        sessionCard.setStyle("-fx-background-color: #162942; " +
+                "-fx-padding: 20; " +
+                "-fx-background-radius: 12; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5);");
 
-    @FXML
-    private void searchSessionsByCoach() {
-        try {
-            String Coachname = coachIdField.getValue().toString();
-            Utilisateur selectedCoach = Coach.stream()
-                    .filter(coach -> coach.getNom().equals(Coachname))
-                    .findFirst()
-                    .orElse(null);
-            Utilisateur e1 = us.getByEmail(selectedCoach.getEmail());
-            if (selectedCoach != null) {
-                List<Session_game> sessions = serviceSession.getSessionsByCoachId(e1.getId());
+        Label gameLabel = new Label(session.getGame());
+        gameLabel.setStyle("-fx-text-fill: white; " +
+                "-fx-font-size: 20px; " +
+                "-fx-font-weight: bold;");
 
-                if (sessions.isEmpty()) {
-                    resultLabel.setText("Aucune session trouvée pour ce coach.");
-                } else {
-                    StringBuilder resultText = new StringBuilder();
-                    for (Session_game session : sessions) {
-                        resultText.append("Session ID: ").append(session.getId())
-                                .append(", Prix: ").append(session.getprix())
-                                .append(", Durée: ").append(session.getduree_session())
-                                .append(", Jeu: ").append(session.getGame())
-                                .append("\n");
-                    }
-                    resultLabel.setText(resultText.toString());
-                }
-            } else {
-                resultLabel.setText("Aucun coach sélectionné.");
+        VBox infoBox = new VBox(8);
+        Label priceLabel = createInfoLabel("Prix: " + session.getprix() + " DT");
+        Label durationLabel = createInfoLabel("Durée: " + session.getduree_session());
+
+        infoBox.getChildren().addAll(priceLabel, durationLabel);
+
+        HBox buttonsBox = new HBox(15);
+        buttonsBox.setAlignment(Pos.CENTER_LEFT);
+        buttonsBox.setStyle("-fx-padding: 10 0 0 0;");
+
+        Button checkButton = createActionButton("Vérifier disponibilité", "#0585e6");
+        Button reserveButton = createActionButton("Réserver", "#fe0369");
+        reserveButton.setVisible(false);
+
+        setupButtonActions(checkButton, reserveButton, session.getId());
+
+        buttonsBox.getChildren().addAll(checkButton, reserveButton);
+
+        sessionCard.getChildren().addAll(gameLabel, infoBox, buttonsBox);
+        return sessionCard;
+    }
+
+    private Label createInfoLabel(String text) {
+        Label label = new Label(text);
+        label.setStyle("-fx-text-fill: #8899A6; " +
+                "-fx-font-size: 14px;");
+        return label;
+    }
+
+    private Button createActionButton(String text, String color) {
+        Button button = new Button(text);
+        button.setStyle("-fx-background-color: " + color + "; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-size: 14px; " +
+                "-fx-padding: 10 20; " +
+                "-fx-background-radius: 20; " );
+        return button;
+    }
+
+    private void setupButtonActions(Button checkButton, Button reserveButton, int sessionId) {
+        checkButton.setOnAction(event -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/verifier_reservation.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (NumberFormatException e) {
-            resultLabel.setText("Veuillez entrer un ID valide !");
-        }
+        });
+
+        reserveButton.setOnAction(event -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/reservation.fxml"));
+                Parent root = loader.load();
+
+                ReservationController reservationController = loader.getController();
+                reservationController.initData(sessionId);
+
+                Scene scene = new Scene(root);
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
+
     @FXML
-    private void session(ActionEvent event)throws Exception{
+    private void session(ActionEvent event) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/session.fxml"));
-        Parent signInRoot = loader.load();
-        Scene signInScene = new Scene(signInRoot);
-
-
-        Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        window.setScene(signInScene);
-        window.show();
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setScene(scene);
+        stage.show();
     }
     @FXML
-    private void reservation(ActionEvent event)throws Exception{
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/verifier_reservation.fxml"));
-        Parent signInRoot = loader.load();
-        Scene signInScene = new Scene(signInRoot);
-
-
-        Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        window.setScene(signInScene);
-        window.show();
-    }
-    @FXML
-    private void Coach(ActionEvent event)throws Exception{
-        if(userRole == "COACH") {
+    private void Coach(ActionEvent event) throws Exception {
+        if(userRole.equals("COACH")) {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/SessionManagement.fxml"));
-            Parent signInRoot = loader.load();
-            Scene signInScene = new Scene(signInRoot);
-
-
-            Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            window.setScene(signInScene);
-            window.show();
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
         }
     }
-
-
-
+    @FXML
+    private void goToCoachSearch(ActionEvent event) throws Exception {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/coach_search.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        stage.setScene(scene);
+        stage.show();
+    }
 }

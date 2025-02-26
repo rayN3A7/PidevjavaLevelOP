@@ -1,42 +1,118 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.Region?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="700" prefWidth="1024" style="-fx-background-color: linear-gradient(to bottom, #091221, #0585e6);" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Coach.SessionUpdateController">
+<BorderPane prefHeight="800.0" prefWidth="1200.0"
+            style="-fx-background-color: #091221;"
+            xmlns="http://javafx.com/javafx/20.0.2"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.Controllers.Coach.SessionUpdateController">
 
-    <!-- Top: Barre de navigation -->
     <top>
         <fx:include source="../forumUI/navbar.fxml" />
     </top>
 
-    <!-- Center: Contenu principal -->
     <center>
-        <VBox alignment="CENTER" spacing="30" style="-fx-padding: 50px;">
-            <!-- Espacement sous la navbar -->
-            <Region style="-fx-pref-height: 40px;" />
+        <VBox spacing="40" style="-fx-padding: 50;">
 
-            <!-- Section mise à jour -->
-            <VBox prefHeight="445.0" prefWidth="722.0" spacing="20" style="-fx-padding: 30px; -fx-background-color: white; -fx-border-color: #0585e6; -fx-border-width: 2px; -fx-border-radius: 15px; -fx-background-radius: 15px; -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 15, 0.5, 0, 5); -fx-pref-width: 500px;">
-                <Label style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #0236a5; -fx-padding-bottom: 5px;" text="Mettre à Jour une Session" />
-                <Separator />
+            <HBox alignment="CENTER_LEFT" spacing="30">
+                <VBox>
+                    <Label text="Modifier la Session"
+                           style="-fx-font-size: 42px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: white;
+                                  -fx-effect: dropshadow(gaussian, #fe0369, 10, 0.5, 0, 0);" />
+                    <Label text="Mettez à jour les informations de votre session"
+                           style="-fx-font-size: 18px;
+                                  -fx-text-fill: #8899A6;" />
+                </VBox>
+            </HBox>
 
-                <!-- Champs de saisie -->
-                <TextField fx:id="updateIdField" promptText="ID de la session à modifier" style="-fx-font-size: 15px; -fx-background-color: #f5f7fa; -fx-border-color: #d1d9e6; -fx-border-radius: 8px; -fx-padding: 10px;" />
-                <TextField fx:id="updateGameField" promptText="Nouveau nom du jeu" style="-fx-font-size: 15px; -fx-background-color: #f5f7fa; -fx-border-color: #d1d9e6; -fx-border-radius: 8px; -fx-padding: 10px;" />
-                <TextField fx:id="updatePriceField" promptText="Nouveau prix" style="-fx-font-size: 15px; -fx-background-color: #f5f7fa; -fx-border-color: #d1d9e6; -fx-border-radius: 8px; -fx-padding: 10px;" />
-                <TextField fx:id="updateDurationField" promptText="Nouvelle durée" style="-fx-font-size: 15px; -fx-background-color: #f5f7fa; -fx-border-color: #d1d9e6; -fx-border-radius: 8px; -fx-padding: 10px;" />
+            <VBox spacing="20" style="-fx-background-color: #0D1D36;
+                                    -fx-background-radius: 20;
+                                    -fx-padding: 40;
+                                    -fx-max-width: 600;
+                                    -fx-alignment: center;
+                                    -fx-effect: dropshadow(gaussian, rgba(254,3,105,0.2), 20, 0.5, 0, 5);">
 
-                <!-- Bouton de mise à jour -->
-                <Button fx:id="updateButton" onAction="#updateSession" style="-fx-background-color: #fe0369; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 12px; -fx-background-radius: 8px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 8, 0.5, 0, 3); -fx-cursor: hand;" text="Mettre à jour Session" />
+                <VBox spacing="10">
+                    <Label text="ID de la Session"
+                           style="-fx-font-size: 16px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: white;" />
+                    <TextField fx:id="updateIdField"
+                               style="-fx-background-color: #162942;
+                                    -fx-text-fill: white;
+                                    -fx-font-size: 14px;
+                                    -fx-background-radius: 8;
+                                    -fx-pref-width: 520;" />
+                </VBox>
+
+                <VBox spacing="10">
+                    <Label text="Nom du Jeu"
+                           style="-fx-font-size: 16px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: white;" />
+                    <TextField fx:id="updateGameField"
+                               style="-fx-background-color: #162942;
+                                    -fx-text-fill: white;
+                                    -fx-font-size: 14px;
+                                    -fx-background-radius: 8;
+                                    -fx-pref-width: 520;" />
+                </VBox>
+
+                <VBox spacing="10">
+                    <Label text="Prix"
+                           style="-fx-font-size: 16px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: white;" />
+                    <TextField fx:id="updatePriceField"
+                               style="-fx-background-color: #162942;
+                                    -fx-text-fill: white;
+                                    -fx-font-size: 14px;
+                                    -fx-background-radius: 8;
+                                    -fx-pref-width: 520;" />
+                </VBox>
+
+                <VBox spacing="10">
+                    <Label text="Durée"
+                           style="-fx-font-size: 16px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: white;" />
+                    <TextField fx:id="updateDurationField"
+                               style="-fx-background-color: #162942;
+                                    -fx-text-fill: white;
+                                    -fx-font-size: 14px;
+                                    -fx-background-radius: 8;
+                                    -fx-pref-width: 520;" />
+                </VBox>
+
+                <Label fx:id="availabilityLabel"
+                       style="-fx-text-fill: #8899A6;
+                              -fx-font-size: 14px;" />
+
+                <HBox spacing="20" alignment="CENTER" style="-fx-padding: 20 0 0 0;">
+                    <Button onAction="#ManagementSesssion"
+                            text="← Retour"
+                            style="-fx-background-color: transparent;
+                                   -fx-text-fill: white;
+                                   -fx-border-color: #0585e6;
+                                   -fx-border-radius: 20;
+                                   -fx-padding: 12 25;" />
+
+                    <Region HBox.hgrow="ALWAYS" />
+
+                    <Button onAction="#updateSession"
+                            text="Mettre à jour"
+                            style="-fx-background-color: #fe0369;
+                                   -fx-text-fill: white;
+                                   -fx-font-size: 16px;
+                                   -fx-padding: 12 25;
+                                   -fx-background-radius: 25;
+                                  " />
+                </HBox>
             </VBox>
-            <Button onAction="#ManagementSesssion" style="-fx-background-color: linear-gradient(to right, #2980B9, #6DD5FA); -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 12px 24px; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.4, 0, 4);" text="&lt;-- Précédent" />
         </VBox>
     </center>
-
 </BorderPane>

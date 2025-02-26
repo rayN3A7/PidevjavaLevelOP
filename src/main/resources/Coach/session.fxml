@@ -1,65 +1,106 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.VBox?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
 
-<BorderPane prefHeight="675.0" prefWidth="1018.0" style="-fx-background-color: linear-gradient(to bottom, #091221, #0236a5);" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Coach.SessionController">
+<BorderPane prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: #091221;" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Coach.SessionController">
 
-    <!-- Top: Inclure la barre de navigation -->
     <top>
         <fx:include source="../forumUI/navbar.fxml" />
     </top>
 
-    <!-- Center: Contenu principal -->
     <center>
-        <HBox spacing="50" style="-fx-padding: 50px; -fx-alignment: center;">
-            <!-- Espace de recherche -->
-            <VBox prefHeight="450.0" prefWidth="420.0" spacing="20" style="-fx-padding: 30px; -fx-alignment: center; -fx-background-color: rgba(5,133,230,0.85); -fx-background-radius: 20px; -fx-border-radius: 20px; -fx-effect: dropshadow(gaussian, rgba(2,54,165,0.7), 15, 0.6, 0, 6);">
-                <Label style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: white;" text="🔍 Rechercher une Session" />
+        <VBox spacing="40" style="-fx-padding: 50;">
 
-                <GridPane hgap="12" vgap="15">
-                    <Label style="-fx-font-size: 16px; -fx-text-fill: white;" text="ID de la session:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                    <TextField fx:id="idField" promptText="Entrez l'ID" style="-fx-pref-width: 200px; -fx-font-size: 14px; -fx-background-color: white; -fx-border-radius: 8px;" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-                    <columnConstraints>
-                        <ColumnConstraints />
-                        <ColumnConstraints />
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints />
-                    </rowConstraints>
-                </GridPane>
-
-                <Button fx:id="searchButton" prefHeight="44.0" prefWidth="180.0" style="-fx-background-color: linear-gradient(to right, #fe0369, #ff6699); -fx-text-fill: white; -fx-font-size: 16px; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.4, 0, 4);" text="Rechercher" />
-
-                <Label fx:id="sessionDetailsLabel" prefHeight="210.0" prefWidth="350.0" style="-fx-font-size: 14px; -fx-text-fill: white; -fx-padding: 10px; -fx-background-color: rgba(255,255,255,0.2); -fx-border-radius: 10px; -fx-background-radius: 10px;" text="Les détails de la session s'afficheront ici." wrapText="true" />
-            </VBox>
-
-            <!-- Sessions en promotion -->
-            <VBox prefHeight="450.0" prefWidth="420.0" spacing="20" style="-fx-padding: 30px; -fx-alignment: center; -fx-background-color: rgba(5,133,230,0.85); -fx-background-radius: 20px; -fx-border-radius: 20px; -fx-effect: dropshadow(gaussian, rgba(2,54,165,0.7), 15, 0.6, 0, 6);">
-                <Label style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: white;" text="🔥 Sessions en Promotion" />
-
-                <Button fx:id="promoButton" style="-fx-background-color: linear-gradient(to right, #fe0369, #ff6699); -fx-text-fill: white; -fx-font-size: 16px; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.4, 0, 4);" text="Voir les Promotions" />
-
-                <VBox fx:id="promoSessionsVBox" spacing="15" style="-fx-background-color: rgba(255,255,255,0.2); -fx-background-radius: 15px; -fx-border-radius: 15px; -fx-pref-width: 100%; -fx-padding: 15px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.4, 0, 4);">
-                    <Label style="-fx-font-size: 14px; -fx-text-fill: white;" text="Aucune promotion actuellement." />
+            <HBox alignment="CENTER_LEFT" spacing="30">
+                <VBox>
+                    <Label text="Sessions de Coaching"
+                           style="-fx-font-size: 42px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: white;
+                                  -fx-effect: dropshadow(gaussian, #fe0369, 10, 0.5, 0, 0);" />
+                    <Label text="Découvrez nos sessions et promotions"
+                           style="-fx-font-size: 18px;
+                                  -fx-text-fill: #8899A6;" />
                 </VBox>
-            </VBox>
-        </HBox>
+            </HBox>
+
+            <HBox spacing="30" alignment="CENTER">
+                <VBox spacing="20" style="-fx-background-color: #0D1D36;
+                                        -fx-background-radius: 20;
+                                        -fx-padding: 30;
+                                        -fx-min-width: 400;
+                                        -fx-effect: dropshadow(gaussian, rgba(254,3,105,0.2), 20, 0.5, 0, 5);">
+
+                    <Label text="Rechercher une Session"
+                           style="-fx-font-size: 24px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: white;" />
+
+                    <TextField fx:id="gameField"
+                               promptText="Entrez le nom du jeu"
+                               style="-fx-background-color: #162942;
+                                    -fx-text-fill: white;
+                                    -fx-font-size: 14px;
+                                    -fx-background-radius: 8;
+                                    -fx-pref-width: 340;" />
+
+                    <Button fx:id="searchButton"
+                            text="Rechercher"
+                            style="-fx-background-color: #fe0369;
+                                   -fx-text-fill: white;
+                                   -fx-font-size: 16px;
+                                   -fx-padding: 12 25;
+                                   -fx-background-radius: 25;
+                                  " />
+
+                    <ScrollPane fitToWidth="true"
+                                style="-fx-background-color: transparent;
+                                     -fx-background: transparent;">
+                        <VBox fx:id="sessionsContainer"
+                              spacing="10"
+                              style="-fx-background-color: transparent;
+                                     -fx-padding: 10;" />
+                    </ScrollPane>
+
+                    <Label fx:id="sessionDetailsLabel"
+                           style="-fx-text-fill: white;
+                                  -fx-font-size: 14px;
+                                  -fx-wrap-text: true;" />
+                </VBox>
+
+                <VBox spacing="20" style="-fx-background-color: #0D1D36;
+                                        -fx-background-radius: 20;
+                                        -fx-padding: 30;
+                                        -fx-min-width: 500;
+                                        -fx-effect: dropshadow(gaussian, rgba(5,133,230,0.2), 20, 0.5, 0, 5);">
+
+                    <Label text="Sessions en Promotion"
+                           style="-fx-font-size: 24px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: white;" />
+
+                    <ScrollPane fitToWidth="true"
+                                style="-fx-background-color: transparent;
+                                     -fx-background: transparent;">
+                        <VBox fx:id="promoSessionsVBox"
+                              spacing="10"
+                              style="-fx-background-color: transparent;
+                                     -fx-padding: 10;" />
+                    </ScrollPane>
+                </VBox>
+            </HBox>
+
+            <HBox spacing="20" alignment="CENTER">
+                <Button onAction="#search"
+                        text="Voir les sessions →"
+                        style="-fx-background-color: #0585e6;
+                               -fx-text-fill: white;
+                               -fx-font-size: 16px;
+                               -fx-padding: 12 25;
+                               -fx-background-radius: 25;" />
+            </HBox>
+        </VBox>
     </center>
-
-    <!-- Bottom: Boutons et labels -->
-    <bottom>
-        <HBox alignment="CENTER" spacing="20" style="-fx-padding: 10px;">
-            <Label prefHeight="50.0" prefWidth="162.0" style="-fx-font-size: 16px; -fx-text-fill: white;" text="Chercher votre Coach !" />
-            <Button onAction="#search" prefHeight="50.0" prefWidth="69.0" style="-fx-background-color: linear-gradient(to right, #2980B9, #6DD5FA); -fx-text-fill: white; -fx-font-size: 16px; -fx-padding: 12px; -fx-background-radius: 12px; -fx-border-radius: 12px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0.4, 0, 4);" text="Click" />
-        </HBox>
-    </bottom>
-
 </BorderPane>

@@ -7,7 +7,7 @@ public class Mainquestion {
     public static void main(String[] args) {
         QuestionService questionService = new QuestionService();
         Utilisateur user = new Utilisateur(1, "test@example.com", "password", "nickname", "NomTest", 12345678, "PrenomTest", Role.CLIENT);
-       Games game = new Games(2, "aaaaah");
+       Games game = new Games(2, "aaaaah", "C:\\xampp\\htdocs\\img\\games\\game_1626950730000_Valorant.jpg", "FPS");
         Question question = new Question(54, "this one is for the boys", "how to choose a champion in lol", 0, game, user);
         questionService.add(question);
         /*System.out.println("Liste des questions :");
