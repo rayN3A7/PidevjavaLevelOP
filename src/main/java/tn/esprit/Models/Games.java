@@ -26,7 +26,6 @@ public class Games {
         this.gameType = gameType;
     }
 
-    // Getters and Setters
     public int getGame_id() {
         return game_id;
     }

@@ -5,16 +5,20 @@
 <?import javafx.geometry.*?>
 
 <StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-         fx:controller="tn.esprit.Controllers.Produit.StockController"
-         style="-fx-background-color: #091221;">
-    
+           fx:controller="tn.esprit.Controllers.Produit.StockController"
+           style="-fx-background-color: #091221;">
+
     <!-- Main Content -->
     <BorderPane stylesheets="@/assets/style/produit.css">
         <!-- Navigation Bar -->
         <top>
-            <fx:include source="/forumUI/navbar.fxml"/>
+            <HBox spacing="20" alignment="CENTER_LEFT" style="-fx-background-color: #091221; -fx-padding: 10 20;">
+                <Button text="Accueil" onAction="#navigateToHome" style="-fx-background-color: transparent; -fx-text-fill: white;"/>
+                <Button text="Boutique" onAction="#navigateToShop" style="-fx-background-color: transparent; -fx-text-fill: white;"/>
+                <Button text="Commandes" onAction="#navigateToOrders" style="-fx-background-color: transparent; -fx-text-fill: white;"/>
+            </HBox>
         </top>
-        
+
         <center>
             <ScrollPane fitToWidth="true" styleClass="main-scroll-pane">
                 <VBox spacing="20" style="-fx-background-color: #091221;">
@@ -27,8 +31,8 @@
                         <Region HBox.hgrow="ALWAYS"/>
                         <HBox spacing="10" alignment="CENTER_RIGHT">
                             <TextField fx:id="searchField" promptText="Rechercher dans le stock..."
-                                    style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white; -fx-prompt-text-fill: gray;"
-                                    onKeyReleased="#searchStock"/>
+                                       style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white; -fx-prompt-text-fill: gray;"
+                                       onKeyReleased="#searchStock"/>
                             <Button fx:id="addStockButton" onAction="#ButtonAjouterStock"
                                     style="-fx-background-color: #fe0369; -fx-text-fill: white;">
                                 <graphic>
@@ -74,44 +78,44 @@
                                 <ColumnConstraints hgrow="ALWAYS"/>
                             </columnConstraints>
 
-                            <Label text="ID:" style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" 
+                            <Label text="ID:" style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;"
                                    GridPane.rowIndex="0" GridPane.columnIndex="0"/>
                             <TextField fx:id="txtId" editable="false"
-                                    style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;"
-                                    GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                       style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;"
+                                       GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
-                            <Label text="Produit:" style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" 
+                            <Label text="Produit:" style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;"
                                    GridPane.rowIndex="1" GridPane.columnIndex="0"/>
                             <TextField fx:id="txtProduit"
-                                    style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;"
-                                    GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                                       style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;"
+                                       GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
-                            <Label text="Quantité:" style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" 
+                            <Label text="Quantité:" style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;"
                                    GridPane.rowIndex="2" GridPane.columnIndex="0"/>
                             <TextField fx:id="txtQuantity"
-                                    style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;"
-                                    GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                                       style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;"
+                                       GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
-                            <Label text="Prix:" style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" 
+                            <Label text="Prix:" style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;"
                                    GridPane.rowIndex="3" GridPane.columnIndex="0"/>
                             <TextField fx:id="txtPrice"
-                                    style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;"
-                                    GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                                       style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;"
+                                       GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
-                            <Label text="Image:" style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" 
+                            <Label text="Image:" style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;"
                                    GridPane.rowIndex="4" GridPane.columnIndex="0"/>
                             <HBox spacing="10" GridPane.rowIndex="4" GridPane.columnIndex="1">
                                 <TextField fx:id="txtImage"
-                                        style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;"
-                                        HBox.hgrow="ALWAYS"/>
+                                           style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;"
+                                           HBox.hgrow="ALWAYS"/>
                                 <Button text="Parcourir" onAction="#browseImage"
                                         style="-fx-background-color: transparent; -fx-border-color: #fe0369; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 10 20; -fx-border-width: 2;"/>
                             </HBox>
 
                             <HBox spacing="10" alignment="CENTER_RIGHT" GridPane.rowIndex="5" GridPane.columnIndex="1">
-                                <Button text="Sauvegarder" onAction="#saveStockChanges" 
+                                <Button text="Sauvegarder" onAction="#saveStockChanges"
                                         style="-fx-background-color: #fe0369; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 10 20;"/>
-                                <Button text="Annuler" onAction="#cancelEdit" 
+                                <Button text="Annuler" onAction="#cancelEdit"
                                         style="-fx-background-color: transparent; -fx-border-color: #fe0369; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 10 20; -fx-border-width: 2;"/>
                             </HBox>
                         </GridPane>

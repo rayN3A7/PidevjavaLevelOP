@@ -35,10 +35,9 @@
 
 .comments-container {
     -fx-padding: 10px;
-    -fx-spacing: 10px; /* Reduced spacing between comments */
+    -fx-spacing: 10px;
 }
 
-/* Compact Comment Card Styling */
 .comment-card {
     -fx-background-color: #0f1b2b;
     -fx-background-radius: 15px;
@@ -46,10 +45,10 @@
     -fx-border-color: #ff007f;
     -fx-border-width: 2px;
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.3), 10, 0.5, 0, 0);
-    -fx-padding: 10px; /* Reduced padding from 20px to 10px for compactness */
-    -fx-spacing: 5px; /* Reduced spacing to match FXML */
-    -fx-min-height: 80px; /* Smaller default height */
-    -fx-max-width: 600px; /* Limit width for consistency */
+    -fx-padding: 10px;
+    -fx-spacing: 5px;
+    -fx-min-height: 80px;
+    -fx-max-width: 600px;
 }
 
 .comment-card-hbox {
@@ -62,7 +61,6 @@
     -fx-spacing: 2px;
 }
 
-/* Enhanced Vote Button Styling */
 
 
 .votes-label {
@@ -83,7 +81,7 @@
 }
 
 .vote-box {
-    -fx-padding: 5px 40px 5px 5px; /* Reduced padding for compactness */
+    -fx-padding: 5px 40px 5px 5px;
 }
 
 .vote-button:hover {
@@ -98,7 +96,6 @@
     -fx-text-fill: #ff007f;
 }
 
-/* Responsive Comment Content Styling */
 .comment-content {
     -fx-font-size: 14px;
     -fx-text-fill: #dcdcdc;
@@ -108,85 +105,80 @@
     -fx-padding: 0 0 5px 0;
 }
 
-/* Comment Content VBox Styling */
 .comment-content-vbox {
-    -fx-min-height: 60px; /* Compact default height for content */
-    -fx-max-width: 500px; /* Matches card width minus vote box */
+    -fx-min-height: 60px;
+    -fx-max-width: 500px;
 }
 
-/* Enhanced Action Button Styling (for React, Delete, Update, Save, Cancel) */
 .action-button {
-    -fx-background-color: linear-gradient(to right, #ff007f, #ff69b4); /* Neon Pink gradient */
+    -fx-background-color: linear-gradient(to right, #ff007f, #ff69b4);
     -fx-text-fill: white;
     -fx-font-size: 14px;
-    -fx-padding: 10px 20px; /* Slightly larger padding for emphasis */
-    -fx-background-radius: 25px; /* More rounded for modern look */
-    -fx-border-color: transparent; /* Remove border for cleaner look */
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 3); /* Subtle shadow */
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 25px;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 3);
 }
 
 .action-button:hover {
-    -fx-background-color: linear-gradient(to right, #e6007a, #ff4dab); /* Darker gradient on hover */
-    -fx-scale-x: 1.1; /* Slightly larger scale for animation */
+    -fx-background-color: linear-gradient(to right, #e6007a, #ff4dab);
+    -fx-scale-x: 1.1;
     -fx-scale-y: 1.1;
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.6), 12, 0.5, 0, 4); /* Enhanced shadow on hover */
-    -fx-cursor: hand; /* Change cursor to indicate interactivity */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.6), 12, 0.5, 0, 4);
+    -fx-cursor: hand;
 }
 
-/* Enhanced Update/Delete Button Styling (specific for Delete and Update) */
 .update-delete-button {
-    -fx-background-color: linear-gradient(to right, #ff007f, #ff69b4); /* Neon Pink gradient */
+    -fx-background-color: linear-gradient(to right, #ff007f, #ff69b4);
     -fx-text-fill: white;
     -fx-font-size: 14px;
-    -fx-padding: 10px 20px; /* Slightly larger padding for emphasis */
-    -fx-background-radius: 25px; /* More rounded for modern look */
-    -fx-border-color: transparent; /* Remove border for cleaner look */
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 3); /* Subtle shadow */
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 25px;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 3);
 }
 
 .update-delete-button:hover {
-    -fx-background-color: linear-gradient(to right, #e6007a, #ff4dab); /* Darker gradient on hover */
-    -fx-scale-x: 1.1; /* Slightly larger scale for animation */
+    -fx-background-color: linear-gradient(to right, #e6007a, #ff4dab);
+    -fx-scale-x: 1.1;
     -fx-scale-y: 1.1;
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.6), 12, 0.5, 0, 4); /* Enhanced shadow on hover */
-    -fx-cursor: hand; /* Change cursor to indicate interactivity */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.6), 12, 0.5, 0, 4);
+    -fx-cursor: hand;
 }
 
-/* Enhanced Create Comment Button Styling */
 .create-comment-button {
-    -fx-background-color: linear-gradient(to right, #ff007f, #ff69b4); /* Neon Pink gradient */
+    -fx-background-color: linear-gradient(to right, #ff007f, #ff69b4);
     -fx-text-fill: white;
     -fx-font-size: 14px;
-    -fx-padding: 12px 24px; /* Larger padding for emphasis */
-    -fx-background-radius: 30px; /* More rounded for modern look */
-    -fx-border-color: transparent; /* Remove border for cleaner look */
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 10, 0.5, 0, 4); /* Enhanced shadow */
+    -fx-padding: 12px 24px;
+    -fx-background-radius: 30px;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 10, 0.5, 0, 4);
 }
 
 .create-comment-button:hover {
-    -fx-background-color: linear-gradient(to right, #e6007a, #ff4dab); /* Darker gradient on hover */
-    -fx-scale-x: 1.1; /* Slightly larger scale for animation */
+    -fx-background-color: linear-gradient(to right, #e6007a, #ff4dab);
+    -fx-scale-x: 1.1;
     -fx-scale-y: 1.1;
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.6), 14, 0.5, 0, 5); /* Enhanced shadow on hover */
-    -fx-cursor: hand; /* Change cursor to indicate interactivity */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.6), 14, 0.5, 0, 5);
+    -fx-cursor: hand;
 }
 
-/* Enhanced Back Button Styling */
 .back-button {
     -fx-background-color: transparent;
     -fx-text-fill: white;
     -fx-font-size: 20px;
-    -fx-padding: 8px 16px; /* Larger padding for emphasis */
+    -fx-padding: 8px 16px;
     -fx-border-color: transparent;
-    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 6, 0.5, 0, 2); /* Subtle shadow */
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 6, 0.5, 0, 2);
 }
 
 .back-button:hover {
-    -fx-text-fill: #ff69b4; /* Lighter neon pink for hover */
-    -fx-scale-x: 1.1; /* Slight scale for animation */
+    -fx-text-fill: #ff69b4;
+    -fx-scale-x: 1.1;
     -fx-scale-y: 1.1;
-    -fx-effect: dropshadow(gaussian, rgba(255, 105, 180, 0.4), 8, 0.5, 0, 3); /* Enhanced shadow on hover */
-    -fx-cursor: hand; /* Change cursor to indicate interactivity */
+    -fx-effect: dropshadow(gaussian, rgba(255, 105, 180, 0.4), 8, 0.5, 0, 3);
+    -fx-cursor: hand;
 }
 
 .comment-input {
@@ -205,28 +197,27 @@
     -fx-background-color: transparent;
 }
 
-/* Comment Card Reaction Styles */
 .comment-card .reaction-container {
     -fx-alignment: center-left;
     -fx-spacing: 5;
 }
 
 .comment-card .reaction-emoji-icon {
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2); /* Subtle shadow for graphical reaction icons */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2);
 }
 
 .comment-card .reaction-count-label {
-    -fx-font-size: 14px; /* Smaller count text for compactness */
+    -fx-font-size: 14px;
     -fx-text-fill: white;
-    -fx-padding: 0 4px; /* Minimal padding for tight fit */
+    -fx-padding: 0 4px;
 }
 
 .comment-card .selected-emoji-image {
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2); /* Subtle shadow for graphical emoji */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2);
 }
 
 .comment-card .reaction-actions {
     -fx-alignment: center-left;
-    -fx-spacing: 5; /* Reduced spacing for compactness */
-    -fx-padding: 2px 0 0 0; /* Reduced padding for compactness */
+    -fx-spacing: 5;
+    -fx-padding: 2px 0 0 0;
 }

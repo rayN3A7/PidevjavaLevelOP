@@ -1,5 +1,8 @@
 package tn.esprit.Controllers.Produit;
 
+import com.stripe.Stripe;
+import com.stripe.model.checkout.Session;
+import com.stripe.param.checkout.SessionCreateParams;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -11,6 +14,7 @@ import tn.esprit.Models.Stock;
 import tn.esprit.Services.CommandeService;
 import tn.esprit.Services.StockService;
 import tn.esprit.utils.SessionManager;
+import java.net.URI;
 
 public class CommandeConfirmationController {
     @FXML private Label productNameLabel;
@@ -38,7 +42,7 @@ public class CommandeConfirmationController {
     public void setData(Produit produit, Stock stock) {
         this.produit = produit;
         this.stock = stock;
-        
+
         productNameLabel.setText(produit.getNomProduit());
         priceLabel.setText(stock.getPrixProduit() + " DNT");
 
@@ -52,7 +56,7 @@ public class CommandeConfirmationController {
             currentCommande.setUtilisateurId(DEFAULT_USER_ID);
             currentCommande.setProduitId(produit.getId());
             currentCommande.setStatus("en cours");
-            
+
             commandeService.add(currentCommande);
         } catch (Exception e) {
             e.printStackTrace();
@@ -66,29 +70,47 @@ public class CommandeConfirmationController {
 
     @FXML
     private void handleValidate() {
-        if (stock.getQuantity() <= 0) {
+        if (stock == null || stock.getQuantity() <= 0) {
             updateCommandeStatus("annulé");
             showAlert(AlertType.ERROR, "Erreur", "Désolé, ce produit est en rupture de stock!");
             return;
         }
 
         try {
-            // Mettre à jour le statut de la commande à "terminé"
-            currentCommande.setStatus("terminé");
-            commandeService.update(currentCommande);
+            // Create a Stripe Checkout Session
+            Stripe.apiKey = "sk_test_51QvMH5PNauIHPjoTTov10mAdNwhbSH0ycAHTkArf2taZUSP5rtsMNxgyehsKnq4dfoazZz1nXkGNrQQn4uzSxZBt00pANi7uFX";
 
-            // Mettre à jour la quantité en stock
-            stock.setQuantity(stock.getQuantity() - 1);
-            stockService.update(stock);
+            SessionCreateParams params = SessionCreateParams.builder()
+                    .setMode(SessionCreateParams.Mode.PAYMENT)
+                    .setSuccessUrl("http://localhost:8080/payment/success?session_id={CHECKOUT_SESSION_ID}")
+                    .setCancelUrl("http://localhost:8080/payment/cancel")
+                    .addLineItem(SessionCreateParams.LineItem.builder()
+                            .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+                                    .setCurrency("usd")
+                                    .setUnitAmount((long) (stock.getPrixProduit() * 100)) // Convert to cents
+                                    .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+                                            .setName(produit.getNomProduit())
+                                            .build())
+                                    .build())
+                            .setQuantity(1L)
+                            .build())
+                    .build();
+
+            Session session = Session.create(params);
+
+            // Open the Stripe Checkout page in the default browser
+            java.awt.Desktop.getDesktop().browse(new URI(session.getUrl()));
+
+            // Update order status to pending payment
+            currentCommande.setStatus("pending_payment");
+            commandeService.update(currentCommande);
 
             validateClicked = true;
             dialogStage.close();
-            
-            showAlert(AlertType.INFORMATION, "Succès", "Votre commande a été validée avec succès! Merci de votre achat.");
         } catch (Exception e) {
             e.printStackTrace();
             updateCommandeStatus("annulé");
-            showAlert(AlertType.ERROR, "Erreur", "Une erreur est survenue lors de la validation: " + e.getMessage());
+            showAlert(AlertType.ERROR, "Erreur", "Une erreur est survenue lors de la création du paiement: " + e.getMessage());
         }
     }
 
@@ -117,4 +139,4 @@ public class CommandeConfirmationController {
         alert.setContentText(content);
         alert.showAndWait();
     }
-} 
+}

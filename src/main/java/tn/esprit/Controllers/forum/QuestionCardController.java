@@ -72,8 +72,8 @@ public class QuestionCardController {
     private QuestionService questionService = new QuestionService();
     private GamesService gamesService = new GamesService();
     private static final ExecutorService executorService = Executors.newFixedThreadPool(4);
-    private MediaPlayer mediaPlayer;    // Store MediaPlayer instance for control
-    private boolean isFullScreen = false; // Track full-screen state
+    private MediaPlayer mediaPlayer;
+    private boolean isFullScreen = false;
     public void setQuestionData(Question question, ForumController forumController) {
         this.question = question;
         this.forumController = forumController;

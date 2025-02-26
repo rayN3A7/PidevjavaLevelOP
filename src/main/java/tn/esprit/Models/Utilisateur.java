@@ -13,21 +13,13 @@ public class Utilisateur  {
 
     private int id;
     private String email;
-    private String motPasse; // Store hashed password
+    private String motPasse;
     private String nickname;
     private String nom;
     private int numero;
     private String prenom;
     private Role role;
     private String privilege = "regular";
-
-    // New getters and setters
-    public String getPrivilege() {
-        return privilege;
-    }
-    public void setPrivilege(String privilege) {
-        this.privilege = privilege;
-    }// Default privilege
 
     public Utilisateur(int id, String email, String motPasse, String nickname, String nom, int numero, String prenom, Role role) {
         this.id = id;
@@ -42,7 +34,6 @@ public class Utilisateur  {
 
 
 
-    // Constructor
     public Utilisateur(String email, String motPasse, String nickname, String nom, int numero, String prenom, Role role) {
         this.email = email;
         this.motPasse = hashPassword(motPasse);
@@ -75,7 +66,6 @@ public class Utilisateur  {
     public Utilisateur() {
     }
 
-    // New getters and setters
     public String getPrivilege() {
         return privilege;
     }

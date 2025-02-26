@@ -66,7 +66,6 @@ public class EmailService {
             e.printStackTrace();
         }
     }
-
     private static String getEmailTemplate(String emailType, String additionalInfo) {
         String logoUrl = "https://i.postimg.cc/nhVJRFZ5/logo.png";
 

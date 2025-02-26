@@ -15,7 +15,6 @@ import javafx.stage.Stage;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import tn.esprit.Models.Evenement.Evenement;
 import tn.esprit.Services.EmailService;
@@ -139,7 +138,7 @@ public class DetailsEvenementController {
                 contentStream.setLeading(20f);
 
                 // En-tête avec titre centré
-                contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 16);
+                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 16);
                 contentStream.beginText();
                 contentStream.newLineAtOffset(200, 750);
                 contentStream.showText("Réservations - " + eventName);
@@ -163,14 +162,14 @@ public class DetailsEvenementController {
                 contentStream.setNonStrokingColor(0, 0, 0);
 
                 // Dessiner l'en-tête du tableau
-                contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD), 12);
+                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 16);
                 drawTableCell(contentStream, 50, y, colWidth, rowHeight, "Nom");
                 drawTableCell(contentStream, 210, y, colWidth, rowHeight, "Prénom");
                 drawTableCell(contentStream, 370, y, colWidth, rowHeight, "Email");
                 y -= rowHeight;
 
                 // Dessiner les données du tableau
-                contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 16);
                 for (String[] user : users) {
                     if (y < 50) break; // Évite de sortir de la page
                     drawTableCell(contentStream, 50, y, colWidth, rowHeight, user[0]); // Nom
@@ -180,7 +179,7 @@ public class DetailsEvenementController {
                 }
 
                 // Ajout d'un pied de page
-                contentStream.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_OBLIQUE), 10);
+                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 16);
                 contentStream.beginText();
                 contentStream.newLineAtOffset(50, 30);
                 contentStream.showText("Généré par LevelOP - " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));

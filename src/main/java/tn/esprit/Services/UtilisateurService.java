@@ -28,14 +28,14 @@ public class UtilisateurService implements IService<Utilisateur> {
         try{
 
             PreparedStatement stmt = cnx.prepareStatement(query);
-                stmt.setString(1, utilisateur.getEmail());
-                stmt.setString(2, utilisateur.getMotPasse());
-                stmt.setString(3, utilisateur.getNickname());
-                stmt.setString(4, utilisateur.getNom());
-                stmt.setInt(5, utilisateur.getNumero());
-                stmt.setString(6, utilisateur.getPrenom());
-                stmt.setString(7, utilisateur.getRole().name());
-                stmt.executeUpdate();
+            stmt.setString(1, utilisateur.getEmail());
+            stmt.setString(2, utilisateur.getMotPasse());
+            stmt.setString(3, utilisateur.getNickname());
+            stmt.setString(4, utilisateur.getNom());
+            stmt.setInt(5, utilisateur.getNumero());
+            stmt.setString(6, utilisateur.getPrenom());
+            stmt.setString(7, utilisateur.getRole().name());
+            stmt.executeUpdate();
 
             if (utilisateur.getRole().equals(Role.CLIENT)) {
                 String clientQuery = "INSERT INTO client (id) VALUES (?)";
@@ -120,8 +120,8 @@ public class UtilisateurService implements IService<Utilisateur> {
 
             stmt.executeUpdate();
         }catch (SQLException e) {
-                System.out.println("Erreur lors de la mise à jour : " + e.getMessage());
-            }
+            System.out.println("Erreur lors de la mise à jour : " + e.getMessage());
+        }
 
 
     }
@@ -214,17 +214,17 @@ public class UtilisateurService implements IService<Utilisateur> {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                 utilisateur = new Utilisateur(
+                utilisateur = new Utilisateur(
 
-                         rs.getInt("id"),
-                         rs.getString("email"),
-                         rs.getString("mot_passe"),
-                         rs.getString("nickname"),
-                         rs.getString("nom"),
-                         rs.getInt("numero"),
-                         rs.getString("prenom"),
-                         Role.valueOf(rs.getString("role"))
-                 );
+                        rs.getInt("id"),
+                        rs.getString("email"),
+                        rs.getString("mot_passe"),
+                        rs.getString("nickname"),
+                        rs.getString("nom"),
+                        rs.getInt("numero"),
+                        rs.getString("prenom"),
+                        Role.valueOf(rs.getString("role"))
+                );
 
             }
 
@@ -329,7 +329,7 @@ public class UtilisateurService implements IService<Utilisateur> {
 
     public int getUserActivityCount(int userId) {
         int count = 0;
-        String questionQuery = "SELECT COUNT() FROM Questions WHERE Utilisateur_id = ?";
+        String questionQuery = "SELECT COUNT(*) FROM Questions WHERE Utilisateur_id = ?";
         try (PreparedStatement ps = cnx.prepareStatement(questionQuery)) {
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
@@ -340,7 +340,7 @@ public class UtilisateurService implements IService<Utilisateur> {
             throw new RuntimeException("Failed to count questions: " + e.getMessage(), e);
         }
 
-        String commentQuery = "SELECT COUNT() FROM Commentaire WHERE utilisateur_id = ?";
+        String commentQuery = "SELECT COUNT(*) FROM Commentaire WHERE utilisateur_id = ?";
         try (PreparedStatement ps = cnx.prepareStatement(commentQuery)) {
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
@@ -380,41 +380,6 @@ public class UtilisateurService implements IService<Utilisateur> {
 
         return totalVotes;
     }
-    public String updateUserPrivilege(int userId) {
-        Utilisateur user = getOne(userId);
-        String oldPrivilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
-
-        int activityCount = getUserActivityCount(userId);
-        int voteCount = getUserVoteCount(userId);
-
-        String newPrivilege;
-        if (activityCount >= 5 && voteCount > 10) {
-            newPrivilege = "top_fan";
-        } else if (activityCount >= 5) {
-            newPrivilege = "top_contributor";
-        } else {
-            newPrivilege = "regular";
-        }
-
-        if (!newPrivilege.equals(oldPrivilege)) {
-            String query = "UPDATE Utilisateur SET privilege = ? WHERE id = ?";
-            try (PreparedStatement ps = cnx.prepareStatement(query)) {
-                ps.setString(1, newPrivilege);
-                ps.setInt(2, userId);
-                ps.executeUpdate();
-                System.out.println("Updated privilege for user " + userId + " from " + oldPrivilege + " to " + newPrivilege);
-            } catch (SQLException e) {
-                throw new RuntimeException("Failed to update privilege: " + e.getMessage(), e);
-            }
-            return newPrivilege;
-        }
-
-        return null;
-    }
-
-
-
-
 
     public void updateUserRole(int userId) {
 
@@ -475,6 +440,50 @@ public class UtilisateurService implements IService<Utilisateur> {
         return null;
     }
 
+    public class PrivilegeChange {
+        private final String oldPrivilege;
+        private final String newPrivilege;
 
+        public PrivilegeChange(String oldPrivilege, String newPrivilege) {
+            this.oldPrivilege = oldPrivilege;
+            this.newPrivilege = newPrivilege;
+        }
+
+        public String getOldPrivilege() { return oldPrivilege; }
+        public String getNewPrivilege() { return newPrivilege; }
+        public boolean isChanged() { return !oldPrivilege.equals(newPrivilege); }
+    }
+
+    public PrivilegeChange updateUserPrivilege(int userId) {
+        Utilisateur user = getOne(userId);
+        String oldPrivilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
+
+        int activityCount = getUserActivityCount(userId);
+        int voteCount = getUserVoteCount(userId);
+
+        String newPrivilege;
+        if (activityCount >= 5 && voteCount > 10) {
+            newPrivilege = "top_fan";
+        } else if (activityCount >= 5) {
+            newPrivilege = "top_contributor";
+        } else {
+            newPrivilege = "regular";
+        }
+
+        if (!newPrivilege.equals(oldPrivilege)) {
+            String query = "UPDATE Utilisateur SET privilege = ? WHERE id = ?";
+            try (PreparedStatement ps = cnx.prepareStatement(query)) {
+                ps.setString(1, newPrivilege);
+                ps.setInt(2, userId);
+                ps.executeUpdate();
+                System.out.println("Updated privilege for user " + userId + " from " + oldPrivilege + " to " + newPrivilege);
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to update privilege: " + e.getMessage(), e);
+            }
+            user.setPrivilege(newPrivilege); // Update the user's privilege in the object
+        }
+
+        return new PrivilegeChange(oldPrivilege, newPrivilege);
+    }
 
 }

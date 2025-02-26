@@ -7,7 +7,7 @@
     -fx-padding: 20px 100px 20px 100px;
     -fx-background-color: transparent;
     -fx-alignment: center;
-    -fx-spacing: 10px; /* Optional: Match the FXML spacing for consistency */
+    -fx-spacing: 10px;
 }
 
 .comment-author {
@@ -28,12 +28,11 @@
     -fx-text-fill: white;
 }
 
-/* In your CSS file (e.g., forumUI/style.css) */
 .question-image {
-    -fx-border-color: #ff69b4; /* Pink border like in your screenshot */
+    -fx-border-color: #ff69b4;
     -fx-border-width: 2;
     -fx-border-radius: 8;
-    -fx-background-color: #1a1a1a; /* Dark background */
+    -fx-background-color: #1a1a1a;
 }
 
 .question-card {
@@ -43,18 +42,18 @@
     -fx-border-color: #ff007f;
     -fx-border-width: 2px;
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 10, 0.5, 0, 0);
-    -fx-padding: 12px; /* Slightly reduced padding for compactness */
-    -fx-spacing: 8px; /* Reduced spacing for compactness */
+    -fx-padding: 12px;
+    -fx-spacing: 8px;
 }
 
 .question-title {
-    -fx-font-size: 18px; /* Slightly smaller for compactness */
+    -fx-font-size: 18px;
     -fx-font-weight: bold;
     -fx-text-fill: white;
 }
 
 .question-content {
-    -fx-font-size: 12px; /* Slightly smaller for compactness */
+    -fx-font-size: 12px;
     -fx-text-fill: #e0e0e0;
 }
 
@@ -69,14 +68,12 @@
     -fx-font-size: 18px;
     -fx-pref-width: 30px;
     -fx-pref-height: 30px;
+    -fx-max-width: 30px;
+    -fx-max-height: 30px;
     -fx-border-color: #ff007f;
     -fx-padding: 1px 1px 1px 1px;
     -fx-border-width: 2px;
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 10, 0.5, 0, 0);
-}
-
-.vote-box {
-    -fx-padding: 5px 40px 5px 5px; /* Reduced padding for compactness */
 }
 
 .vote-button:hover {
@@ -85,34 +82,28 @@
     -fx-border-radius: 100%;
 }
 
-.action-button {
-    -fx-background-color: #ff007f; /* Solid pink for React button */
-    -fx-text-fill: white;
-    -fx-font-size: 12px;
-    -fx-padding: 6px 12px; /* Reduced padding for compactness */
-    -fx-background-radius: 15; /* More rounded for modern look */
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 5, 0.5, 0, 2);
+.vote-box {
+    -fx-padding: 5px 40px 5px 5px;
 }
 
 .action-button:hover {
-    -fx-background-color: #e6007a; /* Darker pink on hover */
-    -fx-scale-x: 1.05; /* Slight scale for modern animation */
+    -fx-background-color: #e6007a;
+    -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
 }
 
 .update-delete-button {
-    -fx-background-color: #ff007f; /* Solid pink for Update and Delete buttons (no gradient) */
+    -fx-background-color: #ff007f;
     -fx-text-fill: white;
     -fx-font-size: 12px;
-    -fx-padding: 6px 12px; /* Reduced padding for compactness */
-    -fx-background-radius: 15; /* More rounded for modern look */
+    -fx-padding: 6px 12px;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 5, 0.5, 0, 2);
 }
 
 .update-delete-button:hover {
-    -fx-background-color: #e6007a; /* Darker pink on hover */
-    -fx-scale-x: 1.05; /* Slight scale for modern animation */
+    -fx-background-color: #e6007a;
+    -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
 }
@@ -156,7 +147,6 @@
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0.5, 0, 0);
 }
 
-/* Reaction and Emoji Styles */
 .reaction-label {
     -fx-font-size: 16px; /* Smaller, cleaner text like social media (for fallbacks) */
     -fx-text-fill: white;
@@ -230,24 +220,22 @@
 }
 
 .emoji-button {
-    -fx-background-color: transparent; /* No background for ImageView, ensuring graphical emojis show */
-    -fx-text-fill: black; /* Not applicable for ImageView, but kept for consistency */
-    -fx-font-size: 36px; /* Not used for images, but kept for reference if Unicode is used */
-    -fx-padding: 0; /* No padding for ImageView, letting the image size define it */
-    -fx-background-radius: 0; /* No radius for clean look */
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 4, 0.5, 0, 1); /* Very subtle shadow for ImageView */
+    -fx-background-color: transparent;
+    -fx-text-fill: black;
+    -fx-font-size: 36px;
+    -fx-padding: 0;
+    -fx-background-radius: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 4, 0.5, 0, 1);
 }
 
 .emoji-button:hover {
-    -fx-background-color: rgba(255, 0, 127, 0.15); /* Light pink background on hover for ImageView */
-    -fx-scale-x: 1.1; /* Subtle scale for Facebook animation */
+    -fx-background-color: rgba(255, 0, 127, 0.15);
+    -fx-scale-x: 1.1;
     -fx-scale-y: 1.1;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
 }
-/* Remove fixed size constraints and allow flexible scaling */
 
 
-/* Ensure ImageView scales naturally */
 .question-image {
     -fx-border-color: #ff69b4;
     -fx-border-width: 2;
@@ -255,9 +243,8 @@
     -fx-background-color: #1a1a1a;
 }
 
-/* Video control bar styling */
 .video-wrapper {
-    -fx-background-color: black; /* Black background like YouTube */
+    -fx-background-color: black;
     -fx-alignment: center;
 }
 

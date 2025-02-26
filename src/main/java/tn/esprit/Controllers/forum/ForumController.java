@@ -110,6 +110,11 @@ public class ForumController implements Initializable {
                 questionCardContainer.requestLayout(); // Force layout update to ensure image loads
                 System.out.println("Question card added and layout updated for: " + question.getTitle());
             });
+            UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
+            if (change.isChanged()) {
+                showPrivilegeAlert(change);
+                refreshQuestions();
+            }
         } catch (Exception e) {
             System.err.println("Error adding question card: " + e.getMessage());
             e.printStackTrace();
@@ -123,14 +128,15 @@ public class ForumController implements Initializable {
         int updatedVotes = questionService.getVotes(question.getQuestion_id());
         question.setVotes(updatedVotes);
 
-        String newPrivilege = us.updateUserPrivilege(question.getUser().getId());
-        if (newPrivilege != null) {
-            showPrivilegeAlert(newPrivilege);
-            refreshQuestions();
-        }
+
 
         Platform.runLater(() -> {
             votesLabel.setText("Votes: " + updatedVotes);
+            UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(question.getUser().getId());
+            if (change.isChanged()) {
+                showPrivilegeAlert(change);
+                refreshQuestions();
+            }
             if (updatedVotes > 0) {
                 downvoteButton.setDisable(false);
             }
@@ -143,43 +149,60 @@ public class ForumController implements Initializable {
             int updatedVotes = questionService.getVotes(question.getQuestion_id());
             question.setVotes(updatedVotes);
 
-            String newPrivilege = us.updateUserPrivilege(question.getUser().getId());
-            if (newPrivilege != null) {
-                showPrivilegeAlert(newPrivilege);
-                refreshQuestions();
-            }
-
             Platform.runLater(() -> {
                 votesLabel.setText("Votes: " + updatedVotes);
                 downvoteButton.setDisable(updatedVotes == 0);
+                UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(question.getUser().getId());
+                if (change.isChanged()) {
+                    showPrivilegeAlert(change);
+                    refreshQuestions();
+                }
             });
         }
     }
 
-    private void showPrivilegeAlert(String privilege) {
+    private void showPrivilegeAlert(UtilisateurService.PrivilegeChange change) {
+        if (!change.isChanged()) return;
+
         Alert alert = new Alert(Alert.AlertType.NONE);
-        alert.setTitle("Félicitations!");
         alert.setHeaderText(null);
+        String oldPrivilege = change.getOldPrivilege();
+        String newPrivilege = change.getNewPrivilege();
+        boolean isPromotion = getPrivilegeRank(newPrivilege) > getPrivilegeRank(oldPrivilege);
 
-        String message = privilege.equals("top_contributor") ?
-                "Vous avez obtenu le badge Top Contributor ! Bravo pour votre contribution à la communauté !" :
-                "Vous êtes maintenant un Top Fan ! Votre passion a porté ses fruits!";
-        alert.setContentText(message);
+        if (isPromotion) {
+            alert.setTitle("Félicitations!");
+            String message = switch (newPrivilege) {
+                case "top_contributor" -> "Vous êtes passé de Regular à Top Contributor ! Bravo pour votre contribution !";
+                case "top_fan" -> "Vous êtes maintenant un Top Fan depuis " + oldPrivilege + " ! Votre passion est récompensée !";
+                default -> "Privilege mis à jour !";
+            };
+            alert.setContentText(message);
 
-        ImageView icon = new ImageView(new Image(getClass().getResource(
-                privilege.equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png"
-        ).toExternalForm()));
-        icon.setFitHeight(60);
-        icon.setFitWidth(60);
-        alert.setGraphic(icon);
+            ImageView icon = new ImageView(new Image(getClass().getResource(
+                    newPrivilege.equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png"
+            ).toExternalForm()));
+            icon.setFitHeight(60);
+            icon.setFitWidth(60);
+            alert.setGraphic(icon);
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toString()));
+        } else {
+            alert.setTitle("Mise à jour de privilège");
+            String message = switch (oldPrivilege) {
+                case "top_contributor" -> "Désolé, vous êtes redescendu de Top Contributor à Regular.";
+                case "top_fan" -> "Désolé, vous êtes passé de Top Fan à " + newPrivilege + ".";
+                default -> "Privilege mis à jour.";
+            };
+            alert.setContentText(message);
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
+        }
 
         alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
         alert.getDialogPane().getStyleClass().add("privilege-alert");
 
-        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toString()));
-
-        ButtonType okButton = new ButtonType("GG!", ButtonBar.ButtonData.OK_DONE);
+        ButtonType okButton = new ButtonType(isPromotion ? "GG!" : "OK", ButtonBar.ButtonData.OK_DONE);
         alert.getButtonTypes().setAll(okButton);
 
         FadeTransition fadeIn = new FadeTransition(Duration.millis(500), alert.getDialogPane());
@@ -192,6 +215,14 @@ public class ForumController implements Initializable {
         alert.showAndWait();
     }
 
+    private int getPrivilegeRank(String privilege) {
+        return switch (privilege) {
+            case "regular" -> 0;
+            case "top_contributor" -> 1;
+            case "top_fan" -> 2;
+            default -> -1;
+        };
+    }
     public void updateQuestion(Question question) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/UpdateQuestionForm.fxml"));
@@ -212,7 +243,11 @@ public class ForumController implements Initializable {
     public void deleteQuestion(Question question) {
         questionService.delete(question);
         System.out.println("Deleted question: " + question.getTitle());
-        refreshQuestions();
+        UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(question.getUser().getId());
+        if (change.isChanged()) {
+            showPrivilegeAlert(change);
+            refreshQuestions();
+        }
     }
 
     @FXML
@@ -233,10 +268,8 @@ public class ForumController implements Initializable {
         int userId = SessionManager.getInstance().getUserId(); // Use actual user ID from session
         QuestionService questionService = new QuestionService();
 
-        // Check if the user has already reacted to this question
         String existingReaction = questionService.getUserReaction(question.getQuestion_id(), userId);
         if (existingReaction != null) {
-            // If the user has reacted, remove the existing reaction
             questionService.removeReaction(question.getQuestion_id(), userId);
             question.getReactions().remove(existingReaction);
             if (question.getReactions().containsKey(existingReaction)) {
@@ -249,9 +282,7 @@ public class ForumController implements Initializable {
             }
         }
 
-        // Add the new reaction
         questionService.addReaction(question.getQuestion_id(), userId, emojiUrl);
-        // Update the question's reactions and user reaction
         Map<String, Integer> updatedReactions = questionService.getReactions(question.getQuestion_id());
         question.setReactions(updatedReactions);
         question.setUserReaction(emojiUrl); // Set the user's specific reaction (image URL)

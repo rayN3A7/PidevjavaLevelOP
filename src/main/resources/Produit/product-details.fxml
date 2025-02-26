@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.*?>
 
 <StackPane xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Produit.ProductDetailsController">
-    
+
     <!-- Main Content -->
     <BorderPane stylesheets="/assets/style/produit.css">
         <center>
@@ -14,7 +14,7 @@
                 <VBox spacing="30" styleClass="main-container">
                     <!-- Product Title at the top -->
                     <Label fx:id="productName" styleClass="product-title" />
-                    
+
                     <HBox spacing="40" styleClass="product-content">
                         <!-- Left Side - Product Details -->
                         <VBox spacing="20" styleClass="product-details-left" HBox.hgrow="ALWAYS">
@@ -24,7 +24,7 @@
                                     <ImageView fx:id="productImage" fitHeight="450" fitWidth="400" preserveRatio="true" styleClass="product-image" />
                                 </HBox>
                             </VBox>
-                            
+
                             <!-- Carousel Section -->
                             <VBox spacing="10" styleClass="carousel-section">
                                 <Label styleClass="section-title" text="More Images" />
@@ -36,7 +36,7 @@
                                     <Button onAction="#nextImage" styleClass="carousel-nav-button" text="❯" />
                                 </HBox>
                             </VBox>
-                            
+
                             <!-- Description Section -->
                             <VBox spacing="15" styleClass="description-section">
                                 <Label styleClass="section-title" text="Description" />
@@ -78,30 +78,41 @@
                                 </HBox>
                             </VBox>
 
-                            <!-- Price Section -->
-                            <VBox spacing="15" styleClass="price-section">
-                                <HBox alignment="CENTER_LEFT" spacing="10" styleClass="price-container">
-                                    <Label fx:id="productPrice" styleClass="price-tag" />
-                                </HBox>
-                                
-                                <!-- Purchase Buttons -->
-                                <VBox spacing="10">
-                                    <Button onAction="#handleBuyNow" styleClass="buy-now-button" text="commander" />
-                                    <Button onAction="#handleBackToShop" styleClass="back-button" text="Retour au magasin" />
+                            <!-- System Specifications -->
+                            <VBox spacing="10" styleClass="specs-section">
+                                <Label styleClass="section-title" text="System Specifications" />
+                                <VBox spacing="5" styleClass="specs-info">
+                                    <Label fx:id="cpuLabel" styleClass="spec-item" text="CPU: Detecting..." />
+                                    <Label fx:id="gpuLabel" styleClass="spec-item" text="GPU: Detecting..." />
+                                    <Label fx:id="ramLabel" styleClass="spec-item" text="RAM: Detecting..." />
+                                    <Label fx:id="osLabel" styleClass="spec-item" text="OS: Detecting..." />
                                 </VBox>
+                            </VBox>
+
+                            <!-- FPS Estimation -->
+                            <VBox spacing="10" styleClass="fps-section">
+                                <Label styleClass="section-title" text="Performance Estimation" />
+                                <VBox spacing="5" styleClass="fps-info">
+                                    <Label fx:id="estimatedFpsLabel" styleClass="fps-value" text="Estimating..." />
+                                    <Label fx:id="fpsDetailsLabel" styleClass="fps-details" text="Analyzing system compatibility..." />
+                                </VBox>
+                            </VBox>
+
+                            <!-- Price and Buy Section -->
+                            <VBox spacing="10" styleClass="price-section">
+                                <Label fx:id="productPrice" styleClass="price-value" text="Loading..." />
+                                <Button onAction="#handleBuyNow" styleClass="buy-now-button" text="Passer une commande" />
+                                <Button onAction="#handleBackToShop" styleClass="back-button" text="retour au shop" />
                             </VBox>
                         </VBox>
                     </HBox>
                 </VBox>
-                <padding>
-                    <Insets bottom="30" left="40" right="40" top="30" />
-                </padding>
             </ScrollPane>
         </center>
     </BorderPane>
 
     <!-- Image Preview Overlay -->
-    <StackPane fx:id="imagePreviewOverlay" styleClass="modal-overlay" visible="false">
-        <ImageView fx:id="previewImage" fitHeight="600" fitWidth="800" preserveRatio="true" styleClass="modal-image" />
+    <StackPane fx:id="imagePreviewOverlay" styleClass="image-preview-overlay">
+        <ImageView fx:id="previewImage" preserveRatio="true" />
     </StackPane>
 </StackPane>

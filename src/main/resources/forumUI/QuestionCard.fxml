@@ -8,21 +8,21 @@
       fx:controller="tn.esprit.Controllers.forum.QuestionCardController" styleClass="question-card">
 
     <VBox spacing="5" styleClass="vote-box">
-        <Button text="▲" fx:id="upvoteButton" styleClass="vote-button"/>
-        <Button text="▼" fx:id="downvoteButton" styleClass="vote-button"/>
+        <Button text="▲" fx:id="upvoteButton" styleClass="vote-button" prefWidth="30" prefHeight="30" maxWidth="30" maxHeight="30"/>
+        <Button text="▼" fx:id="downvoteButton" styleClass="vote-button" prefWidth="30" prefHeight="30" maxWidth="30" maxHeight="30"/>
     </VBox>
 
-    <VBox fx:id="contentVBox" spacing="8" HBox.hgrow="ALWAYS" minHeight="100" >
+    <VBox fx:id="contentVBox" spacing="4" HBox.hgrow="ALWAYS" minHeight="100" >
         <HBox spacing="5" alignment="CENTER_LEFT">
             <Label fx:id="commentAuthor" styleClass="comment-author"/>
             <ImageView fx:id="crownIcon" fitHeight="20" fitWidth="20" visible="false"/>
         </HBox>
         <Label fx:id="titleLabel" styleClass="question-title"/>
         <Label fx:id="contentLabel" styleClass="question-content" wrapText="true"/>
-        <VBox fx:id="mediaContainer" styleClass="media-container" prefWidth="500" prefHeight="350" visible="false" managed="false">
+        <VBox fx:id="mediaContainer" styleClass="media-container" prefWidth="500"  visible="false" managed="false">
             <ImageView fx:id="questionImage" fitWidth="500" fitHeight="350" preserveRatio="true" visible="false" managed="false"/>
             <VBox fx:id="videoWrapper" styleClass="video-wrapper" visible="false" managed="false">
-                <MediaView fx:id="questionVideo" fitWidth="500" preserveRatio="true"/>
+                <MediaView fx:id="questionVideo" fitWidth="500" fitHeight="350" preserveRatio="true"/>
                 <HBox fx:id="videoControlBar" styleClass="video-control-bar" visible="true" managed="true" prefWidth="-Infinity" HBox.hgrow="ALWAYS">
                     <Button fx:id="playPauseButton" text="▶" styleClass="video-control-button">
                         <tooltip>

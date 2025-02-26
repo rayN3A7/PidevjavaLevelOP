@@ -19,7 +19,7 @@ public class ProductCardController {
     @FXML private Label productPrice;
     @FXML private ImageView productImage;
     @FXML private Button viewDetailsButton;
-    
+
     private Produit product;
     private Stock stock;
     private StockService stockService;
@@ -32,12 +32,12 @@ public class ProductCardController {
     public void setProductData(Produit product) {
         this.product = product;
         productName.setText(product.getNomProduit());
-        
+
         // Get stock information
         this.stock = stockService.getByProduitId(product.getId());
         if (stock != null) {
             productPrice.setText(stock.getPrixProduit() + " DNT");
-            
+
             // Load image from stock
             String imagePath = "/assets/image/" + stock.getImage();
             try {
