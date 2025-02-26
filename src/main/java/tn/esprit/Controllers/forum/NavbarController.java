@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.UtilisateurService;
 import tn.esprit.utils.SessionManager;
@@ -22,7 +23,7 @@ public class NavbarController implements Initializable {
     @FXML
     private HBox navButtons;
     @FXML
-    private Button homeButton, eventButton, shopButton, forumButton, coachingButton, loginButton,logoutButton;
+    private Button homeButton, eventButton, shopButton, forumButton, coachingButton, loginButton,logoutButton,joinUs;
     @FXML
     private Label nicknameLabel;
 
@@ -50,6 +51,13 @@ public class NavbarController implements Initializable {
                 SessionManager.getInstance().logout();
                 navigateTo("Home");
             });
+            if (SessionManager.getInstance().getRole().equals(Role.CLIENT)) {
+                joinUs.setText("Join Us");
+                joinUs.setOnAction(event -> navigateTo("gestion Utilisateur/addCoach/addCo"));
+            } else if (SessionManager.getInstance().getRole().equals(Role.ADMIN)) {
+                joinUs.setText("Demande");
+                joinUs.setOnAction(event -> navigateTo("gestion Utilisateur/addCoach/displayDemand"));
+            }
         }else {
             loginButton.setVisible(true);
         loginButton.setOnAction(event -> navigateTo("gestion Utilisateur/Login/Login"));

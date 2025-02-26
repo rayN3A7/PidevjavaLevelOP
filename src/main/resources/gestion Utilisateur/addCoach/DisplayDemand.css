@@ -1,0 +1,182 @@
+.root {
+    -fx-background-color: #1e1e2f;
+}
+
+.header-label {
+    -fx-font-size: 24px;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.demand-card {
+    -fx-background-color: rgba(17, 17, 17, 0.90);
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+    -fx-border-color: rgba(74, 144, 226, 0.3);
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0, 0, 5);
+    -fx-min-width: 300px;
+    -fx-max-width: 300px;
+    -fx-padding: 15px;
+}
+
+.card-title {
+    -fx-font-size: 18px;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.card-info {
+    -fx-font-size: 14px;
+    -fx-text-fill: #a0a0a0;
+    -fx-line-spacing: 1.5;
+    -fx-max-height: 40px;
+    -fx-min-height: 40px;
+}
+
+.view-pdf-button {
+    -fx-background-color: #4a90e2;
+    -fx-text-fill: white;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.view-pdf-button:hover {
+    -fx-background-color: #357abf;
+}
+
+.accept-button {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.accept-button:hover {
+    -fx-background-color: #218838;
+}
+
+.refuse-button {
+    -fx-background-color: #dc3545;
+    -fx-text-fill: white;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.refuse-button:hover {
+    -fx-background-color: #c82333;
+}
+
+.reject-popup {
+    -fx-background-color: rgba(0, 0, 0, 0.7);
+    -fx-alignment: center;
+}
+
+.reject-content {
+    -fx-background-color: #1e1e2f;
+    -fx-padding: 20px;
+    -fx-spacing: 10px;
+    -fx-max-width: 400px;
+    -fx-background-radius: 10px;
+}
+
+.popup-header {
+    -fx-font-size: 18px;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.text-area {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-text-fill: white;
+}
+
+.text-area .content {
+    -fx-background-color: transparent;
+}
+
+.cancel-button {
+    -fx-background-color: #6c757d;
+    -fx-text-fill: white;
+}
+
+.confirm-button {
+    -fx-background-color: #dc3545;
+    -fx-text-fill: white;
+}
+
+.close-button {
+    -fx-background-color: #dc3545;
+    -fx-text-fill: white;
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+    -fx-padding: 8px 15px;
+    -fx-font-size: 14px;
+}
+
+.close-button:hover {
+    -fx-background-color: #c82333;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: rgba(74, 144, 226, 0.3);
+    -fx-border-radius: 5px;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar:vertical,
+.scroll-pane .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb,
+.scroll-pane .scroll-bar:horizontal .thumb {
+    -fx-background-color: rgba(74, 144, 226, 0.5);
+    -fx-background-radius: 5px;
+}
+
+.scroll-pane .scroll-bar:vertical .thumb:hover,
+.scroll-pane .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: rgba(74, 144, 226, 0.8);
+}
+
+.pdf-preview {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 5);
+    -fx-background-radius: 5px;
+    -fx-cursor: hand;
+}
+
+.pdf-preview:hover {
+    -fx-effect: dropshadow(gaussian, rgba(74, 144, 226, 0.6), 15, 0, 0, 8);
+    -fx-opacity: 0.9;
+}
+
+.clickable-text {
+    -fx-cursor: hand;
+}
+
+.clickable-text:hover {
+    -fx-text-fill: #4a90e2;
+}
+
+.description-popup-text {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 10px;
+    -fx-background-radius: 5px;
+}
+
+.description-popup-text .content {
+    -fx-background-color: transparent;
+    -fx-background-radius: 5px;
+}
+
+.description-popup-text:focused {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+}

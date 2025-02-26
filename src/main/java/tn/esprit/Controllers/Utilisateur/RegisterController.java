@@ -32,13 +32,32 @@ public class RegisterController {
     @FXML private Button btnGoToLogin;
     @FXML private Button btnRegister;
 
+
     private final UtilisateurService userService = new UtilisateurService();
 
     @FXML
     private void initialize() {
         btnRegister.setOnAction(event -> handleRegister());
         btnGoToLogin.setOnAction(event -> navigateToLoginPage());
+        txtPassword.textProperty().addListener((observable, oldValue, newValue) -> updatePasswordFieldStyle(newValue));
     }
+
+    private void updatePasswordFieldStyle(String password) {
+        int strength = getPasswordStrength(password);
+
+        // Remove all previous styles
+        txtPassword.getStyleClass().removeAll("weak-password", "medium-password", "strong-password");
+
+        // Apply new style based on strength
+        if (strength == 0) {
+            txtPassword.getStyleClass().add("weak-password");
+        } else if (strength == 1) {
+            txtPassword.getStyleClass().add("medium-password");
+        } else {
+            txtPassword.getStyleClass().add("strong-password");
+        }
+    }
+
 
     private void handleRegister() {
         boolean isValid = true;
@@ -152,4 +171,19 @@ public class RegisterController {
             e.printStackTrace();
         }
     }
+
+    private int getPasswordStrength(String password) {
+        int strength = 0;
+
+        if (password.length() >= 8) strength++; // At least 8 characters
+        if (password.matches(".*[A-Z].*")) strength++; // Contains uppercase
+        if (password.matches(".*[a-z].*")) strength++; // Contains lowercase
+        if (password.matches(".*\\d.*")) strength++; // Contains number
+        if (password.matches(".*[@$!%*?&].*")) strength++; // Contains special character
+
+        if (strength >= 4) return 2; // Strong
+        if (strength >= 2) return 1; // Medium
+        return 0; // Weak
+    }
+
 }
