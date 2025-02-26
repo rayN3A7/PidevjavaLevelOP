@@ -22,6 +22,7 @@
             <Button fx:id="shopButton" text="Boutique" styleClass="nav-button"/>
             <Button fx:id="forumButton" text="Forum" styleClass="nav-button"/>
             <Button fx:id="coachingButton" text="Entraineur" styleClass="nav-button"/>
+            <Button fx:id="joinUs" text="Join us" styleClass="nav-button"/>
         </HBox>
         <HBox fx:id="userBox" spacing="15" alignment="CENTER">
             <Label fx:id="nicknameLabel" text="" styleClass="nickname-label" visible="false"/>

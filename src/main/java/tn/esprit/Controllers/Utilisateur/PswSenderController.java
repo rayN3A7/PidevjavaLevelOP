@@ -45,7 +45,7 @@ public class PswSenderController {
             String otp = em.generateOtp();
 
             // Send the OTP to the user's email
-            em.sendOtpEmail(email, otp);
+            EmailService.sendEmail(email, "Your OTP Code", "otp", otp);
             emailsta=email;
             navigateToResiveCodePage();
 

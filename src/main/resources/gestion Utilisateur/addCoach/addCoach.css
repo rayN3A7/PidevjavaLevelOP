@@ -1,0 +1,132 @@
+/* Root styling */
+.root {
+    -fx-background-color: #1e1e2f;
+}
+
+.overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Form container */
+.login-pane {
+    -fx-background-color: rgba(17, 17, 17, 0.90);
+    -fx-padding: 35px;
+    -fx-spacing: 20px;
+    -fx-background-radius: 15px;
+    -fx-border-radius: 15px;
+    -fx-border-color: rgba(74, 144, 226, 0.3);
+    -fx-border-width: 1px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 20, 0, 0, 10);
+}
+
+/* ComboBox styling */
+.combo-box {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-border-color: rgba(74, 144, 226, 0.5);
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-text-fill: white;
+    -fx-mark-color: #4a90e2;
+    -fx-padding: 10px;
+}
+
+.combo-box:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.12);
+    -fx-border-color: #4a90e2;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: white;
+    -fx-background-color: transparent;
+}
+
+.combo-box .list-view {
+    -fx-background-color: #1e1e2f;
+}
+
+/* TextArea styling */
+.text-area {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-border-color: rgba(74, 144, 226, 0.5);
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-text-fill: black;
+    -fx-prompt-text-fill: #8692a6;
+    -fx-padding: 8px;
+}
+
+.text-area:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.12);
+    -fx-border-color: #4a90e2;
+}
+
+.text-area .content {
+    -fx-background-color: transparent;
+    -fx-padding: 5px;
+}
+
+/* Upload button */
+.upload-button {
+    -fx-background-color: linear-gradient(to right, #4a90e2, #357abf);
+    -fx-text-fill: white;
+    -fx-background-radius: 8px;
+    -fx-padding: 14px 20px;
+    -fx-font-size: 14px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 8, 0, 0, 2);
+    -fx-transition: all 0.3s ease;
+}
+
+.upload-button:hover {
+    -fx-background-color: linear-gradient(to right, #357abf, #2868a9);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 10, 0, 0, 4);
+    -fx-translate-y: -1px;
+}
+
+/* Label styling */
+.label-title {
+    -fx-font-size: 32px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(74, 144, 226, 0.4), 10, 0, 0, 0);
+}
+
+.subtitle {
+    -fx-text-fill: #a0a0a0;
+    -fx-font-size: 14px;
+    -fx-padding: 0 0 10px 0;
+}
+
+/* Status label */
+.lblCVStatus {
+    -fx-text-fill: #ff4444;
+    -fx-font-size: 12px;
+    -fx-padding: 5px 0 10px 0;
+}
+
+/* Link button */
+.link-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #4a90e2;
+    -fx-font-size: 14px;
+    -fx-padding: 10px 0;
+    -fx-cursor: hand;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.link-button:hover {
+    -fx-text-fill: #357abf;
+    -fx-border-color: #357abf;
+}
+
+/* Submit button */
+.submit-button {
+    -fx-background-color: #28a745;
+    -fx-text-fill: white;
+    -fx-border-radius: 5px;
+    -fx-padding: 10px;
+}
+.submit-button:hover {
+    -fx-background-color: #218838;
+}

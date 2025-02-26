@@ -273,14 +273,14 @@ public class UtilisateurService implements IService<Utilisateur> {
 
         return false;
     }
-
+    @Override
     public Utilisateur getOne(int id) {
         String query = "SELECT * FROM Utilisateur WHERE id = ?";
         try (PreparedStatement ps = cnx.prepareStatement(query)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                return new Utilisateur(
+                Utilisateur user = new Utilisateur(
                         rs.getInt("id"),
                         rs.getString("email"),
                         rs.getString("mot_passe"),
@@ -288,11 +288,12 @@ public class UtilisateurService implements IService<Utilisateur> {
                         rs.getString("nom"),
                         rs.getInt("numero"),
                         rs.getString("prenom"),
-                        Role.valueOf(rs.getString("role")) 
+                        Role.valueOf(rs.getString("role"))
                 );
+                user.setPrivilege(rs.getString("privilege") != null ? rs.getString("privilege") : "regular");                return user;
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Erreur lors de la récupération de l'utilisateur", e);
+            throw new RuntimeException("Failed to fetch user: " + e.getMessage(), e);
         }
         return null;
     }
@@ -326,6 +327,153 @@ public class UtilisateurService implements IService<Utilisateur> {
         }
     }
 
+    public int getUserActivityCount(int userId) {
+        int count = 0;
+        String questionQuery = "SELECT COUNT() FROM Questions WHERE Utilisateur_id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(questionQuery)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                count += rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to count questions: " + e.getMessage(), e);
+        }
+
+        String commentQuery = "SELECT COUNT() FROM Commentaire WHERE utilisateur_id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(commentQuery)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                count += rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to count comments: " + e.getMessage(), e);
+        }
+
+        return count;
+    }
+    public int getUserVoteCount(int userId) {
+        int totalVotes = 0;
+
+        String questionVoteQuery = "SELECT SUM(Votes) FROM Questions WHERE Utilisateur_id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(questionVoteQuery)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                totalVotes += rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to count question votes: " + e.getMessage(), e);
+        }
+
+        String commentVoteQuery = "SELECT SUM(Votes) FROM Commentaire WHERE utilisateur_id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(commentVoteQuery)) {
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                totalVotes += rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to count comment votes: " + e.getMessage(), e);
+        }
+
+        return totalVotes;
+    }
+    public String updateUserPrivilege(int userId) {
+        Utilisateur user = getOne(userId);
+        String oldPrivilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
+
+        int activityCount = getUserActivityCount(userId);
+        int voteCount = getUserVoteCount(userId);
+
+        String newPrivilege;
+        if (activityCount >= 5 && voteCount > 10) {
+            newPrivilege = "top_fan";
+        } else if (activityCount >= 5) {
+            newPrivilege = "top_contributor";
+        } else {
+            newPrivilege = "regular";
+        }
+
+        if (!newPrivilege.equals(oldPrivilege)) {
+            String query = "UPDATE Utilisateur SET privilege = ? WHERE id = ?";
+            try (PreparedStatement ps = cnx.prepareStatement(query)) {
+                ps.setString(1, newPrivilege);
+                ps.setInt(2, userId);
+                ps.executeUpdate();
+                System.out.println("Updated privilege for user " + userId + " from " + oldPrivilege + " to " + newPrivilege);
+            } catch (SQLException e) {
+                throw new RuntimeException("Failed to update privilege: " + e.getMessage(), e);
+            }
+            return newPrivilege;
+        }
+
+        return null;
+    }
+
+
+
+
+
+    public void updateUserRole(int userId) {
+
+
+        String query = "UPDATE Utilisateur SET role = ? WHERE id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(query)) {
+            ps.setString(1, "COACH");
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to update Role: " + e.getMessage(), e);
+        }
+    }
+
+    public void deleteClient(int userId) {
+        String query = "DELETE FROM client WHERE id = ?";
+
+        try {
+            PreparedStatement stmt = cnx.prepareStatement(query);
+            stmt.setInt(1, userId);
+
+            stmt.executeUpdate();
+
+
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la suppression : " + e.getMessage());
+        }
+
+    }
+    public void addCoach(int useId) {
+        String query = "INSERT INTO coach (id) VALUES (?)";
+        try {
+
+            PreparedStatement stmt = cnx.prepareStatement(query);
+
+            stmt.setInt(1, useId);
+
+            stmt.executeUpdate();
+        }catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+    }
+
+
+    public String getEmail(int id) {
+        String query = "SELECT email FROM Utilisateur WHERE id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(query)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+
+                return rs.getString("email");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to fetch user: " + e.getMessage(), e);
+        }
+        return null;
+    }
 
 
 

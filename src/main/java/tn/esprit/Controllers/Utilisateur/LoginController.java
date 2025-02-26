@@ -33,6 +33,8 @@ public class LoginController {
 
     @FXML
     private Label lblError;
+    @FXML
+    private Button btnRejoignez;
 
     private final UtilisateurService userService = new UtilisateurService(); // Service pour gérer les utilisateurs
 
@@ -98,4 +100,5 @@ public class LoginController {
             e.printStackTrace();
         }
     }
+
 }
