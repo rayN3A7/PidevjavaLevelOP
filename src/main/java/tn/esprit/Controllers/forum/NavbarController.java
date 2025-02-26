@@ -49,7 +49,7 @@ public class NavbarController implements Initializable {
             logoutButton.setVisible(true);
             logoutButton.setOnAction(event -> {
                 SessionManager.getInstance().logout();
-                navigateTo("Home");
+                navigateTo("gestion Utilisateur/Login/Login");
             });
             if (SessionManager.getInstance().getRole().equals(Role.CLIENT)) {
                 joinUs.setText("Join Us");

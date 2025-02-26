@@ -5,7 +5,10 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
@@ -15,31 +18,120 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 public class RegisterController {
-    @FXML private TextField txtNom;
-    @FXML private TextField txtPrenom;
-    @FXML private TextField txtEmail;
-    @FXML private TextField txtUsername;
-    @FXML private TextField txtNumero;
-    @FXML private TextField txtPassword;
-    @FXML private TextField txtConfirmPassword;
+    @FXML
+    private TextField txtNom;
+    @FXML
+    private TextField txtPrenom;
+    @FXML
+    private TextField txtEmail;
+    @FXML
+    private TextField txtUsername;
+    @FXML
+    private TextField txtNumero;
+    @FXML
+    private PasswordField txtPassword;
+    @FXML
+    private TextField txtPasswordVisible;
+    @FXML
+    private PasswordField txtConfirmPassword;
+    @FXML
+    private TextField txtConfirmPasswordVisible;
 
-    @FXML private Label lblNomError;
-    @FXML private Label lblPrenomError;
-    @FXML private Label lblEmailError;
-    @FXML private Label lblUsernameError;
-    @FXML private Label lblNumeroError;
-    @FXML private Label lblPasswordError;
-    @FXML private Button btnGoToLogin;
-    @FXML private Button btnRegister;
+    @FXML
+    private Label lblNomError;
+    @FXML
+    private Label lblPrenomError;
+    @FXML
+    private Label lblEmailError;
+    @FXML
+    private Label lblUsernameError;
+    @FXML
+    private Label lblNumeroError;
+    @FXML
+    private Label lblPasswordError;
 
+    @FXML
+    private Button btnGoToLogin;
+    @FXML
+    private Button btnRegister;
+    @FXML
+    private Button btnTogglePassword;
+    @FXML
+    private Button btnToggleConfirmPassword;
+
+    @FXML
+    private ImageView imgEyePassword;
+    @FXML
+    private ImageView imgEyeConfirmPassword;
 
     private final UtilisateurService userService = new UtilisateurService();
+    private boolean passwordVisible = false;
+    private boolean confirmPasswordVisible = false;
 
     @FXML
     private void initialize() {
         btnRegister.setOnAction(event -> handleRegister());
         btnGoToLogin.setOnAction(event -> navigateToLoginPage());
-        txtPassword.textProperty().addListener((observable, oldValue, newValue) -> updatePasswordFieldStyle(newValue));
+
+        // Set up password field synchronization
+        txtPassword.textProperty().addListener((observable, oldValue, newValue) -> {
+            txtPasswordVisible.setText(newValue);
+            updatePasswordFieldStyle(newValue);
+        });
+
+        txtPasswordVisible.textProperty().addListener((observable, oldValue, newValue) -> {
+            txtPassword.setText(newValue);
+            updatePasswordFieldStyle(newValue);
+        });
+
+        txtConfirmPassword.textProperty()
+                .addListener((observable, oldValue, newValue) -> txtConfirmPasswordVisible.setText(newValue));
+
+        txtConfirmPasswordVisible.textProperty()
+                .addListener((observable, oldValue, newValue) -> txtConfirmPassword.setText(newValue));
+
+        // Set up toggle password visibility
+        btnTogglePassword.setOnAction(event -> togglePasswordVisibility());
+        btnToggleConfirmPassword.setOnAction(event -> toggleConfirmPasswordVisibility());
+    }
+
+    private void togglePasswordVisibility() {
+        passwordVisible = !passwordVisible;
+        txtPassword.setVisible(!passwordVisible);
+        txtPasswordVisible.setVisible(passwordVisible);
+
+        // Update eye icon
+        String imagePath = passwordVisible ? "../../assets/image/eye-open.png" : "../../assets/image/eye-closed.png";
+        imgEyePassword.setImage(new Image(getClass().getResourceAsStream(imagePath)));
+
+        // Set focus to the visible field
+        if (passwordVisible) {
+            txtPasswordVisible.requestFocus();
+            txtPasswordVisible.positionCaret(txtPasswordVisible.getText().length());
+        } else {
+            txtPassword.requestFocus();
+            txtPassword.positionCaret(txtPassword.getText().length());
+        }
+    }
+
+    private void toggleConfirmPasswordVisibility() {
+        confirmPasswordVisible = !confirmPasswordVisible;
+        txtConfirmPassword.setVisible(!confirmPasswordVisible);
+        txtConfirmPasswordVisible.setVisible(confirmPasswordVisible);
+
+        // Update eye icon
+        String imagePath = confirmPasswordVisible ? "../../assets/image/eye-open.png"
+                : "../../assets/image/eye-closed.png";
+        imgEyeConfirmPassword.setImage(new Image(getClass().getResourceAsStream(imagePath)));
+
+        // Set focus to the visible field
+        if (confirmPasswordVisible) {
+            txtConfirmPasswordVisible.requestFocus();
+            txtConfirmPasswordVisible.positionCaret(txtConfirmPasswordVisible.getText().length());
+        } else {
+            txtConfirmPassword.requestFocus();
+            txtConfirmPassword.positionCaret(txtConfirmPassword.getText().length());
+        }
     }
 
     private void updatePasswordFieldStyle(String password) {
@@ -47,17 +139,20 @@ public class RegisterController {
 
         // Remove all previous styles
         txtPassword.getStyleClass().removeAll("weak-password", "medium-password", "strong-password");
+        txtPasswordVisible.getStyleClass().removeAll("weak-password", "medium-password", "strong-password");
 
         // Apply new style based on strength
         if (strength == 0) {
             txtPassword.getStyleClass().add("weak-password");
+            txtPasswordVisible.getStyleClass().add("weak-password");
         } else if (strength == 1) {
             txtPassword.getStyleClass().add("medium-password");
+            txtPasswordVisible.getStyleClass().add("medium-password");
         } else {
             txtPassword.getStyleClass().add("strong-password");
+            txtPasswordVisible.getStyleClass().add("strong-password");
         }
     }
-
 
     private void handleRegister() {
         boolean isValid = true;
@@ -124,19 +219,22 @@ public class RegisterController {
         }
 
         // Vérification du mot de passe
-        String password = txtPassword.getText();
+        String password = passwordVisible ? txtPasswordVisible.getText() : txtPassword.getText();
         if (password.isEmpty()) {
             lblPasswordError.setText("Mot de passe requis !");
             isValid = false;
         } else if (!isValidPassword(password)) {
-            lblPasswordError.setText("Doit contenir 8+ caractères, une majuscule, une minuscule, un chiffre et un caractère spécial !");
+            lblPasswordError.setText(
+                    "Doit contenir 8+ caractères, une majuscule, une minuscule, un chiffre et un caractère spécial !");
             isValid = false;
         } else {
             lblPasswordError.setText("");
         }
 
         // Vérification de la confirmation du mot de passe
-        if (!password.equals(txtConfirmPassword.getText())) {
+        String confirmPassword = confirmPasswordVisible ? txtConfirmPasswordVisible.getText()
+                : txtConfirmPassword.getText();
+        if (!password.equals(confirmPassword)) {
             lblPasswordError.setText("Les mots de passe ne correspondent pas !");
             isValid = false;
         }
@@ -156,7 +254,7 @@ public class RegisterController {
     }
 
     private boolean isValidPassword(String password) {
-        String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
+        String passwordRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z\\d]).{8,}$";
         return Pattern.matches(passwordRegex, password);
     }
 
@@ -175,15 +273,21 @@ public class RegisterController {
     private int getPasswordStrength(String password) {
         int strength = 0;
 
-        if (password.length() >= 8) strength++; // At least 8 characters
-        if (password.matches(".*[A-Z].*")) strength++; // Contains uppercase
-        if (password.matches(".*[a-z].*")) strength++; // Contains lowercase
-        if (password.matches(".*\\d.*")) strength++; // Contains number
-        if (password.matches(".*[@$!%*?&].*")) strength++; // Contains special character
+        if (password.length() >= 8)
+            strength++; // At least 8 characters
+        if (password.matches(".*[A-Z].*"))
+            strength++; // Contains uppercase
+        if (password.matches(".*[a-z].*"))
+            strength++; // Contains lowercase
+        if (password.matches(".*\\d.*"))
+            strength++; // Contains number
+        if (password.matches(".*[^A-Za-z\\d].*"))
+            strength++; // Contains special character
 
-        if (strength >= 4) return 2; // Strong
-        if (strength >= 2) return 1; // Medium
+        if (strength >= 4)
+            return 2; // Strong
+        if (strength >= 2)
+            return 1; // Medium
         return 0; // Weak
     }
-
 }

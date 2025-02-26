@@ -1,6 +1,5 @@
 package tn.esprit.Controllers.Utilisateur;
 
-
 import javafx.embed.swing.SwingFXUtils;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -22,6 +21,7 @@ import tn.esprit.utils.SessionManager;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -35,8 +35,7 @@ public class DisplayDemandController {
 
     private DemandeService demandeService = new DemandeService();
     private Demande currentDemande;
-    private UtilisateurService us=new UtilisateurService();
-
+    private UtilisateurService us = new UtilisateurService();
 
     @FXML
     public void initialize() {
@@ -76,9 +75,9 @@ public class DisplayDemandController {
         descriptionLabel.getStyleClass().add("clickable-text");
 
         // Create PDF preview
-        ImageView pdfPreview = createPdfPreview(demand.getFile());
+        ImageView pdfPreview = createPdfPreview(demand.getFilePath());
         pdfPreview.getStyleClass().add("pdf-preview");
-        pdfPreview.setOnMouseClicked(e -> openPdfViewer(demand.getFile()));
+        pdfPreview.setOnMouseClicked(e -> openPdfViewer(demand.getFilePath()));
 
         HBox buttonsBox = new HBox(10);
         Button acceptButton = new Button("Accept");
@@ -95,9 +94,10 @@ public class DisplayDemandController {
         return card;
     }
 
-    private ImageView createPdfPreview(byte[] pdfData) {
+    private ImageView createPdfPreview(String filePath) {
         try {
-            PDDocument document = PDDocument.load(new ByteArrayInputStream(pdfData));
+            File pdfFile = new File("C:\\xampp\\htdocs\\img\\" + filePath);
+            PDDocument document = PDDocument.load(pdfFile);
             PDFRenderer pdfRenderer = new PDFRenderer(document);
 
             // Render first page
@@ -106,8 +106,8 @@ public class DisplayDemandController {
             ImageView imageView = new ImageView(fxImage);
 
             // Set dimensions for preview
-            imageView.setFitWidth(250); // Adjust these values as needed
-            imageView.setFitHeight(300); // Adjust these values as needed
+            imageView.setFitWidth(250);
+            imageView.setFitHeight(300);
             imageView.setPreserveRatio(true);
 
             // Add hover effect
@@ -116,18 +116,18 @@ public class DisplayDemandController {
             document.close();
             return imageView;
         } catch (IOException e) {
-            ImageView errorImage = new ImageView(); // You could set a default/error image here
+            System.err.println("Error creating PDF preview: " + e.getMessage());
+            ImageView errorImage = new ImageView();
             errorImage.setFitWidth(250);
             errorImage.setFitHeight(300);
             return errorImage;
         }
     }
 
-
-    private void openPdfViewer(byte[] pdfData) {
-        PDDocument document = null;
+    private void openPdfViewer(String filePath) {
         try {
-            document = PDDocument.load(new ByteArrayInputStream(pdfData));
+            File pdfFile = new File("C:\\xampp\\htdocs\\img\\" + filePath);
+            PDDocument document = PDDocument.load(pdfFile);
             PDFRenderer pdfRenderer = new PDFRenderer(document);
 
             // Create a new stage for the PDF viewer
@@ -138,22 +138,15 @@ public class DisplayDemandController {
             VBox mainContainer = new VBox(10);
             mainContainer.setStyle("-fx-background-color: #1e1e2f; -fx-padding: 20;");
 
-            // Add close button at the top
-            final PDDocument finalDocument = document; // Need final reference for lambda
-
-
             // Create toolbar
             HBox toolbar = new HBox(10);
             toolbar.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
-           // toolbar.getChildren().add(closeButton);
 
             // Create a VBox to hold the PDF pages
             VBox pagesContainer = new VBox(10);
             ScrollPane scrollPane = new ScrollPane(pagesContainer);
             scrollPane.setFitToWidth(true);
             scrollPane.setStyle("-fx-background: #1e1e2f; -fx-background-color: transparent;");
-
-            // Set maximum height for the scroll pane
             scrollPane.setMaxHeight(600);
 
             // Render each page of the PDF
@@ -169,24 +162,19 @@ public class DisplayDemandController {
             // Add components to main container
             mainContainer.getChildren().addAll(toolbar, scrollPane);
 
-            // Create scene with reasonable dimensions
             Scene scene = new Scene(mainContainer, 550, 700);
-
-            // Add stylesheet
             scene.getStylesheets()
                     .add(getClass().getResource("/gestion Utilisateur/addCoach/DisplayDemand.css").toExternalForm());
 
             pdfStage.setScene(scene);
             pdfStage.setResizable(true);
-
-            // Center the stage on screen
             pdfStage.centerOnScreen();
             pdfStage.show();
 
-            // Add close handler to ensure document is closed when window is closed
+            // Add close handler
             pdfStage.setOnCloseRequest(e -> {
                 try {
-                    finalDocument.close();
+                    document.close();
                 } catch (IOException ex) {
                     System.err.println("Error closing PDF document: " + ex.getMessage());
                 }
@@ -197,13 +185,15 @@ public class DisplayDemandController {
             e.printStackTrace();
         }
     }
+
     private void showSuccessAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
 
-        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toExternalForm()));
+        ImageView icon = new ImageView(
+                new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toExternalForm()));
         icon.setFitHeight(60);
         icon.setFitWidth(80);
         alert.setGraphic(icon);
@@ -222,7 +212,7 @@ public class DisplayDemandController {
 
     private void handleAccept(Demande demand) {
 
-        int userid=demand.getUserId();
+        int userid = demand.getUserId();
         us.updateUserRole(userid);
 
         us.deleteClient(userid);
@@ -231,7 +221,6 @@ public class DisplayDemandController {
         EmailService.sendEmail(us.getEmail(userid), "Welcome to LevelOP!", "coach_accepted", "");
 
         demandeService.delete(demand);
-
 
         showSuccessAlert("Success", "Demand accepted successfully!");
         loadDemands();
@@ -250,7 +239,7 @@ public class DisplayDemandController {
 
     @FXML
     private void confirmReject() {
-        int userid=currentDemande.getUserId();
+        int userid = currentDemande.getUserId();
         String reason = rejectReasonText.getText();
         if (reason.trim().isEmpty()) {
             showAlert("Error", "Please provide a reason for rejection");
@@ -258,10 +247,7 @@ public class DisplayDemandController {
         }
 
         EmailService.sendEmail(us.getEmail(userid), "Votre demande de coach a été refusée", "coach_refused", reason);
-        //demandeService.delete(currentDemande);
-
-
-
+        // demandeService.delete(currentDemande);
 
         closeRejectPopup();
         showSuccessAlert("Success", "Demand rejected successfully!");

@@ -7,25 +7,26 @@ import tn.esprit.Models.Utilisateur;
 import tn.esprit.utils.MyDatabase;
 import tn.esprit.utils.SessionManager;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.sql.Types;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UtilisateurService implements IService<Utilisateur> {
 
-    private Connection cnx ;
+    private Connection cnx;
 
-    public UtilisateurService(){
+    public UtilisateurService() {
         cnx = MyDatabase.getInstance().getCnx();
     }
 
     @Override
     public void add(Utilisateur utilisateur) {
         String query = "INSERT INTO utilisateur (email, mot_passe, nickname, nom, numero, prenom, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try{
+        try {
 
             PreparedStatement stmt = cnx.prepareStatement(query);
             stmt.setString(1, utilisateur.getEmail());
@@ -42,22 +43,18 @@ public class UtilisateurService implements IService<Utilisateur> {
                 PreparedStatement clientStmt = cnx.prepareStatement(clientQuery);
                 clientStmt.setInt(1, getLastInsertedId());
                 clientStmt.executeUpdate();
-            }else if (utilisateur.getRole().equals(Role.COACH)) {
+            } else if (utilisateur.getRole().equals(Role.COACH)) {
                 String coachQuery = "INSERT INTO coach (id) VALUES (?)";
                 PreparedStatement coachStmt = cnx.prepareStatement(coachQuery);
                 coachStmt.setInt(1, getLastInsertedId());
                 coachStmt.executeUpdate();
             }
 
-
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
     }
-
-
-
 
     private int getLastInsertedId() throws SQLException {
         String query = "SELECT LAST_INSERT_ID()";
@@ -69,45 +66,48 @@ public class UtilisateurService implements IService<Utilisateur> {
         throw new SQLException("Failed to retrieve last inserted ID.");
     }
 
-
-
-
-
     @Override
     public List<Utilisateur> getAll() {
-
         List<Utilisateur> utilisateurs = new ArrayList<>();
-        String query = "SELECT email, nickname, nom, numero, prenom, role FROM utilisateur";
+        String query = "SELECT id, email, nickname, nom, numero, prenom, role, privilege, ban, banTime FROM utilisateur";
 
-        try {
-            PreparedStatement stmt = cnx.prepareStatement(query);
-            ResultSet rs = stmt.executeQuery();
+        try (PreparedStatement stmt = cnx.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
+                Timestamp banTimestamp = rs.getTimestamp("banTime");
+                // System.out.println("Fetched banTime for user ID " + rs.getInt("id") + ": " +
+                // banTimestamp);
+
+                LocalDateTime banTime = (banTimestamp != null && banTimestamp.getTime() != 0)
+                        ? banTimestamp.toLocalDateTime()
+                        : null;
+
                 Utilisateur utilisateur = new Utilisateur(
+                        rs.getInt("id"),
                         rs.getString("email"),
                         rs.getString("nickname"),
                         rs.getString("nom"),
                         rs.getInt("numero"),
                         rs.getString("prenom"),
-                        Role.valueOf(rs.getString("role"))
-                );
+                        Role.valueOf(rs.getString("role")),
+                        rs.getString("privilege"),
+                        rs.getBoolean("ban"),
+                        banTime);
+
                 utilisateurs.add(utilisateur);
             }
 
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error fetching users: " + e.getMessage());
         }
 
         return utilisateurs;
     }
 
-
-
-
     @Override
     public void update(Utilisateur utilisateur) {
-        String query = "UPDATE utilisateur SET nickname = ?, nom = ?, numero = ?, prenom = ?, role = ? WHERE email = ?";
+        String query = "UPDATE utilisateur SET nickname = ?, nom = ?, numero = ?, prenom = ?, role = ?, ban = ?, banTime = ? WHERE id = ?";
 
         try {
             PreparedStatement stmt = cnx.prepareStatement(query);
@@ -116,14 +116,27 @@ public class UtilisateurService implements IService<Utilisateur> {
             stmt.setInt(3, utilisateur.getNumero());
             stmt.setString(4, utilisateur.getPrenom());
             stmt.setString(5, utilisateur.getRole().name());
-            stmt.setString(6, utilisateur.getEmail());
+            stmt.setBoolean(6, utilisateur.isBan());
 
-            stmt.executeUpdate();
-        }catch (SQLException e) {
-            System.out.println("Erreur lors de la mise à jour : " + e.getMessage());
+            // Handle banTime (can be null for permanent ban)
+            if (utilisateur.getBanTime() != null) {
+                stmt.setTimestamp(7, Timestamp.valueOf(utilisateur.getBanTime()));
+            } else {
+                stmt.setNull(7, Types.TIMESTAMP);
+            }
+
+            stmt.setInt(8, utilisateur.getId());
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("User updated successfully: " + utilisateur.getId());
+            } else {
+                System.out.println("No user found with ID: " + utilisateur.getId());
+            }
+        } catch (SQLException e) {
+            System.out.println("Error updating user: " + e.getMessage());
+            e.printStackTrace();
         }
-
-
     }
 
     @Override
@@ -136,13 +149,11 @@ public class UtilisateurService implements IService<Utilisateur> {
 
             stmt.executeUpdate();
 
-
         } catch (SQLException e) {
             System.out.println("Erreur lors de la suppression : " + e.getMessage());
         }
 
     }
-
 
     public List<Utilisateur> getByRole(String role) {
 
@@ -161,8 +172,7 @@ public class UtilisateurService implements IService<Utilisateur> {
                         rs.getString("nom"),
                         rs.getInt("numero"),
                         rs.getString("prenom"),
-                        Role.valueOf(rs.getString("role"))
-                );
+                        Role.valueOf(rs.getString("role")));
                 utilisateurs.add(utilisateur);
             }
 
@@ -172,8 +182,9 @@ public class UtilisateurService implements IService<Utilisateur> {
 
         return utilisateurs;
     }
-    public Utilisateur getBynickname(String nickname){
-        Utilisateur utilisateur=null;
+
+    public Utilisateur getBynickname(String nickname) {
+        Utilisateur utilisateur = null;
         String query = "SELECT * FROM utilisateur WHERE nickname = ?";
 
         try {
@@ -191,8 +202,7 @@ public class UtilisateurService implements IService<Utilisateur> {
                         rs.getString("nom"),
                         rs.getInt("numero"),
                         rs.getString("prenom"),
-                        Role.valueOf(rs.getString("role"))
-                );
+                        Role.valueOf(rs.getString("role")));
 
             }
 
@@ -203,9 +213,8 @@ public class UtilisateurService implements IService<Utilisateur> {
         return utilisateur;
     }
 
-
     public Utilisateur getByEmail(String email) {
-        Utilisateur utilisateur=null;
+        Utilisateur utilisateur = null;
         String query = "SELECT * FROM utilisateur WHERE email = ?";
 
         try {
@@ -223,8 +232,7 @@ public class UtilisateurService implements IService<Utilisateur> {
                         rs.getString("nom"),
                         rs.getInt("numero"),
                         rs.getString("prenom"),
-                        Role.valueOf(rs.getString("role"))
-                );
+                        Role.valueOf(rs.getString("role")));
 
             }
 
@@ -234,7 +242,6 @@ public class UtilisateurService implements IService<Utilisateur> {
 
         return utilisateur;
     }
-
 
     public boolean emailExists(String email) {
         String query = "SELECT COUNT(*) FROM utilisateur WHERE email = ?";
@@ -273,6 +280,7 @@ public class UtilisateurService implements IService<Utilisateur> {
 
         return false;
     }
+
     @Override
     public Utilisateur getOne(int id) {
         String query = "SELECT * FROM Utilisateur WHERE id = ?";
@@ -288,9 +296,9 @@ public class UtilisateurService implements IService<Utilisateur> {
                         rs.getString("nom"),
                         rs.getInt("numero"),
                         rs.getString("prenom"),
-                        Role.valueOf(rs.getString("role"))
-                );
-                user.setPrivilege(rs.getString("privilege") != null ? rs.getString("privilege") : "regular");                return user;
+                        Role.valueOf(rs.getString("role")));
+                user.setPrivilege(rs.getString("privilege") != null ? rs.getString("privilege") : "regular");
+                return user;
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to fetch user: " + e.getMessage(), e);
@@ -353,6 +361,7 @@ public class UtilisateurService implements IService<Utilisateur> {
 
         return count;
     }
+
     public int getUserVoteCount(int userId) {
         int totalVotes = 0;
 
@@ -383,7 +392,6 @@ public class UtilisateurService implements IService<Utilisateur> {
 
     public void updateUserRole(int userId) {
 
-
         String query = "UPDATE Utilisateur SET role = ? WHERE id = ?";
         try (PreparedStatement ps = cnx.prepareStatement(query)) {
             ps.setString(1, "COACH");
@@ -403,12 +411,12 @@ public class UtilisateurService implements IService<Utilisateur> {
 
             stmt.executeUpdate();
 
-
         } catch (SQLException e) {
             System.out.println("Erreur lors de la suppression : " + e.getMessage());
         }
 
     }
+
     public void addCoach(int useId) {
         String query = "INSERT INTO coach (id) VALUES (?)";
         try {
@@ -418,12 +426,11 @@ public class UtilisateurService implements IService<Utilisateur> {
             stmt.setInt(1, useId);
 
             stmt.executeUpdate();
-        }catch (SQLException e) {
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
     }
-
 
     public String getEmail(int id) {
         String query = "SELECT email FROM Utilisateur WHERE id = ?";
@@ -449,9 +456,17 @@ public class UtilisateurService implements IService<Utilisateur> {
             this.newPrivilege = newPrivilege;
         }
 
-        public String getOldPrivilege() { return oldPrivilege; }
-        public String getNewPrivilege() { return newPrivilege; }
-        public boolean isChanged() { return !oldPrivilege.equals(newPrivilege); }
+        public String getOldPrivilege() {
+            return oldPrivilege;
+        }
+
+        public String getNewPrivilege() {
+            return newPrivilege;
+        }
+
+        public boolean isChanged() {
+            return !oldPrivilege.equals(newPrivilege);
+        }
     }
 
     public PrivilegeChange updateUserPrivilege(int userId) {
@@ -476,7 +491,8 @@ public class UtilisateurService implements IService<Utilisateur> {
                 ps.setString(1, newPrivilege);
                 ps.setInt(2, userId);
                 ps.executeUpdate();
-                System.out.println("Updated privilege for user " + userId + " from " + oldPrivilege + " to " + newPrivilege);
+                System.out.println(
+                        "Updated privilege for user " + userId + " from " + oldPrivilege + " to " + newPrivilege);
             } catch (SQLException e) {
                 throw new RuntimeException("Failed to update privilege: " + e.getMessage(), e);
             }
@@ -484,6 +500,66 @@ public class UtilisateurService implements IService<Utilisateur> {
         }
 
         return new PrivilegeChange(oldPrivilege, newPrivilege);
+    }
+
+    public void updateBanStatus(int userId, boolean isBanned, LocalDateTime banTime) {
+        String query = "UPDATE utilisateur SET ban = ?, banTime = ? WHERE id = ?";
+
+        try {
+            PreparedStatement stmt = cnx.prepareStatement(query);
+            stmt.setBoolean(1, isBanned);
+
+            // Handle banTime (can be null for permanent ban)
+            if (banTime != null) {
+                stmt.setTimestamp(2, Timestamp.valueOf(banTime));
+            } else {
+                stmt.setNull(2, Types.TIMESTAMP);
+            }
+
+            stmt.setInt(3, userId);
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("Ban status updated successfully for user: " + userId);
+            } else {
+                System.out.println("No user found with ID: " + userId);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error updating ban status: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public List<Map<String, Object>> getUserReports(int userId) {
+        List<Map<String, Object>> reports = new ArrayList<>();
+        String query = "SELECT r.*, u.prenom as reporter_prenom, u.nom as reporter_nom " +
+                "FROM report r " +
+                "JOIN utilisateur u ON r.reporter_id = u.id " +
+                "WHERE r.reported_user_id = ?";
+
+        try {
+            PreparedStatement stmt = cnx.prepareStatement(query);
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                Map<String, Object> report = new HashMap<>();
+                report.put("reportId", rs.getInt("report_id"));
+                report.put("reporterId", rs.getInt("reporter_id"));
+                report.put("reporterName", rs.getString("reporter_prenom") + " " + rs.getString("reporter_nom"));
+                report.put("reason", rs.getString("reason"));
+                report.put("evidence", rs.getString("evidence"));
+                report.put("status", rs.getString("status"));
+                report.put("createdAt", rs.getTimestamp("created_at"));
+
+                reports.add(report);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching user reports: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return reports;
     }
 
 }

@@ -4,39 +4,47 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<AnchorPane xmlns="http://javafx.com/javafx"
-            xmlns:fx="http://javafx.com/fxml"
-            fx:controller="tn.esprit.Controllers.Utilisateur.DisplayDemandController"
-            stylesheets="@DisplayDemand.css"
-            prefHeight="600.0" prefWidth="1000.0">
+<AnchorPane xmlns="http://javafx.com/javafx/17"
+    xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="tn.esprit.Controllers.Utilisateur.DisplayDemandController"
+    stylesheets="@DisplayDemand.css"
+    prefHeight="800.0" prefWidth="1200.0">
 
-    <VBox spacing="20" AnchorPane.topAnchor="20" AnchorPane.leftAnchor="20"
-          AnchorPane.rightAnchor="20" AnchorPane.bottomAnchor="20">
+    <HBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+        AnchorPane.topAnchor="0.0">
+        <!-- Include Sidebar -->
+        <fx:include source="../Dashboard/SideBar.fxml" />
 
-        <Label styleClass="header-label" text="Demandes de Coach"/>
+        <!-- Main Content Area -->
+        <VBox styleClass="main-content" HBox.hgrow="ALWAYS">
+            <VBox spacing="20" AnchorPane.topAnchor="20" AnchorPane.leftAnchor="20"
+                AnchorPane.rightAnchor="20" AnchorPane.bottomAnchor="20">
 
-        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
-            <FlowPane fx:id="cardsContainer" hgap="20" vgap="20">
-                <padding>
-                    <Insets top="10" right="10" bottom="10" left="10"/>
-                </padding>
-            </FlowPane>
-        </ScrollPane>
-    </VBox>
+                <Label styleClass="header-label" text="Demandes de Coach" />
+
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS">
+                    <FlowPane fx:id="cardsContainer" hgap="20" vgap="20">
+                        <padding>
+                            <Insets top="10" right="10" bottom="10" left="10" />
+                        </padding>
+                    </FlowPane>
+                </ScrollPane>
+            </VBox>
+        </VBox>
+    </HBox>
 
     <!-- Popup for rejection reason -->
     <VBox fx:id="rejectPopup" styleClass="reject-popup" visible="false"
-          AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0"
-          AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
+        AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0"
+        AnchorPane.rightAnchor="0" AnchorPane.bottomAnchor="0">
         <VBox styleClass="reject-content">
-            <Label text="Raison du refus" styleClass="popup-header"/>
+            <Label text="Raison du refus" styleClass="popup-header" />
             <TextArea fx:id="rejectReasonText" promptText="Entrez la raison du refus..."
-                      wrapText="true" prefRowCount="4"/>
+                wrapText="true" prefRowCount="4" />
             <HBox spacing="10" alignment="CENTER_RIGHT">
-                <Button text="Annuler" onAction="#closeRejectPopup" styleClass="cancel-button"/>
-                <Button text="Confirmer" onAction="#confirmReject" styleClass="confirm-button"/>
+                <Button text="Annuler" onAction="#closeRejectPopup" styleClass="cancel-button" />
+                <Button text="Confirmer" onAction="#confirmReject" styleClass="confirm-button" />
             </HBox>
         </VBox>
     </VBox>
-
 </AnchorPane>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox fx:id="sidebar" prefWidth="250" spacing="10" styleClass="sidebar" stylesheets="@Dashboard.css"
+    xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="tn.esprit.Controllers.Utilisateur.SideBarController">
+
+    <padding>
+        <Insets bottom="20" left="20" right="20" top="20" />
+    </padding>
+
+    <!-- Logo/Brand Area -->
+    <Label styleClass="sidebar-title" text="Admin Dashboard">
+        <font>
+            <Font name="System Bold" size="24.0" />
+        </font>
+    </Label>
+
+    <!-- Navigation Menu -->
+    <VBox spacing="10" styleClass="nav-menu">
+        <Button fx:id="dashboardBtn" prefWidth="210" styleClass="nav-button" text="Dashboard" />
+        <Button fx:id="usersBtn" prefWidth="210" styleClass="nav-button" text="Users" />
+        <Button fx:id="demandeBtn" prefWidth="210" styleClass="nav-button" text="Demande" />
+        <Button fx:id="logoutBtn" prefWidth="210" styleClass="nav-button" text="Logout" />
+    </VBox>
+</VBox>

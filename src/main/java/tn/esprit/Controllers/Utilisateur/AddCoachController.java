@@ -19,6 +19,7 @@ import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.io.File;
 import java.net.URL;
 import java.sql.Timestamp;
@@ -26,6 +27,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 public class AddCoachController {
+
+    private static final String UPLOAD_DIR = "C:\\xampp\\htdocs\\img\\";
 
     @FXML
     private Button btnGoToLogin;
@@ -41,37 +44,26 @@ public class AddCoachController {
     @FXML
     private Button btnGoToHome;
 
-
-
     @FXML
     private TextArea txtDescription;
 
     private File selectedFile;
-
 
     private GamesService gm = new GamesService();
     private DemandeService demandeService = new DemandeService();
 
     @FXML
     public void initialize() {
-        // Call the method to populate the ComboBox
         populateGamesComboBox();
         btnGoToHome.setOnAction(event -> navigateToHome2());
     }
 
     private void populateGamesComboBox() {
-        // Retrieve the list of games from the database
         List<Games> gamesList = gm.getAll();
-
-        // Clear the ComboBox (in case it already has items)
         cbgames.getItems().clear();
-
-        // Add each game's name to the ComboBox
         for (Games game : gamesList) {
             cbgames.getItems().add(game.getGame_name());
         }
-
-        // Optionally, set a default selection
         if (!cbgames.getItems().isEmpty()) {
             cbgames.getSelectionModel().selectFirst();
         }
@@ -98,27 +90,27 @@ public class AddCoachController {
     void handleSubmit(ActionEvent event) {
         if (selectedFile != null) {
             try {
-                // Read the file content into a byte array
-                byte[] fileContent = Files.readAllBytes(selectedFile.toPath());
+                // Generate unique filename with timestamp
+                String uniqueFileName = System.currentTimeMillis() + "_" + selectedFile.getName();
+                String filePath = UPLOAD_DIR + uniqueFileName;
 
-                // Create a new Demande object
+                // Create Demande object with the file path
                 Demande demande = new Demande(
                         SessionManager.getInstance().getUserId(),
                         cbgames.getValue(),
                         txtDescription.getText(),
-                        fileContent
+                        uniqueFileName // Store only the filename, not full path
                 );
                 demande.setDate(new Timestamp(System.currentTimeMillis()));
 
-                // Add the demande to the database
-                demandeService.add(demande);
-
-
+                // Copy file to destination and add demande
+                byte[] fileData = Files.readAllBytes(selectedFile.toPath());
+                demandeService.add(demande, fileData);
 
                 System.out.println("Demande submitted successfully!");
                 navigateToHome();
             } catch (IOException e) {
-                System.out.println("Error reading file: " + e.getMessage());
+                System.out.println("Error saving file: " + e.getMessage());
             }
         } else {
             System.out.println("No file selected!");
@@ -128,9 +120,9 @@ public class AddCoachController {
     private void navigateToHome() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Home.fxml"));
-            Stage stage = (Stage) ((btnGoToLogin != null && btnGoToLogin.getScene() != null) ?
-                    btnGoToLogin.getScene().getWindow() :
-                    Stage.getWindows().stream().filter(Window::isShowing).findFirst().orElse(null));
+            Stage stage = (Stage) ((btnGoToLogin != null && btnGoToLogin.getScene() != null)
+                    ? btnGoToLogin.getScene().getWindow()
+                    : Stage.getWindows().stream().filter(Window::isShowing).findFirst().orElse(null));
 
             if (stage == null) {
                 System.out.println("Error: Could not determine the active stage.");
@@ -156,5 +148,4 @@ public class AddCoachController {
             e.printStackTrace();
         }
     }
-
 }

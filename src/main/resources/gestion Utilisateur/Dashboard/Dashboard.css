@@ -1,0 +1,172 @@
+.root {
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+    -fx-background-color: #f4f6f9;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    -fx-background-color: #2c3e50;
+    -fx-padding: 0;
+}
+
+.sidebar-title {
+    -fx-text-fill: white;
+    -fx-font-size: 24px;
+    -fx-padding: 0 0 20 0;
+}
+
+.nav-menu {
+    -fx-padding: 10 0;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-background-color: #34495e;
+}
+
+/* Main Content Styles */
+.main-content {
+    -fx-background-color: #f4f6f9;
+}
+
+.content-header {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 4, 0, 0, 0);
+}
+
+.header-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.content-scroll {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+}
+
+.content-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.content-container {
+    -fx-background-color: transparent;
+}
+
+/* User Card Styles */
+.user-card {
+    -fx-background-color: white;
+    -fx-background-radius: 5;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);
+    -fx-padding: 15;
+    -fx-pref-width: 300;
+}
+
+.user-card:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 10, 0, 0, 0);
+}
+
+.user-card .title {
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+}
+
+.user-card .info {
+    -fx-font-size: 14;
+    -fx-text-fill: #7f8c8d;
+}
+
+/* Pagination Styles */
+.pagination-container {
+    -fx-padding: 20 0;
+}
+
+.pagination-button {
+    -fx-background-color: #3498db;
+    -fx-text-fill: white;
+    -fx-min-width: 100;
+    -fx-cursor: hand;
+}
+
+.pagination-button:hover {
+    -fx-background-color: #2980b9;
+}
+
+.pagination-button:disabled {
+    -fx-opacity: 0.5;
+}
+
+.page-label {
+    -fx-font-size: 14;
+    -fx-padding: 5 10;
+}
+
+/* Ban Dialog Styles */
+.ban-dialog {
+    -fx-background-color: white;
+    -fx-background-radius: 5;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 10, 0, 0, 0);
+    -fx-min-width: 300;
+    -fx-spacing: 15;
+}
+
+.dialog-title {
+    -fx-font-size: 18;
+    -fx-font-weight: bold;
+}
+
+.dialog-buttons {
+    -fx-padding: 10 0 0 0;
+}
+
+.confirm-button {
+    -fx-background-color: #e74c3c;
+    -fx-text-fill: white;
+    -fx-min-width: 80;
+}
+
+.confirm-button:hover {
+    -fx-background-color: #c0392b;
+}
+
+.cancel-button {
+    -fx-background-color: #95a5a6;
+    -fx-text-fill: white;
+    -fx-min-width: 80;
+}
+
+.cancel-button:hover {
+    -fx-background-color: #7f8c8d;
+}
+
+/* ComboBox Styles */
+.combo-box {
+    -fx-pref-width: 200;
+    -fx-background-color: white;
+    -fx-border-color: #bdc3c7;
+    -fx-border-radius: 3;
+}
+
+.combo-box:hover {
+    -fx-border-color: #3498db;
+}
+
+.combo-box .list-cell {
+    -fx-padding: 5 10;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: white;
+    -fx-border-color: #bdc3c7;
+}
+
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: #ecf0f1;
+}
