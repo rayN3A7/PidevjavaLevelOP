@@ -112,7 +112,7 @@ public class EmailService {
                     "</div>" +
                     "</body>" +
                     "</html>";
-            }
+        }
         return "";
     }
     public static void sendEmailWithTemplate(String recipientEmail, String subject, Evenement event, CategorieEvService ces) {

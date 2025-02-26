@@ -18,7 +18,10 @@
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="tn.esprit.Controllers.HomeController">
 
-    <GridPane prefHeight="441.0" prefWidth="767.0" maxWidth="Infinity" maxHeight="Infinity">
+    <GridPane prefHeight="441.0" prefWidth="767.0" maxWidth="Infinity" maxHeight="Infinity"
+              style="-fx-background-color: linear-gradient(to bottom, rgba(30, 30, 46, 0.7), rgba(42, 44, 62, 0.7));
+"
+              styleClass="gradient-background">
         <children>
 
             <!-- Header -->

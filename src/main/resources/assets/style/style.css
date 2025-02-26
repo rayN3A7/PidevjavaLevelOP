@@ -828,3 +828,6 @@
 .secondary-button:hover {
     -fx-background-color: #5A6268;
 }
+.gradient-overlay {
+    -fx-background-color: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.8));
+}

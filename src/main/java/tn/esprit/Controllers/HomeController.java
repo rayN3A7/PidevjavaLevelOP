@@ -7,6 +7,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -16,6 +17,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.json.JSONObject;
+import tn.esprit.utils.SessionManager;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -23,9 +25,11 @@ import java.net.URL;
 
 public class HomeController {
     private final Dotenv dotenv = Dotenv.configure().load();
+    boolean isConnected = SessionManager.getInstance().isLoggedIn();
 
     @FXML
     private void openChatbotDialog() {
+        if(isConnected){
         // Créer une nouvelle fenêtre (Stage)
         Stage chatbotStage = new Stage();
         chatbotStage.setTitle("Chatbot LevelOP");
@@ -69,8 +73,12 @@ public class HomeController {
         chatbotLayout.getChildren().addAll(chatArea, userInput, buttonBox);
         Scene scene = new Scene(chatbotLayout, 400, 400);
         chatbotStage.setScene(scene);
-        chatbotStage.show();
+        chatbotStage.show();}
+        else{
+            showAlert(Alert.AlertType.INFORMATION, "Information", "Vous devez être connecté pour accéder au chatbot");
+        }
     }
+
     private void animateText(TextArea textArea, String text) {
         final StringBuilder displayedText = new StringBuilder(textArea.getText()); // Garde le texte existant
         Timeline timeline = new Timeline();
@@ -85,6 +93,12 @@ public class HomeController {
         }
 
         timeline.play();
+    }
+    private void showAlert(Alert.AlertType alertType, String title, String content) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     private String getChatbotResponse(String message) {
