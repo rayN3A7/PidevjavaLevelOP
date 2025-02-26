@@ -35,6 +35,7 @@ public class ShopController {
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
             filterProducts(newValue);
         });
+
     }
 
     private boolean isAdmin() {

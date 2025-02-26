@@ -1,8 +1,11 @@
 package tn.esprit.Controllers.Produit;
 
+import java.net.URI;
+
 import com.stripe.Stripe;
 import com.stripe.model.checkout.Session;
 import com.stripe.param.checkout.SessionCreateParams;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -14,7 +17,6 @@ import tn.esprit.Models.Stock;
 import tn.esprit.Services.CommandeService;
 import tn.esprit.Services.StockService;
 import tn.esprit.utils.SessionManager;
-import java.net.URI;
 
 public class CommandeConfirmationController {
     @FXML private Label productNameLabel;
@@ -46,18 +48,24 @@ public class CommandeConfirmationController {
         productNameLabel.setText(produit.getNomProduit());
         priceLabel.setText(stock.getPrixProduit() + " DNT");
 
-        // Créer une nouvelle commande avec le statut initial
+        // Create a new order with initial status
         createInitialCommande();
     }
 
     private void createInitialCommande() {
         try {
-            currentCommande = new Commande();
-            currentCommande.setUtilisateurId(DEFAULT_USER_ID);
-            currentCommande.setProduitId(produit.getId());
-            currentCommande.setStatus("en cours");
+            if (currentCommande == null) {
+                currentCommande = new Commande();
+                currentCommande.setUtilisateurId(DEFAULT_USER_ID);
+                currentCommande.setProduitId(produit.getId());
+                currentCommande.setStatus("en cours");
 
-            commandeService.add(currentCommande);
+                commandeService.add(currentCommande);
+
+                if (currentCommande.getId() == 0) {
+                    throw new Exception("Failed to create command - no ID was generated");
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la création de la commande: " + e.getMessage());
@@ -77,6 +85,13 @@ public class CommandeConfirmationController {
         }
 
         try {
+            // Update order status to "terminé" before payment
+            updateCommandeStatus("terminé");
+
+            // Update stock quantity
+            stock.setQuantity(stock.getQuantity() - 1);
+            stockService.update(stock);
+
             // Create a Stripe Checkout Session
             Stripe.apiKey = "sk_test_51QvMH5PNauIHPjoTTov10mAdNwhbSH0ycAHTkArf2taZUSP5rtsMNxgyehsKnq4dfoazZz1nXkGNrQQn4uzSxZBt00pANi7uFX";
 
@@ -87,7 +102,7 @@ public class CommandeConfirmationController {
                     .addLineItem(SessionCreateParams.LineItem.builder()
                             .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
                                     .setCurrency("usd")
-                                    .setUnitAmount((long) (stock.getPrixProduit() * 100)) // Convert to cents
+                                    .setUnitAmount((long) (stock.getPrixProduit() * 100))
                                     .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
                                             .setName(produit.getNomProduit())
                                             .build())
@@ -98,19 +113,16 @@ public class CommandeConfirmationController {
 
             Session session = Session.create(params);
 
-            // Open the Stripe Checkout page in the default browser
+            // Open payment page in browser
             java.awt.Desktop.getDesktop().browse(new URI(session.getUrl()));
-
-            // Update order status to pending payment
-            currentCommande.setStatus("pending_payment");
-            commandeService.update(currentCommande);
 
             validateClicked = true;
             dialogStage.close();
+
         } catch (Exception e) {
             e.printStackTrace();
             updateCommandeStatus("annulé");
-            showAlert(AlertType.ERROR, "Erreur", "Une erreur est survenue lors de la création du paiement: " + e.getMessage());
+            showAlert(AlertType.ERROR, "Erreur", "Erreur lors du paiement: " + e.getMessage());
         }
     }
 
@@ -121,19 +133,14 @@ public class CommandeConfirmationController {
     }
 
     private void updateCommandeStatus(String status) {
-        try {
-            if (currentCommande != null) {
-                currentCommande.setStatus(status);
-                commandeService.update(currentCommande);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la mise à jour du statut de la commande: " + e.getMessage());
+        if (currentCommande != null) {
+            currentCommande.setStatus(status);
+            commandeService.update(currentCommande);
         }
     }
 
-    private void showAlert(AlertType type, String title, String content) {
-        Alert alert = new Alert(type);
+    private void showAlert(AlertType alertType, String title, String content) {
+        Alert alert = new Alert(alertType);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(content);

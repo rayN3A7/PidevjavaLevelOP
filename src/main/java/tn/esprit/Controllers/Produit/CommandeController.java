@@ -26,8 +26,6 @@ import tn.esprit.utils.SessionManager;
 public class CommandeController {
     @FXML private VBox commandeContainer;
     @FXML private TextField searchField;
-    @FXML private TextField txtId;
-    @FXML private TextField txtUtilisateur;
     @FXML private TextField txtProduit;
     @FXML private TextField txtStatus;
     @FXML private VBox editForm;
@@ -68,41 +66,29 @@ public class CommandeController {
         gridPane.setHgap(10);
         gridPane.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
+        // Updated column constraints for better layout
         ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(10);
+        col1.setPercentWidth(40); // Product name column
         ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(20);
+        col2.setPercentWidth(30); // Status column
         ColumnConstraints col3 = new ColumnConstraints();
-        col3.setPercentWidth(20);
-        ColumnConstraints col4 = new ColumnConstraints();
-        col4.setPercentWidth(15);
-        ColumnConstraints col5 = new ColumnConstraints();
-        col5.setPercentWidth(15);
-        ColumnConstraints col6 = new ColumnConstraints();
-        col6.setPercentWidth(20);
+        col3.setPercentWidth(30); // Actions column
 
-        gridPane.getColumnConstraints().addAll(col1, col2, col3, col4, col5, col6);
+        gridPane.getColumnConstraints().addAll(col1, col2, col3);
 
-        Label idLabel = new Label(String.valueOf(commande.getId()));
-        idLabel.getStyleClass().addAll("info-value", "cell");
-        idLabel.setMaxWidth(Double.MAX_VALUE);
-
-        Label userLabel = new Label(String.valueOf(commande.getUtilisateurId()));
-        userLabel.getStyleClass().addAll("info-value", "cell");
-        userLabel.setMaxWidth(Double.MAX_VALUE);
-        userLabel.setWrapText(true);
-
+        // Get product name and create label
         Produit produit = produitService.getOne(commande.getProduitId());
         Label produitLabel = new Label(produit != null ? produit.getNomProduit() : "N/A");
         produitLabel.getStyleClass().addAll("info-value", "cell");
         produitLabel.setMaxWidth(Double.MAX_VALUE);
         produitLabel.setWrapText(true);
 
+        // Status label
         Label statusLabel = new Label(commande.getStatus());
         statusLabel.getStyleClass().addAll("info-value", "cell");
         statusLabel.setMaxWidth(Double.MAX_VALUE);
 
-
+        // Action buttons
         Button editButton = new Button("Modifier");
         editButton.getStyleClass().add("buy-now-button");
         editButton.setOnAction(event -> updateCommande(commande));
@@ -115,11 +101,10 @@ public class CommandeController {
         actionsBox.getStyleClass().add("action-buttons");
         actionsBox.setAlignment(javafx.geometry.Pos.CENTER);
 
-        gridPane.add(idLabel, 0, 0);
-        gridPane.add(userLabel, 1, 0);
-        gridPane.add(produitLabel, 2, 0);
-        gridPane.add(statusLabel, 3, 0);
-        gridPane.add(actionsBox, 5, 0);
+        // Add components to grid
+        gridPane.add(produitLabel, 0, 0);
+        gridPane.add(statusLabel, 1, 0);
+        gridPane.add(actionsBox, 2, 0);
 
         gridPane.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(gridPane, javafx.scene.layout.Priority.ALWAYS);
@@ -135,9 +120,7 @@ public class CommandeController {
 
         for (Commande commande : commandes) {
             Produit produit = produitService.getOne(commande.getProduitId());
-            if (String.valueOf(commande.getId()).contains(searchText) ||
-                    String.valueOf(commande.getUtilisateurId()).contains(searchText) ||
-                    (produit != null && produit.getNomProduit().toLowerCase().contains(searchText)) ||
+            if ((produit != null && produit.getNomProduit().toLowerCase().contains(searchText)) ||
                     commande.getStatus().toLowerCase().contains(searchText)) {
                 commandeContainer.getChildren().add(createCommandeRow(commande));
             }
@@ -147,8 +130,7 @@ public class CommandeController {
     @FXML
     public void updateCommande(Commande commande) {
         this.selectedCommande = commande;
-        txtId.setText(String.valueOf(commande.getId()));
-        txtUtilisateur.setText(String.valueOf(commande.getUtilisateurId()));
+        // ID and user fields removed
 
         Produit produit = produitService.getOne(commande.getProduitId());
         txtProduit.setText(produit != null ? produit.getNomProduit() : "");
@@ -200,9 +182,8 @@ public class CommandeController {
     }
     @FXML
     private void ButtonAjouterCommande() {
-        selectedCommande = null; //
+        selectedCommande = null;
         clearFields();
-        txtUtilisateur.setText(String.valueOf(DEFAULT_USER_ID));
         editForm.setVisible(true);
     }
 
@@ -221,11 +202,8 @@ public class CommandeController {
     }
 
     private void clearFields() {
-        txtId.clear();
-        txtUtilisateur.clear();
         txtProduit.clear();
         txtStatus.clear();
-
     }
 
     private boolean validateForm() {

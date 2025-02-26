@@ -80,21 +80,23 @@
 
                             <!-- System Specifications -->
                             <VBox spacing="10" styleClass="specs-section">
-                                <Label styleClass="section-title" text="System Specifications" />
+                                <Label styleClass="section-title" text="specification du system" />
                                 <VBox spacing="5" styleClass="specs-info">
-                                    <Label fx:id="cpuLabel" styleClass="spec-item" text="CPU: Detecting..." />
-                                    <Label fx:id="gpuLabel" styleClass="spec-item" text="GPU: Detecting..." />
-                                    <Label fx:id="ramLabel" styleClass="spec-item" text="RAM: Detecting..." />
-                                    <Label fx:id="osLabel" styleClass="spec-item" text="OS: Detecting..." />
+                                    <Label fx:id="cpuLabel" styleClass="spec-item" text="CPU: " />
+                                    <Label fx:id="gpuLabel" styleClass="spec-item" text="GPU: " />
+                                    <Label fx:id="ramLabel" styleClass="spec-item" text="RAM: " />
+                                    <Label fx:id="osLabel" styleClass="spec-item" text="OS: " />
                                 </VBox>
                             </VBox>
 
                             <!-- FPS Estimation -->
                             <VBox spacing="10" styleClass="fps-section">
-                                <Label styleClass="section-title" text="Performance Estimation" />
+                                <Label styleClass="section-title" text="Estimation du performance (Hardware-Based)" />
                                 <VBox spacing="5" styleClass="fps-info">
-                                    <Label fx:id="estimatedFpsLabel" styleClass="fps-value" text="Estimating..." />
-                                    <Label fx:id="fpsDetailsLabel" styleClass="fps-details" text="Analyzing system compatibility..." />
+                                    <Label fx:id="estimatedFpsLabelLow" styleClass="fps-value" text="Paramètres faibles : Estimation en cours..." />
+                                    <Label fx:id="estimatedFpsLabelMedium" styleClass="fps-value" text="Paramètres élevés : Estimation en cours..." />
+                                    <Label fx:id="estimatedFpsLabelHigh" styleClass="fps-value" text="Paramètres élevés : Estimation en cours..." />
+                                    <Label fx:id="fpsDetailsLabel" styleClass="fps-details" text="Analyse des performances du système basée sur le matériel détecté..." />
                                 </VBox>
                             </VBox>
 

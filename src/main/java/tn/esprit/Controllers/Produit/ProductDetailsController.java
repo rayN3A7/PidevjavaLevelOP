@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.github.cdimascio.dotenv.Dotenv;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
@@ -58,7 +59,9 @@ public class ProductDetailsController {
     @FXML private Label osLabel;
 
     // FPS estimation fields
-    @FXML private Label estimatedFpsLabel;
+    @FXML private Label estimatedFpsLabelLow;
+    @FXML private Label estimatedFpsLabelMedium;
+    @FXML private Label estimatedFpsLabelHigh;
     @FXML private Label fpsDetailsLabel;
     private final Dotenv dotenv = Dotenv.configure().load();
     private List<Image> productImages = new ArrayList<>();
@@ -91,7 +94,7 @@ public class ProductDetailsController {
                 platformLabel == null || regionLabel == null || typeLabel == null || activationRegionLabel == null ||
                 carouselImages == null || imagePreviewOverlay == null || previewImage == null ||
                 cpuLabel == null || gpuLabel == null || ramLabel == null || osLabel == null ||
-                estimatedFpsLabel == null || fpsDetailsLabel == null) {
+                estimatedFpsLabelLow == null || estimatedFpsLabelMedium == null || estimatedFpsLabelHigh == null || fpsDetailsLabel == null) {
             System.err.println("ERROR: FXML injection failed! Check fx:id in product-details.fxml");
             showAlert(Alert.AlertType.ERROR, "Error", "FXML injection failed. Check the FXML file for missing or mismatched fx:id values.");
             return;
@@ -154,20 +157,52 @@ public class ProductDetailsController {
             if (gameName == null || gameName.trim().isEmpty()) {
                 throw new Exception("No game selected for FPS estimation");
             }
-            String prompt = String.format("Estimate the expected FPS (Frames Per Second) performance for the game: %s, with the following system specifications: %s. Provide only a numeric FPS value (e.g., 60, 45, 30) without any additional text or explanation.", gameName, systemSpecs);
+
+            // Create a more detailed prompt that requests FPS estimates for different graphics settings
+            String prompt = String.format(
+                    "Estimate the expected FPS (Frames Per Second) for the game '%s' on the following hardware configuration: %s. " +
+                            "Assume that anti-aliasing is completely disabled. " +
+                            "Consider CPU, GPU, RAM, and other relevant hardware aspects when making your estimation and also consider UserbenchMark and can i Run it websites . " +
+                            "Provide three FPS values corresponding to Low, Medium, and High graphics settings, strictly in the format: low,medium,high.",
+                    gameName, systemSpecs);
+
+
             String fpsResponse = callOpenAIApi(prompt);
-            System.out.println("OpenAI FPS Response: " + fpsResponse);
-            int estimatedFps = parseFpsResponse(fpsResponse);
-            if (estimatedFpsLabel != null) {
-                estimatedFpsLabel.setText(String.format("Estimated FPS: %d", estimatedFps));
+            System.out.println("Estimateur de fps LevelOp " + fpsResponse);
+
+            // Parse the comma-separated response
+            String[] fpsValues = fpsResponse.split(",");
+            if (fpsValues.length != 3) {
+                throw new Exception("Invalid FPS response format");
+            }
+
+            int lowFps = Integer.parseInt(fpsValues[0].trim());
+            int mediumFps = Integer.parseInt(fpsValues[1].trim());
+            int highFps = Integer.parseInt(fpsValues[2].trim());
+
+            // Update the UI labels with the different FPS values
+            if (estimatedFpsLabelLow != null) {
+                estimatedFpsLabelLow.setText(String.format("Low Settings: %d FPS", lowFps));
+            }
+            if (estimatedFpsLabelMedium != null) {
+                estimatedFpsLabelMedium.setText(String.format("Medium Settings: %d FPS", mediumFps));
+            }
+            if (estimatedFpsLabelHigh != null) {
+                estimatedFpsLabelHigh.setText(String.format("High Settings: %d FPS", highFps));
             }
             if (fpsDetailsLabel != null) {
-                fpsDetailsLabel.setText("Based on OpenAI estimation and your system specifications");
+                fpsDetailsLabel.setText("Basant sur les estimations DE LevelOp AI ");
             }
         } catch (Exception e) {
             System.err.println("Error estimating FPS: " + e.getMessage());
-            if (estimatedFpsLabel != null) {
-                estimatedFpsLabel.setText("FPS estimation unavailable");
+            if (estimatedFpsLabelLow != null) {
+                estimatedFpsLabelLow.setText("Low Settings: Unavailable");
+            }
+            if (estimatedFpsLabelMedium != null) {
+                estimatedFpsLabelMedium.setText("Medium Settings: Unavailable");
+            }
+            if (estimatedFpsLabelHigh != null) {
+                estimatedFpsLabelHigh.setText("High Settings: Unavailable");
             }
             if (fpsDetailsLabel != null) {
                 fpsDetailsLabel.setText("Could not analyze system specifications or game: " + e.getMessage());
