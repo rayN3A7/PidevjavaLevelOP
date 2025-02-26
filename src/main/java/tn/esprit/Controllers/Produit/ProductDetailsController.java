@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.github.cdimascio.dotenv.Dotenv;
 import javafx.animation.FadeTransition;
 import javafx.animation.ScaleTransition;
 import javafx.fxml.FXML;
@@ -11,7 +13,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -23,9 +24,17 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import tn.esprit.Models.Produit;
 import tn.esprit.Models.Stock;
+import tn.esprit.Services.HardwareSpecs;
+import tn.esprit.Services.ProduitService;
 import tn.esprit.Services.StockService;
+
 
 public class ProductDetailsController {
     @FXML private Label productName;
@@ -42,12 +51,30 @@ public class ProductDetailsController {
     @FXML private Label typeLabel;
     @FXML private Label activationRegionLabel;
 
+    // System specs fields
+    @FXML private Label cpuLabel;
+    @FXML private Label gpuLabel;
+    @FXML private Label ramLabel;
+    @FXML private Label osLabel;
+
+    // FPS estimation fields
+    @FXML private Label estimatedFpsLabel;
+    @FXML private Label fpsDetailsLabel;
+    private final Dotenv dotenv = Dotenv.configure().load();
     private List<Image> productImages = new ArrayList<>();
     private List<ImageView> thumbnails = new ArrayList<>();
     private int currentImageIndex = 0;
     private StockService stockService;
     private Stock currentStock;
     private Produit currentProduct;
+    private ProduitService produitService = new ProduitService();
+
+    // OpenAI API configuration
+    private  String OPENAI_API_KEY = dotenv.get("OPENAI_API_KEY");
+    private  String OPENAI_API_URL = dotenv.get("OPENAI_API_URL");
+    private static final String OPENAI_MODEL = "gpt-3.5-turbo";
+    private final OkHttpClient client = new OkHttpClient();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @FXML
     public void initialize() {
@@ -56,70 +83,166 @@ public class ProductDetailsController {
             imagePreviewOverlay.setVisible(false);
             imagePreviewOverlay.setOnMouseClicked(event -> hideImagePreview());
         }
+        updateSystemSpecs();
     }
 
     public void setProductData(Produit product, Stock stock) {
-        // Debug: Check if FXML fields are injected
-        if (productName == null || productPrice == null || productImage == null ||
-                productDescription == null || platformLabel == null || regionLabel == null ||
-                typeLabel == null || activationRegionLabel == null || carouselImages == null ||
-                imagePreviewOverlay == null || previewImage == null) {
+        if (productName == null || productPrice == null || productImage == null || productDescription == null ||
+                platformLabel == null || regionLabel == null || typeLabel == null || activationRegionLabel == null ||
+                carouselImages == null || imagePreviewOverlay == null || previewImage == null ||
+                cpuLabel == null || gpuLabel == null || ramLabel == null || osLabel == null ||
+                estimatedFpsLabel == null || fpsDetailsLabel == null) {
             System.err.println("ERROR: FXML injection failed! Check fx:id in product-details.fxml");
+            showAlert(Alert.AlertType.ERROR, "Error", "FXML injection failed. Check the FXML file for missing or mismatched fx:id values.");
             return;
         }
-
         this.currentStock = stock;
         this.currentProduct = product;
-
-        // Set basic product info
-        productName.setText(product.getNomProduit());
-        productPrice.setText(stock != null ? stock.getPrixProduit() + " DNT" : "N/A");
-        productDescription.setText(product.getDescription());
-
-        // Set platform info
+        productName.setText(product.getNomProduit() != null ? product.getNomProduit() : "N/A");
+        productPrice.setText(stock != null && stock.getPrixProduit() > 0 ? stock.getPrixProduit() + " DNT" : "N/A");
+        productDescription.setText(product.getDescription() != null ? product.getDescription() : "No description available");
         platformLabel.setText(product.getPlatform() != null ? product.getPlatform() : "Non disponible");
         regionLabel.setText(product.getRegion() != null ? product.getRegion() : "Mondial");
         typeLabel.setText(product.getType() != null ? product.getType() : "Clé numérique");
-        activationRegionLabel.setText(product.getActivation_region() != null ?
-                product.getActivation_region() : "Aucune restriction");
-
-        // Load images for carousel
-        if (stock != null && stock.getImage() != null) {
+        activationRegionLabel.setText(product.getActivation_region() != null ? product.getActivation_region() : "Aucune restriction");
+        if (stock != null && stock.getImage() != null && !stock.getImage().isEmpty()) {
             loadProductImages(stock.getImage());
         } else {
             loadDefaultImage();
         }
+        updateSystemSpecs();
+    }
+
+    private void updateSystemSpecs() {
+        try {
+            String specsJson = HardwareSpecs.getHardwareSpecs();
+            String cpu = "Unknown";
+            String ram = "Unknown";
+            String gpu = "Unknown";
+            String[] parts = specsJson.split(",");
+            for (String part : parts) {
+                if (part.contains("\"cpu\"")) {
+                    cpu = part.split(":")[1].replace("\"", "").trim();
+                } else if (part.contains("\"ram\"")) {
+                    ram = part.split(":")[1].replace("\"", "").trim();
+                } else if (part.contains("\"gpu\"")) {
+                    gpu = part.split(":")[1].replace("\"", "").trim();
+                }
+            }
+            if (specsJson.contains("\"error\"")) {
+                throw new Exception("Hardware specs retrieval failed: " + specsJson);
+            }
+            System.out.println("Raw Hardware Specs: CPU=" + cpu + ", RAM=" + ram + ", GPU=" + gpu);
+            if (cpuLabel != null) cpuLabel.setText("CPU: " + cpu);
+            if (gpuLabel != null) gpuLabel.setText("GPU: " + gpu);
+            if (ramLabel != null) ramLabel.setText("RAM: " + ram);
+            if (osLabel != null) osLabel.setText("OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch"));
+            if (currentProduct != null) {
+                estimateFPS(cpu, ram, gpu);
+            }
+        } catch (Exception e) {
+            System.err.println("Error updating system specs: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to update system specifications: " + e.getMessage());
+        }
+    }
+
+    private void estimateFPS(String cpu, String ram, String gpu) {
+        try {
+            String systemSpecs = String.format("OS: %s %s, CPU: %s, RAM: %s, GPU: %s",
+                    System.getProperty("os.name"), System.getProperty("os.arch"), cpu, ram, gpu);
+            String gameName = currentProduct.getNomProduit();
+            if (gameName == null || gameName.trim().isEmpty()) {
+                throw new Exception("No game selected for FPS estimation");
+            }
+            String prompt = String.format("Estimate the expected FPS (Frames Per Second) performance for the game: %s, with the following system specifications: %s. Provide only a numeric FPS value (e.g., 60, 45, 30) without any additional text or explanation.", gameName, systemSpecs);
+            String fpsResponse = callOpenAIApi(prompt);
+            System.out.println("OpenAI FPS Response: " + fpsResponse);
+            int estimatedFps = parseFpsResponse(fpsResponse);
+            if (estimatedFpsLabel != null) {
+                estimatedFpsLabel.setText(String.format("Estimated FPS: %d", estimatedFps));
+            }
+            if (fpsDetailsLabel != null) {
+                fpsDetailsLabel.setText("Based on OpenAI estimation and your system specifications");
+            }
+        } catch (Exception e) {
+            System.err.println("Error estimating FPS: " + e.getMessage());
+            if (estimatedFpsLabel != null) {
+                estimatedFpsLabel.setText("FPS estimation unavailable");
+            }
+            if (fpsDetailsLabel != null) {
+                fpsDetailsLabel.setText("Could not analyze system specifications or game: " + e.getMessage());
+            }
+        }
+    }
+
+    private String callOpenAIApi(String prompt) throws IOException {
+        String requestBodyJson = String.format(
+                "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a gaming performance expert. Provide FPS estimates as a single number only.\"},{\"role\":\"user\",\"content\":\"%s\"}]}",
+                OPENAI_MODEL,
+                prompt.replace("\"", "\\\"")
+        );
+
+        RequestBody body = RequestBody.create(requestBodyJson, MediaType.parse("application/json"));
+        Request request = new Request.Builder()
+                .url(OPENAI_API_URL)
+                .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", "Bearer " + OPENAI_API_KEY)
+                .post(body)
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                String responseBodyString = response.body().string();
+                System.err.println("OpenAI API request failed: " + response.code() + " - " + responseBodyString);
+                throw new IOException("OpenAI API request failed: " + response.code());
+            }
+            String responseBody = response.body().string();
+            return parseOpenAIResponse(responseBody);
+        }
+    }
+
+    private String parseOpenAIResponse(String responseBody) throws IOException {
+        try {
+            return objectMapper.readTree(responseBody)
+                    .path("choices").get(0)
+                    .path("message")
+                    .path("content")
+                    .asText().trim();
+        } catch (Exception e) {
+            throw new IOException("Failed to parse OpenAI API response: " + e.getMessage());
+        }
+    }
+
+    private int parseFpsResponse(String fpsResponse) {
+        try {
+            return Integer.parseInt(fpsResponse);
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid FPS response from OpenAI: " + fpsResponse);
+            return 30; // Default fallback FPS
+        }
     }
 
     private void loadProductImages(String mainImagePath) {
-        // Clear existing images
         productImages.clear();
         thumbnails.clear();
         carouselImages.getChildren().clear();
-
-        // Add main product image
         String basePath = "/assets/image/";
         try {
-            // Load main image
             Image mainImage = new Image(getClass().getResourceAsStream(basePath + mainImagePath));
             if (!mainImage.isError()) {
                 productImages.add(mainImage);
                 productImage.setImage(mainImage);
-
-                // Create thumbnail
                 ImageView thumbnail = new ImageView(mainImage);
                 thumbnail.setFitHeight(80);
                 thumbnail.setFitWidth(80);
                 thumbnail.setPreserveRatio(true);
                 thumbnail.getStyleClass().add("carousel-thumbnail");
                 thumbnail.getStyleClass().add("selected");
-
                 final int index = thumbnails.size();
                 thumbnail.setOnMouseClicked(e -> {
                     selectImage(index);
                     showImagePreview(productImages.get(index));
                 });
-
                 thumbnails.add(thumbnail);
                 carouselImages.getChildren().add(thumbnail);
             } else {
@@ -135,19 +258,15 @@ public class ProductDetailsController {
         try {
             Image defaultImage = new Image(getClass().getResourceAsStream("/assets/images/default-product.png"));
             productImage.setImage(defaultImage);
-            
-            // Add to carousel
             ImageView thumbnail = new ImageView(defaultImage);
             thumbnail.setFitHeight(80);
             thumbnail.setFitWidth(80);
             thumbnail.setPreserveRatio(true);
             thumbnail.getStyleClass().add("carousel-thumbnail");
             thumbnail.getStyleClass().add("selected");
-            
             productImages.clear();
             thumbnails.clear();
             carouselImages.getChildren().clear();
-            
             productImages.add(defaultImage);
             thumbnails.add(thumbnail);
             carouselImages.getChildren().add(thumbnail);
@@ -162,14 +281,11 @@ public class ProductDetailsController {
         imagePreviewOverlay.setOpacity(0);
         imagePreviewOverlay.setScaleX(0.9);
         imagePreviewOverlay.setScaleY(0.9);
-
         FadeTransition fadeIn = new FadeTransition(Duration.millis(200), imagePreviewOverlay);
         fadeIn.setToValue(1);
-
         ScaleTransition scaleIn = new ScaleTransition(Duration.millis(200), imagePreviewOverlay);
         scaleIn.setToX(1);
         scaleIn.setToY(1);
-
         fadeIn.play();
         scaleIn.play();
     }
@@ -178,26 +294,20 @@ public class ProductDetailsController {
         FadeTransition fadeOut = new FadeTransition(Duration.millis(200), imagePreviewOverlay);
         fadeOut.setFromValue(1);
         fadeOut.setToValue(0);
-
         ScaleTransition scaleOut = new ScaleTransition(Duration.millis(200), imagePreviewOverlay);
         scaleOut.setFromX(1);
         scaleOut.setFromY(1);
         scaleOut.setToX(0.9);
         scaleOut.setToY(0.9);
-
         fadeOut.setOnFinished(e -> imagePreviewOverlay.setVisible(false));
-
         fadeOut.play();
         scaleOut.play();
     }
 
     private void selectImage(int index) {
         if (index >= 0 && index < productImages.size()) {
-            // Update main image
             productImage.setImage(productImages.get(index));
             currentImageIndex = index;
-
-            // Update thumbnail selection
             for (int i = 0; i < thumbnails.size(); i++) {
                 ImageView thumbnail = thumbnails.get(i);
                 if (i == index) {
@@ -231,63 +341,54 @@ public class ProductDetailsController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/shop-page.fxml"));
             ScrollPane shopContent = loader.load();
-
-            // Update the center of the BorderPane
             BorderPane root = (BorderPane) productImage.getScene().getRoot();
             root.setCenter(shopContent);
         } catch (IOException e) {
             System.err.println("Erreur lors du chargement de shop-page.fxml: " + e.getMessage());
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors du retour à la boutique: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Erreur lors du retour à la boutique: " + e.getMessage());
         }
     }
 
     @FXML
     private void handleBuyNow() {
         try {
-            // Check if stock exists and has quantity
             if (currentStock == null) {
-                showAlert(AlertType.ERROR, "Erreur", "Ce produit n'est pas disponible en stock.");
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Ce produit n'est pas disponible en stock.");
                 return;
             }
-            
             if (currentStock.getQuantity() <= 0) {
-                showAlert(AlertType.ERROR, "Erreur", "Ce produit est en rupture de stock.");
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Ce produit est en rupture de stock.");
                 return;
             }
 
-            // Load the confirmation dialog
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/commande-confirmation.fxml"));
             Parent confirmationDialog = loader.load();
 
-            // Create and configure the dialog stage
             Stage dialogStage = new Stage();
-            dialogStage.setTitle("Ajouter au panier");
+            dialogStage.setTitle("Valider commande");
             dialogStage.initModality(Modality.WINDOW_MODAL);
             dialogStage.initOwner(productImage.getScene().getWindow());
-            
-            Scene scene = new Scene(confirmationDialog);
-            dialogStage.setScene(scene);
+            dialogStage.setScene(new Scene(confirmationDialog));
 
-            // Get the controller and set the data
             CommandeConfirmationController controller = loader.getController();
+            if (controller == null) {
+                throw new IOException("Failed to get CommandeConfirmationController");
+            }
             controller.setDialogStage(dialogStage);
             controller.setData(currentProduct, currentStock);
 
-            // Show the dialog and wait for user response
             dialogStage.showAndWait();
 
-            // If user validated the commande, refresh the product details
             if (controller.isValidateClicked()) {
-                // Refresh stock information
                 currentStock = stockService.getByProduitId(currentProduct.getId());
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Une erreur est survenue lors de l'ouverture de la fenêtre de confirmation: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Une erreur inattendue est survenue: " + e.getMessage());
         }
     }
 
-    private void showAlert(AlertType type, String title, String content) {
+    private void showAlert(Alert.AlertType type, String title, String content) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null);

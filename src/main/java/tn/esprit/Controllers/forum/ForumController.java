@@ -131,12 +131,12 @@ public class ForumController implements Initializable {
 
 
         Platform.runLater(() -> {
+            votesLabel.setText("Votes: " + updatedVotes);
             UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(question.getUser().getId());
             if (change.isChanged()) {
                 showPrivilegeAlert(change);
                 refreshQuestions();
             }
-            votesLabel.setText("Votes: " + updatedVotes);
             if (updatedVotes > 0) {
                 downvoteButton.setDisable(false);
             }
@@ -150,13 +150,13 @@ public class ForumController implements Initializable {
             question.setVotes(updatedVotes);
 
             Platform.runLater(() -> {
+                votesLabel.setText("Votes: " + updatedVotes);
+                downvoteButton.setDisable(updatedVotes == 0);
                 UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(question.getUser().getId());
                 if (change.isChanged()) {
                     showPrivilegeAlert(change);
                     refreshQuestions();
                 }
-                votesLabel.setText("Votes: " + updatedVotes);
-                downvoteButton.setDisable(updatedVotes == 0);
             });
         }
     }

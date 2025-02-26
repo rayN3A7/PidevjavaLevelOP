@@ -51,6 +51,11 @@ public class ProduitController {
         } else {
             System.err.println("Warning: editForm is null. Check if fx:id is properly set in FXML.");
         }
+
+        // Add listener to search field
+        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            searchProducts(newValue);
+        });
     }
 
     private void loadProducts() {
@@ -94,21 +99,21 @@ public class ProduitController {
         Label idLabel = new Label(String.valueOf(produit.getId()));
         idLabel.getStyleClass().addAll("info-value", "cell");
         idLabel.setMaxWidth(Double.MAX_VALUE);
-        
+
         Label nameLabel = new Label(produit.getNomProduit());
         nameLabel.getStyleClass().addAll("info-value", "cell");
         nameLabel.setMaxWidth(Double.MAX_VALUE);
         nameLabel.setWrapText(true);
-        
+
         Label descLabel = new Label(produit.getDescription());
         descLabel.getStyleClass().addAll("info-value", "cell");
         descLabel.setMaxWidth(Double.MAX_VALUE);
         descLabel.setWrapText(true);
-        
+
         Label priceLabel = new Label(stock != null ? stock.getPrixProduit() + " €" : "N/A");
         priceLabel.getStyleClass().addAll("info-value", "cell");
         priceLabel.setMaxWidth(Double.MAX_VALUE);
-        
+
         Label platformLabel = new Label(produit.getPlatform());
         platformLabel.getStyleClass().addAll("info-value", "cell");
         platformLabel.setMaxWidth(Double.MAX_VALUE);
@@ -143,14 +148,29 @@ public class ProduitController {
         return row;
     }
 
+    private void searchProducts(String searchText) {
+        productContainer.getChildren().clear();
+        searchText = searchText.toLowerCase();
+
+        for (Produit produit : produits) {
+            if (produit.getNomProduit().toLowerCase().contains(searchText) ||
+                    produit.getDescription().toLowerCase().contains(searchText)) {
+                Stock stock = stockService.getByProduitId(produit.getId());
+                productContainer.getChildren().add(createProductRow(produit, stock));
+            }
+        }
+    }
+
     @FXML
-    public void searchProducts() {
+    private void searchProducts() {
         String searchText = searchField.getText().toLowerCase();
         productContainer.getChildren().clear();
 
         for (Produit produit : produits) {
             if (produit.getNomProduit().toLowerCase().contains(searchText) ||
-                produit.getDescription().toLowerCase().contains(searchText)) {
+                    produit.getDescription().toLowerCase().contains(searchText) ||
+                    produit.getPlatform().toLowerCase().contains(searchText) ||
+                    produit.getType().toLowerCase().contains(searchText)) {
                 Stock stock = stockService.getByProduitId(produit.getId());
                 productContainer.getChildren().add(createProductRow(produit, stock));
             }
@@ -167,7 +187,7 @@ public class ProduitController {
         txtType.setText(produit.getType());
         txtActivationRegion.setText(produit.getActivation_region());
         txtScore.setText(String.valueOf(produit.getScore()));
-        
+
         editForm.setVisible(true);
     }
 
@@ -181,7 +201,7 @@ public class ProduitController {
             String region = txtRegion.getText().trim();
             String type = txtType.getText().trim();
             String activationRegion = txtActivationRegion.getText().trim();
-            
+
             // Validate required fields
             if (nomProduit.isEmpty() || description.isEmpty() || platform.isEmpty()) {
                 showAlert(AlertType.ERROR, "Erreur", "Veuillez remplir tous les champs obligatoires (nom, description, plateforme).");
@@ -216,22 +236,22 @@ public class ProduitController {
             } else {
                 // Create new product
                 Produit newProduit = new Produit(
-                    0, // ID will be set by database
-                    nomProduit,
-                    description,
-                    platform,
-                    region,
-                    type,
-                    activationRegion,
-                    score
+                        0, // ID will be set by database
+                        nomProduit,
+                        description,
+                        platform,
+                        region,
+                        type,
+                        activationRegion,
+                        score
                 );
-                
+
                 try {
                     produitService.add(newProduit);
                     showAlert(AlertType.INFORMATION, "Succès", "Le nouveau produit a été ajouté avec succès.");
                 } catch (RuntimeException e) {
-                    showAlert(AlertType.ERROR, "Erreur Base de données", 
-                        "Impossible d'ajouter le produit à la base de données. Erreur: " + e.getMessage());
+                    showAlert(AlertType.ERROR, "Erreur Base de données",
+                            "Impossible d'ajouter le produit à la base de données. Erreur: " + e.getMessage());
                     e.printStackTrace();
                     return;
                 }
@@ -277,14 +297,14 @@ public class ProduitController {
                 if (stock != null) {
                     stockService.delete(stock);
                 }
-                
+
                 // Then delete the product
                 produitService.delete(produit);
                 loadProducts();
                 showAlert(AlertType.INFORMATION, "Succès", "Le produit a été supprimé avec succès.");
             } catch (Exception e) {
-                showAlert(AlertType.ERROR, "Erreur", 
-                    "Une erreur est survenue lors de la suppression: " + e.getMessage());
+                showAlert(AlertType.ERROR, "Erreur",
+                        "Une erreur est survenue lors de la suppression: " + e.getMessage());
                 e.printStackTrace();
             }
         }

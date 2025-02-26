@@ -136,9 +136,9 @@ public class CommandeController {
         for (Commande commande : commandes) {
             Produit produit = produitService.getOne(commande.getProduitId());
             if (String.valueOf(commande.getId()).contains(searchText) ||
-                String.valueOf(commande.getUtilisateurId()).contains(searchText) ||
-                (produit != null && produit.getNomProduit().toLowerCase().contains(searchText)) ||
-                commande.getStatus().toLowerCase().contains(searchText)) {
+                    String.valueOf(commande.getUtilisateurId()).contains(searchText) ||
+                    (produit != null && produit.getNomProduit().toLowerCase().contains(searchText)) ||
+                    commande.getStatus().toLowerCase().contains(searchText)) {
                 commandeContainer.getChildren().add(createCommandeRow(commande));
             }
         }
@@ -149,11 +149,11 @@ public class CommandeController {
         this.selectedCommande = commande;
         txtId.setText(String.valueOf(commande.getId()));
         txtUtilisateur.setText(String.valueOf(commande.getUtilisateurId()));
-        
+
         Produit produit = produitService.getOne(commande.getProduitId());
         txtProduit.setText(produit != null ? produit.getNomProduit() : "");
         txtStatus.setText(commande.getStatus());
-        
+
         editForm.setVisible(true);
     }
 
@@ -230,7 +230,7 @@ public class CommandeController {
 
     private boolean validateForm() {
         return !txtProduit.getText().trim().isEmpty() &&
-               !txtStatus.getText().trim().isEmpty();
+                !txtStatus.getText().trim().isEmpty();
     }
 
 
@@ -247,7 +247,7 @@ public class CommandeController {
                 showAlert(AlertType.INFORMATION, "Succès", "La commande a été supprimée avec succès.");
             } catch (Exception e) {
                 showAlert(AlertType.ERROR, "Erreur",
-                    "Une erreur est survenue lors de la suppression: " + e.getMessage());
+                        "Une erreur est survenue lors de la suppression: " + e.getMessage());
                 e.printStackTrace();
             }
         }

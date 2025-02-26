@@ -1,4 +1,4 @@
-18
-CLIENT
-hsouna.sellami1@gmail.com
+6
+ADMIN
+hamzar3kik@gmail.com
 true

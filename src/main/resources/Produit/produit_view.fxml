@@ -6,16 +6,16 @@
 <?import javafx.geometry.*?>
 
 <StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-         fx:controller="tn.esprit.Controllers.Produit.ProduitController"
-         style="-fx-background-color: #091221;">
-    
+           fx:controller="tn.esprit.Controllers.Produit.ProduitController"
+           style="-fx-background-color: #091221;">
+
     <!-- Main Content -->
     <BorderPane stylesheets="@/assets/style/produit.css">
         <!-- Navigation Bar -->
         <top>
             <fx:include source="/forumUI/navbar.fxml"/>
         </top>
-        
+
         <center>
             <ScrollPane fitToWidth="true" styleClass="main-scroll-pane">
                 <VBox spacing="20" style="-fx-background-color: #091221;">
@@ -28,8 +28,8 @@
                         <Region HBox.hgrow="ALWAYS"/>
                         <HBox spacing="10" alignment="CENTER_RIGHT">
                             <TextField fx:id="searchField" promptText="Rechercher un produit..."
-                                    style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white; -fx-prompt-text-fill: gray;"
-                                    onKeyReleased="#searchProducts"/>
+                                       style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white; -fx-prompt-text-fill: gray;"
+                                       onKeyReleased="#searchProducts"/>
                             <Button fx:id="addProductButton" onAction="#ButtonAjouterProduit"
                                     style="-fx-background-color: #fe0369; -fx-text-fill: white;">
                                 <graphic>
@@ -76,37 +76,37 @@
                             </columnConstraints>
 
                             <Label text="Nom:" style="-fx-text-fill: white;" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                            <TextField fx:id="txtNomProduit" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;" 
-                                     GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                            <TextField fx:id="txtNomProduit" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;"
+                                       GridPane.rowIndex="0" GridPane.columnIndex="1"/>
 
                             <Label text="Description:" style="-fx-text-fill: white;" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                            <TextField fx:id="txtDescription" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;" 
-                                     GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                            <TextField fx:id="txtDescription" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;"
+                                       GridPane.rowIndex="1" GridPane.columnIndex="1"/>
 
                             <Label text="Plateforme:" style="-fx-text-fill: white;" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                            <TextField fx:id="txtPlatform" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;" 
-                                     GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                            <TextField fx:id="txtPlatform" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;"
+                                       GridPane.rowIndex="2" GridPane.columnIndex="1"/>
 
                             <Label text="Région:" style="-fx-text-fill: white;" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                            <TextField fx:id="txtRegion" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;" 
-                                     GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+                            <TextField fx:id="txtRegion" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;"
+                                       GridPane.rowIndex="3" GridPane.columnIndex="1"/>
 
                             <Label text="Type:" style="-fx-text-fill: white;" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-                            <TextField fx:id="txtType" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;" 
-                                     GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                            <TextField fx:id="txtType" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;"
+                                       GridPane.rowIndex="4" GridPane.columnIndex="1"/>
 
                             <Label text="Région d'activation:" style="-fx-text-fill: white;" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
-                            <TextField fx:id="txtActivationRegion" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;" 
-                                     GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+                            <TextField fx:id="txtActivationRegion" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;"
+                                       GridPane.rowIndex="5" GridPane.columnIndex="1"/>
 
                             <Label text="Score:" style="-fx-text-fill: white;" GridPane.rowIndex="6" GridPane.columnIndex="0"/>
-                            <TextField fx:id="txtScore" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;" 
-                                     GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+                            <TextField fx:id="txtScore" style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;"
+                                       GridPane.rowIndex="6" GridPane.columnIndex="1"/>
 
                             <HBox spacing="10" alignment="CENTER_RIGHT" GridPane.rowIndex="7" GridPane.columnIndex="1">
-                                <Button text="Sauvegarder" onAction="#saveProductChanges" 
+                                <Button text="Sauvegarder" onAction="#saveProductChanges"
                                         style="-fx-background-color: #fe0369; -fx-text-fill: white;"/>
-                                <Button text="Annuler" onAction="#cancelEdit" 
+                                <Button text="Annuler" onAction="#cancelEdit"
                                         style="-fx-background-color: transparent; -fx-border-color: #fe0369; -fx-text-fill: white; -fx-border-width: 1;"/>
                             </HBox>
                         </GridPane>

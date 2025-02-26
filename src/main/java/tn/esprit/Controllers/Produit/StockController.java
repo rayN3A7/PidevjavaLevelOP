@@ -141,9 +141,9 @@ public class StockController {
         for (Stock stock : stocks) {
             Produit produit = produitService.getOne(stock.getProduitId());
             if (String.valueOf(stock.getId()).contains(searchText) ||
-                (produit != null && produit.getNomProduit().toLowerCase().contains(searchText)) ||
-                String.valueOf(stock.getQuantity()).contains(searchText) ||
-                String.valueOf(stock.getPrixProduit()).contains(searchText)) {
+                    (produit != null && produit.getNomProduit().toLowerCase().contains(searchText)) ||
+                    String.valueOf(stock.getQuantity()).contains(searchText) ||
+                    String.valueOf(stock.getPrixProduit()).contains(searchText)) {
                 stockContainer.getChildren().add(createStockRow(stock));
             }
         }
@@ -157,7 +157,7 @@ public class StockController {
         txtQuantity.setText(String.valueOf(stock.getQuantity()));
         txtPrice.setText(String.valueOf(stock.getPrixProduit()));
         txtImage.setText(stock.getImage());
-        
+
         editForm.setVisible(true);
     }
 
@@ -177,7 +177,7 @@ public class StockController {
                 quantity = Integer.parseInt(txtQuantity.getText().trim());
                 price = Integer.parseInt(txtPrice.getText().trim());
                 productId = Integer.parseInt(txtProduit.getText().trim());
-                
+
                 if (quantity < 0 || price < 0) {
                     showAlert(AlertType.ERROR, "Erreur", "La quantité et le prix doivent être positifs.");
                     return;
@@ -206,14 +206,14 @@ public class StockController {
             } else {
                 // Create new stock
                 Stock newStock = new Stock(
-                    0,
-                    productId,
-                    0,
-                    quantity,
-                    price,
-                    txtImage.getText().trim()
+                        0,
+                        productId,
+                        0,
+                        quantity,
+                        price,
+                        txtImage.getText().trim()
                 );
-                
+
                 stockService.add(newStock);
                 showAlert(AlertType.INFORMATION, "Succès", "Le nouveau stock a été ajouté avec succès.");
             }
@@ -247,7 +247,7 @@ public class StockController {
     public void browseImage() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
         );
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
@@ -268,8 +268,8 @@ public class StockController {
                 loadStocks();
                 showAlert(AlertType.INFORMATION, "Succès", "Le stock a été supprimé avec succès.");
             } catch (Exception e) {
-                showAlert(AlertType.ERROR, "Erreur", 
-                    "Une erreur est survenue lors de la suppression: " + e.getMessage());
+                showAlert(AlertType.ERROR, "Erreur",
+                        "Une erreur est survenue lors de la suppression: " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -285,9 +285,9 @@ public class StockController {
 
     private boolean validateForm() {
         return !txtProduit.getText().trim().isEmpty() &&
-               !txtQuantity.getText().trim().isEmpty() &&
-               !txtPrice.getText().trim().isEmpty() &&
-               !txtImage.getText().trim().isEmpty();
+                !txtQuantity.getText().trim().isEmpty() &&
+                !txtPrice.getText().trim().isEmpty() &&
+                !txtImage.getText().trim().isEmpty();
     }
 
     private void showAlert(AlertType alertType, String title, String content) {
@@ -299,7 +299,7 @@ public class StockController {
     }
 
     @FXML
-    private void navigateToHome() {
+    public void navigateToHome() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
             BorderPane mainView = loader.load();
@@ -312,7 +312,7 @@ public class StockController {
     }
 
     @FXML
-    private void navigateToShop() {
+    public void navigateToShop() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/shop-page.fxml"));
             Parent shopView = loader.load();
@@ -325,7 +325,7 @@ public class StockController {
     }
 
     @FXML
-    private void navigateToOrders() {
+    public void navigateToOrders() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/commandes_view.fxml"));
             Parent ordersView = loader.load();
