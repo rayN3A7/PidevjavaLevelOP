@@ -18,12 +18,16 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import tn.esprit.Services.GamesService;
 import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.ProfanityChecker;
 import tn.esprit.utils.SessionManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class QuestionDetailsController {
 
@@ -43,7 +47,10 @@ public class QuestionDetailsController {
     private UtilisateurService us = new UtilisateurService();
     private CommentaireService commentaireService = new CommentaireService();
     private int userId = SessionManager.getInstance().getUserId();
-    private GamesService gamesService = new GamesService(); // New service instance
+    private GamesService gamesService = new GamesService();
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private static final Map<String, Image> imageCache = new HashMap<>();
+
     @FXML
     public void loadQuestionDetails(Question question) {
         this.currentQuestion = question;
@@ -51,65 +58,86 @@ public class QuestionDetailsController {
         questionContent.setText(question.getContent());
         questionVotes.setText("Votes: " + question.getVotes());
 
-        Games game = gamesService.getByName(question.getGame().getGame_name());
-        if (game != null && game.getImagePath() != null && !game.getImagePath().isEmpty()) {
-            File file = new File(game.getImagePath());
-            if (file.exists()) {
-                Image image = new Image(file.toURI().toString(), 200, 150, true, true);
-                if (!image.isError()) {
-                    gameImageView.setImage(image);
+        executorService.submit(() -> {
+            Games game = gamesService.getByName(question.getGame().getGame_name());
+            if (game != null && game.getImagePath() != null && !game.getImagePath().isEmpty()) {
+                File file = new File(game.getImagePath());
+                if (file.exists()) {
+                    String cacheKey = game.getImagePath();
+                    Image image = imageCache.computeIfAbsent(cacheKey, k -> new Image(file.toURI().toString(), 200, 150, true, true));
+                    if (!image.isError()) {
+                        Platform.runLater(() -> gameImageView.setImage(image));
+                    } else {
+                        System.err.println("Failed to load game image: " + game.getImagePath());
+                    }
                 }
             }
-        }
+        });
 
         loadComments();
     }
 
     @FXML
     private void loadComments() {
-        commentContainer.getChildren().clear();
-        List<Commentaire> comments = commentaireService.getAll();
-        for (Commentaire comment : comments) {
-            if (comment.getQuestion() != null && comment.getQuestion().getQuestion_id() == currentQuestion.getQuestion_id()) {
-                createCommentCard(comment);
-            }
-        }
+        executorService.submit(() -> {
+            List<Commentaire> comments = commentaireService.getAll();
+            Platform.runLater(() -> {
+                commentContainer.getChildren().clear();
+                for (Commentaire comment : comments) {
+                    if (comment.getQuestion() != null && comment.getQuestion().getQuestion_id() == currentQuestion.getQuestion_id()) {
+                        createCommentCard(comment);
+                    }
+                }
+            });
+        });
     }
 
     @FXML
     public void postComment() {
         Utilisateur utilisateur = us.getOne(userId);
-        if (utilisateur == null) {
-            System.out.println("User is not logged in. Please log in first.");
-            return;
-        }
+        if (utilisateur == null) return;
 
-        String commentText = commentInput.getText();
-
-        if (commentText == null || commentText.trim().isEmpty()) {
+        String commentText = commentInput.getText().trim();
+        if (commentText.isEmpty()) {
             showAlert("Erreur", "Vous ne pouvez pas ajouter un commentaire vide.");
             return;
         }
 
-        Commentaire commentaire = new Commentaire();
-        commentaire.setContenu(commentText);
-        commentaire.setUtilisateur(utilisateur);
-        commentaire.setCreation_at(new java.sql.Timestamp(System.currentTimeMillis()));
-        commentaire.setQuestion(currentQuestion);
+        executorService.submit(() -> {
+            try {
+                if (ProfanityChecker.containsProfanity(commentText)) {
+                    final boolean[] proceed = {false}; // Use an array to update from within lambda
+                    Platform.runLater(() -> {
+                        proceed[0] = showProfanityWarningAlert("Avertissement",
+                                "Votre commentaire contient des mots inappropriés. Vous risquez d'être banni ou signalé. Voulez-vous ajouter quand même?");
+                    });
+                    // Wait for the UI thread to complete (simple polling, could be improved with a semaphore or callback)
+                    while (!Thread.currentThread().isInterrupted() && !proceed[0] && !Platform.isFxApplicationThread()) {
+                        Thread.yield(); // Avoid busy-waiting, but this is a simple solution
+                    }
+                    if (!proceed[0]) return;
+                }
 
-        commentaireService.add(commentaire);
-        System.out.println("Comment added successfully!");
-        UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
+                Commentaire commentaire = new Commentaire();
+                commentaire.setContenu(commentText);
+                commentaire.setUtilisateur(utilisateur);
+                commentaire.setCreation_at(new java.sql.Timestamp(System.currentTimeMillis()));
+                commentaire.setQuestion(currentQuestion);
 
-        createCommentCard(commentaire);
-        commentInput.clear();
-        loadComments();
-        if (change.isChanged()) {
-            showPrivilegeAlert(change);
-            refreshQuestions();
-
-        }
-
+                commentaireService.add(commentaire);
+                Platform.runLater(() -> {
+                    createCommentCard(commentaire);
+                    commentInput.clear();
+                    UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
+                    if (change.isChanged()) {
+                        showPrivilegeAlert(change);
+                        updatePrivilegeUI(userId);
+                    }
+                });
+            } catch (IOException e) {
+                Platform.runLater(() -> showAlert("Erreur", "Erreur lors de la vérification du contenu: " + e.getMessage()));
+            }
+        });
     }
 
     @FXML
@@ -117,90 +145,148 @@ public class QuestionDetailsController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/CommentCard.fxml"));
             VBox commentCard = loader.load();
-
             CommentCardController commentCardController = loader.getController();
             commentCardController.setCommentData(comment, this);
-            commentContainer.getChildren().add(commentCard);
-
+            commentCard.setUserData(commentCardController);
+            Platform.runLater(() -> commentContainer.getChildren().add(commentCard));
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Error creating comment card: " + e.getMessage());
         }
-
     }
+
     public void handleUpvoteC(Commentaire commentaire, Label votesLabel, Button downvoteButton) {
-        CommentaireService cs = new CommentaireService();
-        int updatedVotes = cs.getVotes(commentaire.getCommentaire_id());
-        commentaire.setVotes(updatedVotes);
-        cs.upvoteComment(commentaire.getCommentaire_id());
-        commentaire.Com_upvote();
-
-        Platform.runLater(() -> {
-
-            votesLabel.setText("Votes: " + updatedVotes);
-            votesLabel.setVisible(true);
-            UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
-            if (change.isChanged()) {
-                showPrivilegeAlert(change);
-                refreshQuestions();
-            }
-            if (updatedVotes > 0) {
-                downvoteButton.setDisable(false);
+        executorService.submit(() -> {
+            try {
+                String currentVote = commentaireService.getUserVote(commentaire.getCommentaire_id(), userId);
+                if ("UP".equals(currentVote)) {
+                    Platform.runLater(() -> showAlert("Erreur", "Vous avez déjà upvoté ce commentaire."));
+                    return;
+                }
+                // Allow upvote if no vote or downvote exists
+                commentaireService.upvoteComment(commentaire.getCommentaire_id(), userId);
+                int updatedVotes = commentaireService.getVotes(commentaire.getCommentaire_id());
+                commentaire.setVotes(updatedVotes);
+                Platform.runLater(() -> {
+                    votesLabel.setText("Votes: " + updatedVotes);
+                    votesLabel.setVisible(true);
+                    if (updatedVotes > 0) downvoteButton.setDisable(false);
+                    UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(commentaire.getUtilisateur().getId());
+                    if (change.isChanged() && userId == commentaire.getUtilisateur().getId()) {
+                        showPrivilegeAlert(change);
+                    }
+                    updatePrivilegeUI(commentaire.getUtilisateur().getId());
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showAlert("Erreur", "Erreur lors de l'upvote : " + e.getMessage()));
             }
         });
+    }
+
+    public void handleDownvoteC(Commentaire commentaire, Label votesLabel, Button downvoteButton) {
+        executorService.submit(() -> {
+            try {
+                String currentVote = commentaireService.getUserVote(commentaire.getCommentaire_id(), userId);
+                if ("DOWN".equals(currentVote)) {
+                    Platform.runLater(() -> showAlert("Erreur", "Vous avez déjà downvoté ce commentaire."));
+                    return;
+                }
+                // Allow downvote if no vote or upvote exists
+                commentaireService.downvoteComment(commentaire.getCommentaire_id(), userId);
+                int updatedVotes = commentaireService.getVotes(commentaire.getCommentaire_id());
+                commentaire.setVotes(updatedVotes);
+                Platform.runLater(() -> {
+                    votesLabel.setText("Votes: " + updatedVotes);
+                    votesLabel.setVisible(true);
+                    downvoteButton.setDisable(updatedVotes == 0);
+                    UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(commentaire.getUtilisateur().getId());
+                    if (change.isChanged() && userId == commentaire.getUtilisateur().getId()) {
+                        showPrivilegeAlert(change);
+                    }
+                    updatePrivilegeUI(commentaire.getUtilisateur().getId());
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showAlert("Erreur", "Erreur lors du downvote : " + e.getMessage()));
+            }
+        });
+    }
+
+    public void deleteComment(Commentaire commentaire) {
+        if (commentaire.getUtilisateur().getId() != userId) {
+            showAlert("Erreur", "Vous ne pouvez supprimer que vos propres commentaires.");
+            return;
+        }
+        executorService.submit(() -> {
+            try {
+                for (Node node : commentContainer.getChildren()) {
+                    if (node instanceof VBox) {
+                        CommentCardController controller = (CommentCardController) node.getUserData();
+                        if (controller != null && controller.getCommentaire().getCommentaire_id() == commentaire.getCommentaire_id()) {
+                            commentaireService.delete(commentaire);
+                            Platform.runLater(() -> {
+                                commentContainer.getChildren().remove(node);
+                                commentContainer.requestLayout();
+                                UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
+                                if (change.isChanged()) {
+                                    showPrivilegeAlert(change);
+                                    updatePrivilegeUI(userId);
+                                }
+                            });
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error deleting comment: " + e.getMessage());
+            }
+        });
+    }
+
+    public void refreshQuestions() {
+        loadComments();
     }
 
     private void showPrivilegeAlert(UtilisateurService.PrivilegeChange change) {
         if (!change.isChanged()) return;
 
-        Alert alert = new Alert(Alert.AlertType.NONE);
-        alert.setHeaderText(null);
-        String oldPrivilege = change.getOldPrivilege();
-        String newPrivilege = change.getNewPrivilege();
-        boolean isPromotion = getPrivilegeRank(newPrivilege) > getPrivilegeRank(oldPrivilege);
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.NONE);
+            alert.setHeaderText(null);
+            String oldPrivilege = change.getOldPrivilege();
+            String newPrivilege = change.getNewPrivilege();
+            boolean isPromotion = getPrivilegeRank(newPrivilege) > getPrivilegeRank(oldPrivilege);
 
-        if (isPromotion) {
-            alert.setTitle("Félicitations!");
-            String message = switch (newPrivilege) {
-                case "top_contributor" -> "Vous êtes passé de Regular à Top Contributor ! Bravo pour votre contribution !";
-                case "top_fan" -> "Vous êtes maintenant un Top Fan depuis " + oldPrivilege + " ! Votre passion est récompensée !";
-                default -> "Privilege mis à jour !";
-            };
-            alert.setContentText(message);
+            alert.setTitle(isPromotion ? "Félicitations!" : "Mise à jour de privilège");
+            alert.setContentText(isPromotion ?
+                    (newPrivilege.equals("top_contributor") ? "Vous êtes passé de Regular à Top Contributor ! Bravo pour votre contribution !" :
+                            "Vous êtes maintenant un Top Fan depuis " + oldPrivilege + " ! Votre passion est récompensée !") :
+                    (oldPrivilege.equals("top_contributor") ? "Désolé, vous êtes redescendu de Top Contributor à Regular." :
+                            "Désolé, vous êtes passé de Top Fan à " + newPrivilege + "."));
 
             ImageView icon = new ImageView(new Image(getClass().getResource(
-                    newPrivilege.equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png"
-            ).toExternalForm()));
+                    isPromotion ? (newPrivilege.equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png") :
+                            "/forumUI/icons/alert.png").toExternalForm()));
             icon.setFitHeight(60);
             icon.setFitWidth(60);
             alert.setGraphic(icon);
+
             Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-            stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toString()));
-        } else {
-            alert.setTitle("Mise à jour de privilège");
-            String message = switch (oldPrivilege) {
-                case "top_contributor" -> "Désolé, vous êtes redescendu de Top Contributor à Regular.";
-                case "top_fan" -> "Désolé, vous êtes passé de Top Fan à " + newPrivilege + ".";
-                default -> "Privilege mis à jour.";
-            };
-            alert.setContentText(message);
-            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-            stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
-        }
+            stage.getIcons().add(new Image(getClass().getResource(isPromotion ? "/forumUI/icons/sucessalert.png" : "/forumUI/icons/alert.png").toString()));
 
-        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
-        alert.getDialogPane().getStyleClass().add("privilege-alert");
+            alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+            alert.getDialogPane().getStyleClass().add("privilege-alert");
 
-        ButtonType okButton = new ButtonType(isPromotion ? "GG!" : "OK", ButtonBar.ButtonData.OK_DONE);
-        alert.getButtonTypes().setAll(okButton);
+            ButtonType okButton = new ButtonType(isPromotion ? "GG!" : "OK", ButtonBar.ButtonData.OK_DONE);
+            alert.getButtonTypes().setAll(okButton);
 
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(500), alert.getDialogPane());
-        fadeIn.setFromValue(0.0);
-        fadeIn.setToValue(1.0);
-        alert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
-            if (isShowing) fadeIn.play();
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(500), alert.getDialogPane());
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            alert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+                if (isShowing) fadeIn.play();
+            });
+
+            alert.showAndWait();
         });
-
-        alert.showAndWait();
     }
 
     private int getPrivilegeRank(String privilege) {
@@ -210,41 +296,6 @@ public class QuestionDetailsController {
             case "top_fan" -> 2;
             default -> -1;
         };
-    }
-    public void handleDownvoteC(Commentaire commentaire, Label votesLabel, Button downvoteButton) {
-        CommentaireService cs = new CommentaireService();
-        int updatedVotes = cs.getVotes(commentaire.getCommentaire_id());
-        commentaire.setVotes(updatedVotes);
-        cs.downvoteComment(commentaire.getCommentaire_id());
-        commentaire.Com_downvote();
-
-
-
-        Platform.runLater(() -> {
-            votesLabel.setText("Votes: " + updatedVotes);
-            votesLabel.setVisible(true);
-            UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
-            if (change.isChanged()) {
-                showPrivilegeAlert(change);
-                refreshQuestions();
-            }
-            downvoteButton.setDisable(updatedVotes == 0);
-        });
-
-    }
-
-    public void deleteComment(Commentaire commentaire) {
-        commentaireService.delete(commentaire);
-        System.out.println("Deleted comment: " + commentaire.getContenu());
-        UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
-        if (change.isChanged()) {
-            showPrivilegeAlert(change);
-            refreshQuestions();
-        }
-    }
-
-    public void refreshQuestions() {
-        loadComments();
     }
 
     private void showAlert(String title, String message) {
@@ -275,7 +326,6 @@ public class QuestionDetailsController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/Forum.fxml"));
             Parent forumView = loader.load();
-
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(new Scene(forumView));
             stage.show();
@@ -285,26 +335,82 @@ public class QuestionDetailsController {
     }
 
     public void handleReactionC(Commentaire commentaire, String emojiUrl) {
-        int userId = SessionManager.getInstance().getUserId();
-        CommentaireService service = new CommentaireService();
+        executorService.submit(() -> {
+            int userId = SessionManager.getInstance().getUserId();
+            CommentaireService service = new CommentaireService();
 
-        String existingReaction = service.getUserReaction(commentaire.getCommentaire_id(), userId);
-        if (existingReaction != null) {
-            service.removeReaction(commentaire.getCommentaire_id(), userId);
-            commentaire.getReactions().remove(existingReaction);
-            if (commentaire.getReactions().containsKey(existingReaction)) {
-                int currentCount = commentaire.getReactions().get(existingReaction);
-                if (currentCount > 1) {
-                    commentaire.getReactions().put(existingReaction, currentCount - 1);
-                } else {
-                    commentaire.getReactions().remove(existingReaction);
+            String existingReaction = service.getUserReaction(commentaire.getCommentaire_id(), userId);
+            if (existingReaction != null) {
+                service.removeReaction(commentaire.getCommentaire_id(), userId);
+                commentaire.getReactions().remove(existingReaction);
+                if (commentaire.getReactions().containsKey(existingReaction)) {
+                    int currentCount = commentaire.getReactions().get(existingReaction);
+                    if (currentCount > 1) {
+                        commentaire.getReactions().put(existingReaction, currentCount - 1);
+                    } else {
+                        commentaire.getReactions().remove(existingReaction);
+                    }
                 }
             }
-        }
 
-        service.addReaction(commentaire.getCommentaire_id(), userId, emojiUrl);
-        Map<String, Integer> updatedReactions = service.getReactions(commentaire.getCommentaire_id());
-        commentaire.setReactions(updatedReactions);
-        commentaire.setUserReaction(emojiUrl);
+            service.addReaction(commentaire.getCommentaire_id(), userId, emojiUrl);
+            Map<String, Integer> updatedReactions = service.getReactions(commentaire.getCommentaire_id());
+            commentaire.setReactions(updatedReactions);
+            commentaire.setUserReaction(emojiUrl);
+            Platform.runLater(() -> {
+                for (Node node : commentContainer.getChildren()) {
+                    if (node instanceof VBox) {
+                        CommentCardController controller = (CommentCardController) node.getUserData();
+                        if (controller != null && controller.getCommentaire().equals(commentaire)) {
+                            controller.displayReactions();
+                            controller.displayUserReaction();
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    private boolean showProfanityWarningAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
+        icon.setFitHeight(60);
+        icon.setFitWidth(60);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType addAnywayButton = new ButtonType("Ajouter quand même", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton, addAnywayButton);
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
+
+        return alert.showAndWait()
+                .filter(response -> response == addAnywayButton)
+                .isPresent();
+    }
+
+    private void updatePrivilegeUI(int affectedUserId) {
+        Platform.runLater(() -> {
+            for (Node node : commentContainer.getChildren()) {
+                if (node instanceof VBox) {
+                    CommentCardController controller = (CommentCardController) node.getUserData();
+                    if (controller != null && controller.getCommentaire().getUtilisateur().getId() == affectedUserId) {
+                        Utilisateur user = us.getOne(affectedUserId);
+                        if (user != null) {
+                            controller.updatePrivilegeUI(user);
+                        }
+                    }
+                }
+            }
+            commentContainer.requestLayout();
+        });
     }
 }

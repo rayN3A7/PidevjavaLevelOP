@@ -1,29 +1,37 @@
 package tn.esprit.Controllers.forum;
 
 import javafx.animation.FadeTransition;
+import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.stage.Popup;
+import javafx.stage.Screen;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import tn.esprit.Models.Games;
 import tn.esprit.Models.Question;
-import javafx.application.Platform;
+import tn.esprit.Models.Utilisateur;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.stage.Stage;
-import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.EmojiService;
 import tn.esprit.Services.GamesService;
 import tn.esprit.Services.QuestionService;
@@ -32,10 +40,15 @@ import tn.esprit.utils.SessionManager;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class QuestionCardController {
     @FXML private Label commentAuthor;
@@ -61,9 +74,7 @@ public class QuestionCardController {
     @FXML private VBox contentVBox;
     @FXML private ImageView crownIcon;
     @FXML private ImageView selectedEmojiImage;
-   // New play/pause button
-    @FXML
-    private HBox reactionContainer;
+    @FXML private HBox reactionContainer;
 
     private Question question;
     private ForumController forumController;
@@ -72,161 +83,424 @@ public class QuestionCardController {
     private QuestionService questionService = new QuestionService();
     private GamesService gamesService = new GamesService();
     private static final ExecutorService executorService = Executors.newFixedThreadPool(4);
+    private static final ScheduledExecutorService shutdownExecutor = Executors.newScheduledThreadPool(1);
+    private static final List<QuestionCardController> allControllers = new ArrayList<>();
+    private static final List<MediaPlayer> activeMediaPlayers = new ArrayList<>();
+    private static final Map<String, Image> imageCache = new HashMap<>(); // Cache for images
+    private static final Map<String, MediaPlayer> mediaPlayerCache = new HashMap<>(); // Cache for MediaPlayer objects
     private MediaPlayer mediaPlayer;
     private boolean isFullScreen = false;
+    private Scene originalScene;
+    private double originalWidth = 500;
+    private double originalHeight = 350;
+    private BorderPane fullScreenLayout;
+    private ScrollPane scrollPane;
+    private volatile boolean isPlaying = false;
+    private ChangeListener<Duration> currentTimeListener;
+    private ChangeListener<Boolean> valueChangingListener;
+    private ChangeListener<Number> volumeListener;
+    private ChangeListener<Bounds> boundsListener;
+    private PauseTransition boundsDebounceTimer;
+    private double savedVolume = 1.0; // Default volume (100% as per volumeSlider's initial value)
+    private final double controlBarHeight = 40.0; // Fixed height for the control bar
+    private final double controlBarWidthPercentage = 0.8; // 80% de la largeur de l’écran (modifiable)
+
+    public QuestionCardController() {
+        allControllers.add(this);
+        boundsDebounceTimer = new PauseTransition(Duration.millis(100)); // Debounce bounds changes
+    }
+
     public void setQuestionData(Question question, ForumController forumController) {
         this.question = question;
         this.forumController = forumController;
+        Parent root = contentVBox.getParent();
+        if (root != null) {
+            root.setUserData(this);
+        }
         commentAuthor.setText(question.getUser().getNickname());
         titleLabel.setText(question.getTitle());
-        titleLabel.setOnMouseClicked(event -> openQuestionDetails(question));
+        titleLabel.setOnMouseClicked(event -> {
+            stopAllVideos();
+            openQuestionDetails(question);
+        });
         titleLabel.setCursor(Cursor.HAND);
-
         contentLabel.setText(question.getContent());
         votesLabel.setText("Votes: " + question.getVotes());
 
         upvoteButton.setOnAction(e -> forumController.handleUpvote(question, votesLabel, downvoteButton));
         downvoteButton.setOnAction(e -> forumController.handleDownvote(question, votesLabel, downvoteButton));
         downvoteButton.setDisable(question.getVotes() == 0);
+        updateButton.setOnAction(e -> {
+            stopAllVideos();
+            forumController.updateQuestion(question);
+        });
+        deleteButton.setOnAction(e -> {
+            stopAllVideos();
+            forumController.deleteQuestion(question);
+        });
 
-        updateButton.setOnAction(e -> forumController.updateQuestion(question));
-        deleteButton.setOnAction(e -> forumController.deleteQuestion(question));
+        boolean isOwner = question.getUser().getId() == userId;
+        deleteButton.setVisible(isOwner);
+        updateButton.setVisible(isOwner);
         reactButton.setOnAction(e -> showEmojiPicker());
+
         setGameIcon(question.getGame().getGame_name());
         displayReactions();
         displayUserReaction();
-
         loadQuestionMediaAsync();
-        Utilisateur user = question.getUser();
+
+        updatePrivilegeUI(question.getUser());
+
+        // Setup bounds listener for scrolling detection after the node is added to the scene
+        contentVBox.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (newScene != null && scrollPane == null) {
+                Platform.runLater(this::setupBoundsListener);
+            }
+        });
+
+        // Initial attempt to find the ScrollPane
+        setupBoundsListener();
+    }
+
+    private void setupBoundsListener() {
+        scrollPane = findParentScrollPane(contentVBox);
+        if (scrollPane != null) {
+            boundsListener = (observable, oldValue, newValue) -> {
+                boundsDebounceTimer.setOnFinished(event -> checkIntersectionAndStopVideo());
+                boundsDebounceTimer.playFromStart();
+            };
+            scrollPane.boundsInParentProperty().addListener(boundsListener);
+            scrollPane.vvalueProperty().addListener((obs, oldVal, newVal) -> {
+                boundsDebounceTimer.setOnFinished(event -> checkIntersectionAndStopVideo());
+                boundsDebounceTimer.playFromStart();
+            });
+
+            // Initial check
+            Platform.runLater(this::checkIntersectionAndStopVideo);
+        }
+
+        // Remove listener when scene is unloaded
+        contentVBox.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (oldScene != null && newScene == null) {
+                if (scrollPane != null && boundsListener != null) {
+                    scrollPane.boundsInParentProperty().removeListener(boundsListener);
+                }
+                stopVideo();
+            }
+        });
+    }
+
+    private ScrollPane findParentScrollPane(Parent node) {
+        Parent current = node;
+        while (current != null) {
+            if (current instanceof ScrollPane) {
+                return (ScrollPane) current;
+            }
+            current = current.getParent();
+        }
+        return null;
+    }
+
+    private void checkIntersectionAndStopVideo() {
+        if (!isPlaying || mediaPlayer == null || mediaPlayer.getStatus() != MediaPlayer.Status.PLAYING) {
+            return;
+        }
+
+        if (!isFullyInViewport()) {
+            stopVideo();
+        }
+    }
+
+    private boolean isFullyInViewport() {
+        if (scrollPane == null || !contentVBox.isVisible() || contentVBox.getScene() == null) {
+            return false;
+        }
+
+        double viewportHeight = scrollPane.getViewportBounds().getHeight();
+        double contentHeight = scrollPane.getContent().getBoundsInLocal().getHeight();
+        double vvalue = scrollPane.getVvalue();
+        double viewportTop = vvalue * (contentHeight - viewportHeight);
+        double viewportBottom = viewportTop + viewportHeight;
+
+        Bounds cardBounds = contentVBox.localToParent(contentVBox.getBoundsInLocal());
+        double cardTop = cardBounds.getMinY();
+        double cardBottom = cardBounds.getMaxY();
+
+        return !(cardBottom <= viewportTop || cardTop >= viewportBottom);
+    }
+
+    public void stopVideo() {
+        if (mediaPlayer != null) {
+            try {
+                isPlaying = false;
+                savedVolume = mediaPlayer.getVolume();
+                mediaPlayer.pause();
+                mediaPlayer.setVolume(0.0);
+                mediaPlayer.setMute(true);
+                playPauseButton.setText("▶");
+
+                if (isFullScreen) {
+                    toggleFullScreen();
+                }
+            } catch (Exception e) {
+                System.err.println("Error pausing MediaPlayer: " + e.getMessage());
+            }
+        }
+    }
+
+    public void disposeVideo() {
+        if (mediaPlayer != null) {
+            try {
+                isPlaying = false;
+                mediaPlayer.stop();
+                mediaPlayer.setVolume(0.0);
+                mediaPlayer.setMute(true);
+
+                if (currentTimeListener != null) mediaPlayer.currentTimeProperty().removeListener(currentTimeListener);
+                if (valueChangingListener != null) progressSlider.valueChangingProperty().removeListener(valueChangingListener);
+                if (volumeListener != null) volumeSlider.valueProperty().removeListener(volumeListener);
+
+                mediaPlayer.dispose();
+                activeMediaPlayers.remove(mediaPlayer);
+                mediaPlayerCache.remove(question.getMediaPath() + "_video"); // Remove from cache
+            } catch (Exception e) {
+                System.err.println("Error disposing MediaPlayer: " + e.getMessage());
+            } finally {
+                shutdownExecutor.schedule(() -> {
+                    if (mediaPlayer != null) {
+                        mediaPlayer.stop();
+                        mediaPlayer.setVolume(0.0);
+                        mediaPlayer.setMute(true);
+                        mediaPlayer.dispose();
+                    }
+                }, 200, TimeUnit.MILLISECONDS);
+
+                mediaPlayer = null;
+                questionVideo.setMediaPlayer(null);
+                playPauseButton.setText("▶");
+            }
+        }
+        if (isFullScreen) {
+            isFullScreen = false;
+            fullScreenLayout = null;
+        }
+    }
+
+    public static void stopAllVideos() {
+        // Create a copy of the list to avoid ConcurrentModificationException
+        List<QuestionCardController> controllersCopy;
+        synchronized (allControllers) {
+            controllersCopy = new ArrayList<>(allControllers);
+        }
+        for (QuestionCardController controller : controllersCopy) {
+            controller.disposeVideo();
+        }
+    }
+
+    public void updatePrivilegeUI(Utilisateur user) {
         commentAuthor.setText(user.getNickname());
         switch (user.getPrivilege() != null ? user.getPrivilege() : "regular") {
-            case "top_contributor":
+            case "top_contributor" -> {
                 commentAuthor.setStyle("-fx-text-fill: silver;");
                 crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png"));
                 crownIcon.setVisible(true);
-                break;
-            case "top_fan":
+            }
+            case "top_fan" -> {
                 commentAuthor.setStyle("-fx-text-fill: gold;");
                 crownIcon.setImage(new Image("/forumUI/icons/crown.png"));
                 crownIcon.setVisible(true);
-                break;
-            default:
+            }
+            default -> {
                 commentAuthor.setStyle("-fx-text-fill: white;");
                 crownIcon.setVisible(false);
-                break;
+            }
         }
+    }
+
+    public Question getQuestion() {
+        return question;
     }
 
     private void loadQuestionMediaAsync() {
         String mediaPath = question.getMediaPath();
         String mediaType = question.getMediaType();
-        if (mediaPath != null && !mediaPath.isEmpty() && mediaType != null) {
-            executorService.submit(() -> {
-                try {
-                    File file = new File(mediaPath);
-                    if (file.exists()) {
-                        String fileUri = file.toURI().toString();
-                        if ("image".equals(mediaType)) {
-                            Image image = new Image(fileUri, 500, 350, true, true); // Match FXML sizes
-                            if (!image.isError()) {
-                                Platform.runLater(() -> {
-                                    questionImage.setImage(image);
-                                    questionImage.setVisible(true);
-                                    questionImage.setManaged(true);
-                                    videoWrapper.setVisible(false); // Hide video components
-                                    videoWrapper.setManaged(false);
-                                    mediaContainer.setVisible(true);
-                                    mediaContainer.setManaged(true);
-                                    if (!contentVBox.getParent().getStyleClass().contains("has-image")) {
-                                        contentVBox.getParent().getStyleClass().add("has-image");
-                                    }
-                                });
-                            } else {
-                                System.err.println("Failed to load image: " + mediaPath);
-                                Platform.runLater(() -> resetMediaState());
-                            }
-                        } else if ("video".equals(mediaType)) {
-                            Media media = new Media(fileUri);
-                            mediaPlayer = new MediaPlayer(media);
-                            mediaPlayer.setAutoPlay(false);
-                            Platform.runLater(() -> {
-                                questionVideo.setMediaPlayer(mediaPlayer);
-                                videoWrapper.setVisible(true);
-                                videoWrapper.setManaged(true);
-                                questionImage.setVisible(false); // Hide image
-                                questionImage.setManaged(false);
-                                mediaContainer.setVisible(true);
-                                mediaContainer.setManaged(true);
-                                setupVideoControls();
-                                videoControlBar.prefWidthProperty().bind(questionVideo.fitWidthProperty());
-                            });
-                        }
-                    } else {
-                        System.err.println("Media file not found: " + mediaPath);
-                        Platform.runLater(() -> resetMediaState());
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error loading question media: " + e.getMessage());
-                    Platform.runLater(() -> resetMediaState());
-                }
-            });
-        } else {
-            Platform.runLater(() -> resetMediaState());
+        if (mediaPath == null || mediaPath.isEmpty() || mediaType == null) {
+            Platform.runLater(this::resetMediaState);
+            return;
         }
+
+        executorService.submit(() -> {
+            try {
+                String baseDir = "C:\\xampp\\htdocs\\img";
+                File file = new File(baseDir, mediaPath);
+                if (!file.exists()) {
+                    System.err.println("Media file not found: " + file.getAbsolutePath());
+                    Platform.runLater(this::resetMediaState);
+                    return;
+                }
+
+                String fileUri = file.toURI().toString();
+                String cacheKey = mediaPath + "_" + mediaType;
+
+                if ("image".equals(mediaType)) {
+                    Image image = imageCache.computeIfAbsent(cacheKey, k -> {
+                        Image img = new Image(fileUri, originalWidth, originalHeight, true, true);
+                        if (img.isError()) System.err.println("Failed to cache image: " + file.getAbsolutePath());
+                        return img;
+                    });
+
+                    if (!image.isError()) {
+                        Platform.runLater(() -> {
+                            questionImage.setImage(image);
+                            questionImage.setVisible(true);
+                            questionImage.setManaged(true);
+                            videoWrapper.setVisible(false);
+                            videoWrapper.setManaged(false);
+                            mediaContainer.setVisible(true);
+                            mediaContainer.setManaged(true);
+                        });
+                    } else {
+                        System.err.println("Failed to load image: " + file.getAbsolutePath());
+                        Platform.runLater(this::resetMediaState);
+                    }
+                } else if ("video".equals(mediaType)) {
+                    // Validate video file format before creating Media
+                    if (!isValidVideoFormat(file)) {
+                        System.err.println("Invalid or unsupported video format: " + file.getAbsolutePath());
+                        Platform.runLater(this::resetMediaState);
+                        return;
+                    }
+
+                    Media media = new Media(fileUri);
+                    mediaPlayer = mediaPlayerCache.computeIfAbsent(cacheKey, k -> {
+                        MediaPlayer player = new MediaPlayer(media);
+                        player.setAutoPlay(false);
+                        player.setOnError(() -> {
+                            System.err.println("MediaPlayer error for file " + file.getAbsolutePath() + ": " + player.getError().getMessage());
+                            Platform.runLater(this::resetMediaState);
+                        });
+                        player.setOnReady(() -> {
+                            double width = player.getMedia().getWidth();
+                            double height = player.getMedia().getHeight();
+                            if (width <= 0 || height <= 0) {
+                                System.err.println("Invalid media dimensions (width or height is 0 or negative) for file: " + file.getAbsolutePath());
+                                Platform.runLater(this::resetMediaState);
+                            } else {
+                                player.pause();
+                                player.setMute(true);
+                            }
+                        });
+                        return player;
+                    });
+
+                    Platform.runLater(() -> {
+                        questionVideo.setMediaPlayer(mediaPlayer);
+                        questionVideo.setFitWidth(originalWidth);
+                        questionVideo.setFitHeight(originalHeight);
+                        videoWrapper.setVisible(true);
+                        videoWrapper.setManaged(true);
+                        questionImage.setVisible(false);
+                        questionImage.setManaged(false);
+                        mediaContainer.setVisible(true);
+                        mediaContainer.setManaged(true);
+                        setupVideoControls();
+                        initializeVideoListeners();
+                    });
+                }
+            } catch (Exception e) {
+                System.err.println("Error loading question media for file " + mediaPath + ": " + e.getMessage());
+                Platform.runLater(this::resetMediaState);
+            }
+        });
     }
+
+    private boolean isValidVideoFormat(File file) {
+        String fileName = file.getName().toLowerCase();
+        if (!fileName.endsWith(".mp4")) {
+            return false; // Only support MP4 for now, extend as needed
+        }
+        return true; // Add more robust validation (e.g., using Apache Tika or FFmpeg) if necessary
+    }
+
     private void setupVideoControls() {
+        videoControlBar.setPrefWidth(originalWidth);
+        videoControlBar.setMinWidth(originalWidth);
+        videoControlBar.setMaxWidth(originalWidth);
+        videoControlBar.setPrefHeight(controlBarHeight);
+        videoControlBar.setMinHeight(controlBarHeight);
+        videoControlBar.setMaxHeight(controlBarHeight);
+
         playPauseButton.setOnAction(event -> {
+            if (mediaPlayer == null) return;
             if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
                 mediaPlayer.pause();
+                isPlaying = false;
                 playPauseButton.setText("▶");
             } else {
-                mediaPlayer.play();
-                playPauseButton.setText("⏸");
-            }
-        });
+                for (MediaPlayer otherPlayer : new ArrayList<>(activeMediaPlayers)) {
+                    if (otherPlayer != mediaPlayer) {
+                        otherPlayer.pause();
+                        otherPlayer.setVolume(0.0);
+                        otherPlayer.setMute(true);
+                    }
+                }
+                activeMediaPlayers.clear();
+                activeMediaPlayers.add(mediaPlayer);
 
-        mediaPlayer.currentTimeProperty().addListener((obs, old, newValue) -> {
-            if (!progressSlider.isValueChanging()) {
-                double duration = mediaPlayer.getTotalDuration().toSeconds();
-                double current = newValue.toSeconds();
-                progressSlider.setValue(current / duration * 100);
-                updateTimeLabel(current, duration);
+                try {
+                    mediaPlayer.play();
+                    isPlaying = true;
+                    playPauseButton.setText("⏸");
+                    mediaPlayer.setVolume(savedVolume);
+                    mediaPlayer.setMute(false);
+                    volumeSlider.setValue(savedVolume * 100);
+                } catch (Exception e) {
+                    System.err.println("Error playing MediaPlayer: " + e.getMessage());
+                }
             }
-        });
-        progressSlider.valueChangingProperty().addListener((obs, wasChanging, isChanging) -> {
-            if (!isChanging) {
-                double duration = mediaPlayer.getTotalDuration().toSeconds();
-                mediaPlayer.seek(Duration.seconds(progressSlider.getValue() * duration / 100));
-            }
-        });
-        progressSlider.setOnMouseDragged(event -> {
-            double duration = mediaPlayer.getTotalDuration().toSeconds();
-            mediaPlayer.seek(Duration.seconds(progressSlider.getValue() * duration / 100));
-        });
-
-        volumeSlider.valueProperty().addListener((obs, old, newValue) -> {
-            mediaPlayer.setVolume(newValue.doubleValue() / 100.0);
         });
 
         fullScreenButton.setOnAction(event -> toggleFullScreen());
 
         videoControlBar.setOpacity(1.0);
-        FadeTransition fade = new FadeTransition(Duration.seconds(0.3), videoControlBar);
-        fade.setToValue(0.0);
-        videoWrapper.setOnMouseMoved(event -> {
-            videoControlBar.setOpacity(1.0);
-            fade.stop();
-        });
-        videoWrapper.setOnMouseExited(event -> {
-            if (mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
-                fade.playFromStart();
+    }
+
+    private void initializeVideoListeners() {
+        if (mediaPlayer == null) return;
+
+        currentTimeListener = (obs, old, newValue) -> {
+            if (!progressSlider.isValueChanging() && mediaPlayer != null) {
+                double duration = mediaPlayer.getTotalDuration().toSeconds();
+                double current = newValue.toSeconds();
+                progressSlider.setValue(duration > 0 ? (current / duration * 100) : 0);
+                updateTimeLabel(current, duration);
+            }
+        };
+        mediaPlayer.currentTimeProperty().addListener(currentTimeListener);
+
+        valueChangingListener = (obs, wasChanging, isChanging) -> {
+            if (!isChanging && mediaPlayer != null) {
+                double duration = mediaPlayer.getTotalDuration().toSeconds();
+                mediaPlayer.seek(Duration.seconds(progressSlider.getValue() * duration / 100));
+            }
+        };
+        progressSlider.valueChangingProperty().addListener(valueChangingListener);
+
+        progressSlider.setOnMouseDragged(event -> {
+            if (mediaPlayer != null) {
+                double duration = mediaPlayer.getTotalDuration().toSeconds();
+                mediaPlayer.seek(Duration.seconds(progressSlider.getValue() * duration / 100));
             }
         });
 
-        mediaPlayer.setOnReady(() -> {
-            progressSlider.setMax(100);
-            updateTimeLabel(0, mediaPlayer.getTotalDuration().toSeconds());
-        });
+        volumeListener = (obs, old, newValue) -> {
+            if (mediaPlayer != null) {
+                mediaPlayer.setVolume(newValue.doubleValue() / 100.0);
+                mediaPlayer.setMute(false);
+                savedVolume = mediaPlayer.getVolume();
+            }
+        };
+        volumeSlider.valueProperty().addListener(volumeListener);
     }
 
     private void updateTimeLabel(double current, double duration) {
@@ -240,21 +514,147 @@ public class QuestionCardController {
     private void toggleFullScreen() {
         Stage stage = (Stage) questionVideo.getScene().getWindow();
         if (!isFullScreen) {
+            boolean wasPlaying = mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING;
+            if (wasPlaying) mediaPlayer.pause();
+
+            originalScene = stage.getScene();
+
+            fullScreenLayout = new BorderPane();
+            fullScreenLayout.setStyle("-fx-background-color: black;");
+
+            videoWrapper.getChildren().removeAll(questionVideo, videoControlBar);
+
+            StackPane videoContainer = new StackPane();
+            videoContainer.setAlignment(Pos.CENTER);
+            videoContainer.getChildren().add(questionVideo);
+            fullScreenLayout.setCenter(videoContainer);
+
+            fullScreenLayout.setBottom(videoControlBar);
+            BorderPane.setAlignment(videoControlBar, Pos.BOTTOM_CENTER);
+
+            double screenWidth = Screen.getPrimary().getVisualBounds().getWidth();
+            double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
+            double reducedWidth = screenWidth * controlBarWidthPercentage;
+
+            videoControlBar.setPrefWidth(reducedWidth);
+            videoControlBar.setMinWidth(reducedWidth);
+            videoControlBar.setMaxWidth(reducedWidth);
+            videoControlBar.setPrefHeight(controlBarHeight);
+            videoControlBar.setMinHeight(controlBarHeight);
+            videoControlBar.setMaxHeight(controlBarHeight);
+
+            Scene fullScreenScene = new Scene(fullScreenLayout, screenWidth, screenHeight);
+            URL cssResource = getClass().getResource("/forumUI/forum.css");
+            if (cssResource != null) fullScreenScene.getStylesheets().add(cssResource.toExternalForm());
+            else System.err.println("Failed to load stylesheet: /forumUI/forum.css");
+            stage.setScene(fullScreenScene);
+
+            // Safely calculate video aspect ratio, handle zero or negative values
+            double videoWidth = mediaPlayer.getMedia().getWidth();
+            double videoHeight = mediaPlayer.getMedia().getHeight();
+            double videoAspectRatio = (videoHeight > 0) ? (videoWidth / videoHeight) : 1.0; // Default to 1.0 if height is 0 or negative
+
+            double availableHeight = screenHeight - controlBarHeight;
+            double calculatedVideoWidth, calculatedVideoHeight;
+
+            if ((screenWidth / videoAspectRatio) <= availableHeight) {
+                calculatedVideoWidth = screenWidth;
+                calculatedVideoHeight = screenWidth / videoAspectRatio;
+            } else {
+                calculatedVideoHeight = availableHeight;
+                calculatedVideoWidth = availableHeight * videoAspectRatio;
+            }
+
+            questionVideo.setFitWidth(calculatedVideoWidth);
+            questionVideo.setFitHeight(calculatedVideoHeight);
+            questionVideo.setPreserveRatio(true);
+
+            videoControlBar.setVisible(true);
+            videoControlBar.setManaged(true);
+            videoControlBar.setOpacity(1.0);
+            fullScreenButton.setVisible(true);
+            fullScreenButton.setManaged(true);
+
+            fullScreenButton.setText("⤹");
             stage.setFullScreen(true);
+            isFullScreen = true;
+
+            videoControlBar.setOnMouseEntered(null);
+            videoControlBar.setOnMouseExited(null);
+            fullScreenLayout.setOnMouseEntered(null);
+            fullScreenLayout.setOnMouseExited(null);
+
+            fullScreenScene.setOnKeyPressed(event -> {
+                if (event.getCode() == KeyCode.ESCAPE) {
+                    toggleFullScreen();
+                    event.consume();
+                }
+            });
+
+            if (wasPlaying) {
+                mediaPlayer.play();
+                isPlaying = true;
+            }
+        } else {
+            boolean wasPlaying = mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING;
+            if (wasPlaying) mediaPlayer.pause();
+
+            stage.setScene(originalScene);
+            stage.setFullScreen(false);
+
+            if (fullScreenLayout != null) {
+                fullScreenLayout.getChildren().removeAll(questionVideo, videoControlBar);
+                videoWrapper.getChildren().setAll(questionVideo, videoControlBar);
+                fullScreenLayout.setOnMouseEntered(null);
+                fullScreenLayout.setOnMouseExited(null);
+                fullScreenLayout = null;
+            }
+
             questionVideo.fitWidthProperty().unbind();
             questionVideo.fitHeightProperty().unbind();
-            questionVideo.setFitWidth(stage.getWidth());
-            questionVideo.setFitHeight(stage.getHeight() - videoControlBar.getHeight());
-            videoControlBar.prefWidthProperty().bind(stage.widthProperty());
-            fullScreenButton.setText("⤹");
-            isFullScreen = true;
-        } else {
-            stage.setFullScreen(false);
-            questionVideo.setFitWidth(500);
-            questionVideo.setFitHeight(350);
-            videoControlBar.prefWidthProperty().bind(questionVideo.fitWidthProperty());
+            questionVideo.setFitWidth(originalWidth);
+            questionVideo.setFitHeight(originalHeight);
+
+            videoControlBar.prefWidthProperty().unbind();
+            videoControlBar.setPrefWidth(originalWidth);
+            videoControlBar.setMinWidth(originalWidth);
+            videoControlBar.setMaxWidth(originalWidth);
+            videoControlBar.setPrefHeight(controlBarHeight);
+            videoControlBar.setMinHeight(controlBarHeight);
+            videoControlBar.setMaxHeight(controlBarHeight);
+
+            videoControlBar.setOpacity(1.0);
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), videoControlBar);
+            fadeIn.setToValue(1.0);
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(200), videoControlBar);
+            fadeOut.setToValue(0.0);
+            videoWrapper.setOnMouseEntered(event -> {
+                fadeOut.stop();
+                fadeIn.playFromStart();
+            });
+            videoWrapper.setOnMouseExited(event -> {
+                if (mediaPlayer != null && mediaPlayer.getStatus() == MediaPlayer.Status.PLAYING) {
+                    fadeIn.stop();
+                    fadeOut.playFromStart();
+                }
+            });
+
+            mediaContainer.setVisible(true);
+            mediaContainer.setManaged(true);
+            videoWrapper.setVisible(true);
+            videoWrapper.setManaged(true);
+            questionVideo.setVisible(true);
+            questionVideo.setManaged(true);
+            videoControlBar.setVisible(true);
+            videoControlBar.setManaged(true);
+
             fullScreenButton.setText("⛶");
             isFullScreen = false;
+
+            if (wasPlaying) {
+                mediaPlayer.play();
+                isPlaying = true;
+            }
         }
     }
 
@@ -263,30 +663,27 @@ public class QuestionCardController {
         questionImage.setVisible(false);
         questionImage.setManaged(false);
         if (mediaPlayer != null) {
-            mediaPlayer.stop();
-            mediaPlayer.dispose();
-            mediaPlayer = null;
+            disposeVideo();
         }
         questionVideo.setMediaPlayer(null);
         videoWrapper.setVisible(false);
         videoWrapper.setManaged(false);
         mediaContainer.setVisible(false);
         mediaContainer.setManaged(false);
-        videoControlBar.prefWidthProperty().unbind();
         contentVBox.getParent().getStyleClass().remove("has-image");
     }
 
-    private void displayReactions() {
+    public void displayReactions() {
         reactionContainer.getChildren().clear();
         Map<String, Integer> reactions = question.getReactions();
         for (Map.Entry<String, Integer> entry : reactions.entrySet()) {
             String emojiUrl = entry.getKey();
             int count = entry.getValue();
             HBox reactionBox = new HBox(2);
-            reactionBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            reactionBox.setAlignment(Pos.CENTER_LEFT);
 
             if (emojiUrl.contains("twemoji")) {
-                Image emojiImage = new Image(emojiUrl, 32, 32, true, true);
+                Image emojiImage = imageCache.computeIfAbsent(emojiUrl, k -> new Image(emojiUrl, 32, 32, true, true));
                 if (!emojiImage.isError()) {
                     ImageView emojiIcon = new ImageView(emojiImage);
                     emojiIcon.setFitWidth(32);
@@ -350,11 +747,11 @@ public class QuestionCardController {
         return url;
     }
 
-    private void displayUserReaction() {
+    public void displayUserReaction() {
         String userReaction = question.getUserReaction();
         if (userReaction != null && !userReaction.isEmpty()) {
             if (userReaction.contains("twemoji")) {
-                Image emojiImage = new Image(userReaction, 30, 30, true, true);
+                Image emojiImage = imageCache.computeIfAbsent(userReaction, k -> new Image(userReaction, 30, 30, true, true));
                 if (!emojiImage.isError()) {
                     selectedEmojiImage.setImage(emojiImage);
                 } else {
@@ -435,7 +832,7 @@ public class QuestionCardController {
             HBox row = new HBox(8);
             int emojiCount = 0;
             for (String path : fallbackPaths) {
-                Image fallbackImage = new Image(getClass().getResourceAsStream(path), 30, 30, true, true);
+                Image fallbackImage = imageCache.computeIfAbsent(path, k -> new Image(getClass().getResourceAsStream(path), 30, 30, true, true));
                 ImageView emojiImage = new ImageView(fallbackImage);
                 emojiImage.setFitWidth(30);
                 emojiImage.setFitHeight(30);
@@ -481,11 +878,12 @@ public class QuestionCardController {
     }
 
     private void setGameIcon(String gameName) {
-        Games game = gamesService.getByName(gameName); // Assuming gamesService is initialized
+        Games game = gamesService.getByName(gameName);
         if (game != null && game.getImagePath() != null && !game.getImagePath().isEmpty()) {
             File file = new File(game.getImagePath());
             if (file.exists()) {
-                Image image = new Image(file.toURI().toString(), 100, 100, true, true);
+                String cacheKey = game.getImagePath();
+                Image image = imageCache.computeIfAbsent(cacheKey, k -> new Image(file.toURI().toString(), 100, 100, true, true));
                 if (!image.isError()) {
                     gameIcon.setImage(image);
                 } else {
@@ -501,10 +899,8 @@ public class QuestionCardController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/QuestionDetails.fxml"));
             Parent root = loader.load();
-
             QuestionDetailsController controller = loader.getController();
             controller.loadQuestionDetails(question);
-
             Stage stage = (Stage) titleLabel.getScene().getWindow();
             stage.setScene(new Scene(root));
         } catch (IOException e) {

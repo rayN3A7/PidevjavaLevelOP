@@ -19,6 +19,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.ProfanityChecker;
 import tn.esprit.utils.SessionManager;
 
 import java.io.File;
@@ -30,6 +31,8 @@ import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class AddQuestionController implements Initializable {
     @FXML
@@ -52,19 +55,21 @@ public class AddQuestionController implements Initializable {
     private GamesService gamesService = new GamesService();
     private QuestionService questionService = new QuestionService();
     private String lastMediaPath;
-    private String lastMediaType;  // New field to store media type
+    private String lastMediaType;
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        System.out.println("AddQuestionController initialized");
         loadGames();
     }
 
     private void loadGames() {
-        List<Games> gamesList = gamesService.getAll();
-        gameComboBox.getItems().setAll(
-                gamesList.stream().map(Games::getGame_name).toList()
-        );
+        executorService.submit(() -> {
+            List<Games> gamesList = gamesService.getAll();
+            Platform.runLater(() -> gameComboBox.getItems().setAll(
+                    gamesList.stream().map(Games::getGame_name).toList()
+            ));
+        });
     }
 
     @FXML
@@ -79,39 +84,40 @@ public class AddQuestionController implements Initializable {
         File selectedFile = fileChooser.showOpenDialog(stage);
 
         if (selectedFile != null) {
-            try {
-                String destinationDir = "C:\\xampp\\htdocs\\img";
-                Path destinationPath = Paths.get(destinationDir);
+            executorService.submit(() -> {
+                try {
+                    String destinationDir = "C:\\xampp\\htdocs\\img";
+                    Path destinationPath = Paths.get(destinationDir);
+                    if (!Files.exists(destinationPath)) Files.createDirectories(destinationPath);
 
-                if (!Files.exists(destinationPath)) {
-                    Files.createDirectories(destinationPath);
+                    String fileName = "question_" + System.currentTimeMillis() + "_" + selectedFile.getName();
+                    Path targetPath = destinationPath.resolve(fileName);
+                    Files.copy(selectedFile.toPath(), targetPath);
+
+                    lastMediaPath = fileName;
+                    String fileExtension = selectedFile.getName().substring(selectedFile.getName().lastIndexOf(".") + 1).toLowerCase();
+
+                    Platform.runLater(() -> {
+                        if ("mp4".equals(fileExtension)) {
+                            lastMediaType = "video";
+                            uploadedImageView.setImage(null);
+                            showSuccessAlert("Succès", "Video uploaded successfully: " + fileName);
+                        } else {
+                            lastMediaType = "image";
+                            Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
+                            if (!image.isError()) {
+                                uploadedImageView.setImage(image);
+                                showSuccessAlert("Succès", "Image uploaded successfully: " + fileName);
+                            } else {
+                                showAlert("Erreur", "Failed to load image preview: " + image.getException().getMessage());
+                            }
+                        }
+                    });
+                } catch (IOException e) {
+                    Platform.runLater(() -> showAlert("Erreur", "Failed to upload media: " + e.getMessage()));
+                    e.printStackTrace();
                 }
-
-                String fileName = "question_" + System.currentTimeMillis() + "_" + selectedFile.getName();
-                Path targetPath = destinationPath.resolve(fileName);
-                Files.copy(selectedFile.toPath(), targetPath);
-
-                lastMediaPath = targetPath.toString();
-                String fileExtension = selectedFile.getName().substring(selectedFile.getName().lastIndexOf(".") + 1).toLowerCase();
-
-                if (fileExtension.equals("mp4")) {
-                    lastMediaType = "video";
-                    uploadedImageView.setImage(null); // Clear image view for videos
-                    showSuccessAlert("Succès", "Video uploaded successfully to: " + lastMediaPath);
-                } else {
-                    lastMediaType = "image";
-                    Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
-                    if (!image.isError()) {
-                        uploadedImageView.setImage(image);
-                        showSuccessAlert("Succès", "Image uploaded successfully to: " + lastMediaPath);
-                    } else {
-                        showAlert("Erreur", "Failed to load image preview: " + image.getException().getMessage());
-                    }
-                }
-            } catch (IOException e) {
-                showAlert("Erreur", "Failed to upload media: " + e.getMessage());
-                e.printStackTrace();
-            }
+            });
         }
     }
 
@@ -126,40 +132,83 @@ public class AddQuestionController implements Initializable {
             return;
         }
 
-        Games selectedGameObj = gamesService.getByName(selectedGame);
-        if (selectedGameObj == null) {
-            showAlert("Erreur", "Le jeu sélectionné n'existe pas.");
-            return;
-        }
+        executorService.submit(() -> {
+            try {
+                if (ProfanityChecker.containsProfanity(title) || ProfanityChecker.containsProfanity(content)) {
+                    final boolean[] proceed = {false}; // Use an array to update from within lambda
+                    Platform.runLater(() -> {
+                        proceed[0] = showProfanityWarningAlert("Avertissement",
+                                "Votre texte contient des mots inappropriés. Vous risquez d'être banni ou signalé. Voulez-vous ajouter quand même?");
+                    });
+                    // Wait for the UI thread to complete (simple polling, could be improved with a semaphore or callback)
+                    while (!Thread.currentThread().isInterrupted() && !proceed[0] && !Platform.isFxApplicationThread()) {
+                        Thread.yield(); // Avoid busy-waiting, but this is a simple solution
+                    }
+                    if (!proceed[0]) return;
+                }
 
-        Utilisateur utilisateur = us.getOne(userId);
-        if (utilisateur == null) {
-            showAlert("Erreur", "Utilisateur non trouvé pour ID: " + userId);
-            return;
-        }
+                Games selectedGameObj = gamesService.getByName(selectedGame);
+                if (selectedGameObj == null) {
+                    Platform.runLater(() -> showAlert("Erreur", "Le jeu sélectionné n'existe pas."));
+                    return;
+                }
 
-        String mediaPath = lastMediaPath != null ? lastMediaPath : null;
-        String mediaType = lastMediaType != null ? lastMediaType : "image"; // Default to image if not set
-        Question question = new Question(title, content, selectedGameObj, utilisateur, 0, new Timestamp(System.currentTimeMillis()), mediaPath, mediaType);
-        System.out.println("Creating Question: Title=" + question.getTitle() + ", Content=" + question.getContent() + ", Game ID=" + question.getGame().getGame_id() + ", User ID=" + question.getUser().getId() + ", Media Path=" + question.getMediaPath() + ", Media Type=" + question.getMediaType());
+                Utilisateur utilisateur = us.getOne(userId);
+                if (utilisateur == null) {
+                    Platform.runLater(() -> showAlert("Erreur", "Utilisateur non trouvé pour ID: " + userId));
+                    return;
+                }
 
-        try {
-            questionService.add(question);
-            showSuccessAlert("Succès", "Question ajoutée avec succès !");
-            clearForm();
-            navigateToForumPage(question);
-        } catch (RuntimeException e) {
-            showAlert("Erreur", "Failed to add question: " + e.getMessage());
-            System.err.println("Detailed error: " + e.getMessage());
-            e.printStackTrace();
-        }
+                String mediaPath = lastMediaPath;
+                String mediaType = lastMediaType != null ? lastMediaType : "image";
+                Question question = new Question(title, content, selectedGameObj, utilisateur, 0,
+                        new Timestamp(System.currentTimeMillis()), mediaPath, mediaType);
+
+                questionService.add(question);
+                Platform.runLater(() -> {
+                    showSuccessAlert("Succès", "Question ajoutée avec succès !");
+                    clearForm();
+                    navigateToForumPage(question);
+                });
+            } catch (IOException e) {
+                Platform.runLater(() -> showAlert("Erreur Réseau", "Impossible de vérifier le contenu pour le moment. Veuillez réessayer plus tard. Détails: " + e.getMessage()));
+            } catch (Exception e) {
+                Platform.runLater(() -> showAlert("Erreur", "Failed to add question: " + e.getMessage()));
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private boolean showProfanityWarningAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
+        icon.setFitHeight(60);
+        icon.setFitWidth(60);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType addAnywayButton = new ButtonType("Ajouter quand même", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton, addAnywayButton);
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
+
+        return alert.showAndWait()
+                .filter(response -> response == addAnywayButton)
+                .isPresent();
     }
 
     private void navigateToForumPage(Question question) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/Forum.fxml"));
             Parent root = loader.load();
-
             ForumController forumController = loader.getController();
             forumController.refreshQuestions();
 
@@ -168,11 +217,8 @@ public class AddQuestionController implements Initializable {
             stage.setScene(newScene);
             stage.show();
 
-            Platform.runLater(() -> {
-                forumController.loadQuestions();
-                System.out.println("Forced UI update after adding question: " + question.getTitle() + " with media: " + question.getMediaPath());
-            });
-        } catch (Exception e) {
+            Platform.runLater(() -> forumController.loadQuestionsLazy());
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

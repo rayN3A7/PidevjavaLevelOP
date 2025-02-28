@@ -48,6 +48,7 @@ public class HardwareSpecs {
 
             // Get GPU information (first graphics card, if available)
             List<GraphicsCard> graphicsCards = systemInfo.getHardware().getGraphicsCards();
+          //list of gpu
             String gpuName = graphicsCards.stream()
                     .findFirst()
                     .map(GraphicsCard::getName)
