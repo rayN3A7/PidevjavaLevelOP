@@ -1,6 +1,8 @@
 package tn.esprit.Controllers.forum;
 
 import javafx.application.Platform;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import tn.esprit.Models.Games;
 import tn.esprit.Models.Question;
 import tn.esprit.Models.Utilisateur;
@@ -82,7 +84,11 @@ public class AddQuestionController implements Initializable {
 
         Stage stage = (Stage) uploadMediaButton.getScene().getWindow();
         File selectedFile = fileChooser.showOpenDialog(stage);
-
+        if (selectedFile != null && isValidMediaFile(selectedFile)) {
+            // Proceed with upload
+        } else {
+            showAlert("Erreur", "Type de fichier non supporté ou invalide.");
+        }
         if (selectedFile != null) {
             executorService.submit(() -> {
                 try {
@@ -178,7 +184,23 @@ public class AddQuestionController implements Initializable {
             }
         });
     }
-
+    private boolean isValidMediaFile(File file) {
+        String extension = file.getName().substring(file.getName().lastIndexOf(".") + 1).toLowerCase();
+        if ("mp4".equals(extension)) {
+            try {
+                Media media = new Media(file.toURI().toString());
+                MediaPlayer testPlayer = new MediaPlayer(media);
+                testPlayer.setOnError(() -> { throw new RuntimeException("Invalid media"); });
+                Thread.sleep(100); // Wait briefly to check for errors
+                testPlayer.dispose();
+                return true;
+            } catch (Exception e) {
+                Platform.runLater(() -> showAlert("Erreur", "Fichier vidéo non valide ou corrompu."));
+                return false;
+            }
+        }
+        return List.of("png", "jpg", "jpeg", "gif").contains(extension);
+    }
     private boolean showProfanityWarningAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle(title);

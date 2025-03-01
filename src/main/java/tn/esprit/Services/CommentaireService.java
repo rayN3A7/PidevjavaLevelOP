@@ -3,6 +3,7 @@ package tn.esprit.Services;
 import tn.esprit.Interfaces.IService;
 import tn.esprit.Models.Commentaire;
 import tn.esprit.Models.Question;
+import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.utils.MyDatabase;
 import java.sql.*;
@@ -24,16 +25,12 @@ public class CommentaireService implements IService<Commentaire> {
         Question question = commentaire.getQuestion();
         Commentaire parentCommentaire = commentaire.getParent_commentaire_id();
 
-        if (utilisateur == null) {
-            throw new IllegalArgumentException("Utilisateur cannot be null when adding a comment.");
-        }
-
-        if (question == null) {
-            throw new IllegalArgumentException("Question cannot be null when adding a comment.");
+        if (utilisateur == null || question == null) {
+            throw new IllegalArgumentException("Utilisateur and Question cannot be null when adding a comment.");
         }
 
         String insertCommentaireQuery = "INSERT INTO Commentaire (contenu, Votes, creation_at, utilisateur_id, question_id, parent_commentaire_id) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = connexion.prepareStatement(insertCommentaireQuery)) {
+        try (PreparedStatement ps = connexion.prepareStatement(insertCommentaireQuery, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, commentaire.getContenu());
             ps.setInt(2, commentaire.getVotes());
             ps.setTimestamp(3, commentaire.getCreation_at());
@@ -41,13 +38,21 @@ public class CommentaireService implements IService<Commentaire> {
             ps.setInt(5, question.getQuestion_id());
             ps.setObject(6, parentCommentaire != null ? parentCommentaire.getCommentaire_id() : null);
             ps.executeUpdate();
+
+            // Retrieve the generated commentaire_id
+            try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    commentaire.setCommentaire_id(generatedKeys.getInt(1));
+                } else {
+                    throw new SQLException("Failed to retrieve generated comment ID.");
+                }
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add comment: " + e.getMessage(), e);
         }
         UtilisateurService us = new UtilisateurService();
         us.updateUserPrivilege(commentaire.getUtilisateur().getId());
     }
-
     public void upvoteComment(int commentaireId, int userId) {
         String checkVoteQuery = "SELECT vote_type FROM commentaire_votes WHERE commentaire_id = ? AND user_id = ?";
         String updateVoteQuery = "INSERT INTO commentaire_votes (commentaire_id, user_id, vote_type) VALUES (?, ?, 'UP') " +
@@ -216,6 +221,19 @@ public class CommentaireService implements IService<Commentaire> {
 
     @Override
     public void update(Commentaire commentaire) {
+
+    }
+
+    @Override
+    public void delete(Commentaire commentaire) {
+
+    }
+
+    public void update(Commentaire commentaire, int userId) {
+        if (!hasPermissionForComment(commentaire.getCommentaire_id(), userId, "UPDATE")) {
+            throw new SecurityException("Vous n'avez pas la permission de modifier ce commentaire.");
+        }
+
         String query = "UPDATE Commentaire SET contenu = ?, Votes = ?, creation_at = ?, parent_commentaire_id = ? WHERE Commentaire_id = ?";
         try (PreparedStatement ps = connexion.prepareStatement(query)) {
             ps.setString(1, commentaire.getContenu());
@@ -229,13 +247,17 @@ public class CommentaireService implements IService<Commentaire> {
         }
     }
 
-    public void delete(Commentaire commentaire) {
+    public void delete(int commentaireId, int userId) {
+        if (!hasPermissionForComment(commentaireId, userId, "DELETE")) {
+            throw new SecurityException("Vous n'avez pas la permission de supprimer ce commentaire.");
+        }
+
         try {
-            deleteReplies(commentaire.getCommentaire_id());
+            deleteReplies(commentaireId);
 
             String deleteCommentQuery = "DELETE FROM Commentaire WHERE Commentaire_id = ?";
             try (PreparedStatement ps = connexion.prepareStatement(deleteCommentQuery)) {
-                ps.setInt(1, commentaire.getCommentaire_id());
+                ps.setInt(1, commentaireId);
                 ps.executeUpdate();
             }
         } catch (SQLException e) {
@@ -334,5 +356,21 @@ public class CommentaireService implements IService<Commentaire> {
             throw new RuntimeException("Failed to fetch user reaction for comment: " + e.getMessage(), e);
         }
         return null;
+    }
+
+    private boolean hasPermissionForComment(int commentaireId, int userId, String action) {
+        UtilisateurService us = new UtilisateurService();
+        Utilisateur currentUser = us.getOne(userId);
+        if (currentUser == null) return false;
+
+        if (currentUser.getRole() == Role.ADMIN) {
+            return true; // Admin can perform any action on comments
+        }
+
+        // For non-admin (CLIENT or COACH), check ownership
+        Commentaire commentaire = getOne(commentaireId);
+        if (commentaire == null) return false;
+
+        return commentaire.getUtilisateur().getId() == userId; // Client/Coach can only modify their own comments
     }
 }

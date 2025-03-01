@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<VBox styleClass="sidebar" spacing="10" stylesheets="@sidebar.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.forum.AdminSidebarController">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <Label text="Admin Dashboard" styleClass="sidebar-title"/>
+
+    <VBox fx:id="adminOptions" styleClass="nav-menu" spacing="5">
+        <Button fx:id="homeButton" text="📊 Home" styleClass="nav-item"/>
+        <Button fx:id="eventsButton" text="📈 Events" styleClass="nav-item"/>
+        <Button fx:id="textsButton" text="✉️ Texts" styleClass="nav-item"/>
+        <Button fx:id="channelsButton" text="📱 Channels" styleClass="nav-item"/>
+        <Button fx:id="emailButton" text="📧 Email" styleClass="nav-item"/>
+        <Button fx:id="phoneCallButton" text="📞 Phone Call" styleClass="nav-item"/>
+        <Button fx:id="onlineChatButton" text="💬 Online Chat" styleClass="nav-item"/>
+        <Button fx:id="websiteButton" text="🌐 Website" styleClass="nav-item"/>
+        <Button fx:id="gamesDashboardButton" text="🎮 Games Dashboard" styleClass="nav-item"/>
+
+        <Label text="TICKETS STATUS" styleClass="nav-section-title"/>
+        <Button fx:id="createdButton" text="Created" styleClass="nav-item"/>
+        <Button fx:id="openButton" text="Open" styleClass="nav-item"/>
+        <Button fx:id="respondedButton" text="Responded" styleClass="nav-item"/>
+        <Button fx:id="solvedButton" text="Solved" styleClass="nav-item"/>
+    </VBox>
+</VBox>

@@ -3,6 +3,7 @@ package tn.esprit.Services;
 import tn.esprit.Interfaces.IService;
 import tn.esprit.Models.Games;
 import tn.esprit.Models.Question;
+import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.utils.MyDatabase;
 import tn.esprit.utils.SessionManager;
@@ -259,6 +260,19 @@ public class QuestionService implements IService<Question> {
 
     @Override
     public void update(Question question) {
+
+    }
+
+    @Override
+    public void delete(Question question) {
+
+    }
+
+    public void update(Question question, int userId) {
+        if (!hasPermissionForQuestion(question.getQuestion_id(), userId, "UPDATE")) {
+            throw new SecurityException("Vous n'avez pas la permission de modifier cette question.");
+        }
+
         String query = "UPDATE Questions SET title = ?, content = ?, Votes = ?, media_path = ?, media_type = ? WHERE question_id = ?";
         try (PreparedStatement ps = connexion.prepareStatement(query)) {
             ps.setString(1, question.getTitle());
@@ -273,15 +287,18 @@ public class QuestionService implements IService<Question> {
         }
     }
 
-    @Override
-    public void delete(Question question) {
+    public void delete(int questionId, int userId) {
+        if (!hasPermissionForQuestion(questionId, userId, "DELETE")) {
+            throw new SecurityException("Vous n'avez pas la permission de supprimer cette question.");
+        }
+
         try {
-            deleteRepliesForQuestion(question);
-            deleteCommentsForQuestion(question);
+            deleteRepliesForQuestion(new Question(questionId, "", "", 0, null, null)); // Dummy question for deletion
+            deleteCommentsForQuestion(new Question(questionId, "", "", 0, null, null)); // Dummy question for deletion
 
             String deleteQuestionQuery = "DELETE FROM Questions WHERE question_id = ?";
             try (PreparedStatement ps = connexion.prepareStatement(deleteQuestionQuery)) {
-                ps.setInt(1, question.getQuestion_id());
+                ps.setInt(1, questionId);
                 ps.executeUpdate();
             }
         } catch (SQLException e) {
@@ -421,5 +438,20 @@ public class QuestionService implements IService<Question> {
             throw new RuntimeException("Failed to fetch user reaction: " + e.getMessage(), e);
         }
         return null;
+    }
+
+    private boolean hasPermissionForQuestion(int questionId, int userId, String action) {
+        Utilisateur currentUser = us.getOne(userId);
+        if (currentUser == null) return false;
+
+        if (currentUser.getRole() == Role.ADMIN) {
+            return true; // Admin can perform any action on questions
+        }
+
+        // For non-admin (CLIENT or COACH), check ownership
+        Question question = getOne(questionId);
+        if (question == null) return false;
+
+        return question.getUser().getId() == userId; // Client/Coach can only modify their own questions
     }
 }

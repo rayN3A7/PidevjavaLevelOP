@@ -19,12 +19,15 @@ import javafx.scene.layout.VBox;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import tn.esprit.Models.Games;
 import tn.esprit.Models.Question;
+import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import javafx.fxml.FXML;
 import javafx.scene.Cursor;
@@ -42,9 +45,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -84,10 +88,10 @@ public class QuestionCardController {
     private GamesService gamesService = new GamesService();
     private static final ExecutorService executorService = Executors.newFixedThreadPool(4);
     private static final ScheduledExecutorService shutdownExecutor = Executors.newScheduledThreadPool(1);
-    private static final List<QuestionCardController> allControllers = new ArrayList<>();
-    private static final List<MediaPlayer> activeMediaPlayers = new ArrayList<>();
-    private static final Map<String, Image> imageCache = new HashMap<>(); // Cache for images
-    private static final Map<String, MediaPlayer> mediaPlayerCache = new HashMap<>(); // Cache for MediaPlayer objects
+    private static final List<QuestionCardController> allControllers = Collections.synchronizedList(new ArrayList<>());
+    private static final List<MediaPlayer> activeMediaPlayers = Collections.synchronizedList(new ArrayList<>());
+    private static final Map<String, Image> imageCache = new ConcurrentHashMap<>(); // Changed to ConcurrentHashMap for thread safety
+    private static final Map<String, MediaPlayer> mediaPlayerCache = new ConcurrentHashMap<>(); // Changed to ConcurrentHashMap for thread safety
     private MediaPlayer mediaPlayer;
     private boolean isFullScreen = false;
     private Scene originalScene;
@@ -106,7 +110,9 @@ public class QuestionCardController {
     private final double controlBarWidthPercentage = 0.8; // 80% de la largeur de l’écran (modifiable)
 
     public QuestionCardController() {
-        allControllers.add(this);
+        synchronized (allControllers) {
+            allControllers.add(this);
+        }
         boundsDebounceTimer = new PauseTransition(Duration.millis(100)); // Debounce bounds changes
     }
 
@@ -130,18 +136,31 @@ public class QuestionCardController {
         upvoteButton.setOnAction(e -> forumController.handleUpvote(question, votesLabel, downvoteButton));
         downvoteButton.setOnAction(e -> forumController.handleDownvote(question, votesLabel, downvoteButton));
         downvoteButton.setDisable(question.getVotes() == 0);
+
         updateButton.setOnAction(e -> {
             stopAllVideos();
-            forumController.updateQuestion(question);
+            handleUpdateQuestion();
         });
         deleteButton.setOnAction(e -> {
             stopAllVideos();
-            forumController.deleteQuestion(question);
+            handleDeleteQuestion();
         });
 
-        boolean isOwner = question.getUser().getId() == userId;
-        deleteButton.setVisible(isOwner);
-        updateButton.setVisible(isOwner);
+        Utilisateur currentUser = us.getOne(userId);
+        if (currentUser == null) {
+            updateButton.setVisible(false);
+            deleteButton.setVisible(false);
+        } else {
+            boolean isOwner = question.getUser().getId() == userId;
+            if (currentUser.getRole() == Role.ADMIN) {
+                updateButton.setVisible(true);
+                deleteButton.setVisible(true);
+            } else {
+                updateButton.setVisible(isOwner);
+                deleteButton.setVisible(isOwner);
+            }
+        }
+
         reactButton.setOnAction(e -> showEmojiPicker());
 
         setGameIcon(question.getGame().getGame_name());
@@ -151,15 +170,51 @@ public class QuestionCardController {
 
         updatePrivilegeUI(question.getUser());
 
-        // Setup bounds listener for scrolling detection after the node is added to the scene
         contentVBox.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null && scrollPane == null) {
                 Platform.runLater(this::setupBoundsListener);
             }
         });
 
-        // Initial attempt to find the ScrollPane
         setupBoundsListener();
+    }
+
+    private void handleUpdateQuestion() {
+        Utilisateur currentUser = us.getOne(userId);
+        if (currentUser == null) {
+            showAlert("Erreur", "Utilisateur non trouvé.");
+            return;
+        }
+
+        if (currentUser.getRole() != Role.ADMIN && question.getUser().getId() != userId) {
+            showAlert("Erreur", "Vous ne pouvez modifier que vos propres questions.");
+            return;
+        }
+
+        try {
+            forumController.updateQuestion(question);
+        } catch (SecurityException e) {
+            showAlert("Erreur", e.getMessage());
+        }
+    }
+
+    private void handleDeleteQuestion() {
+        Utilisateur currentUser = us.getOne(userId);
+        if (currentUser == null) {
+            showAlert("Erreur", "Utilisateur non trouvé.");
+            return;
+        }
+
+        if (currentUser.getRole() != Role.ADMIN && question.getUser().getId() != userId) {
+            showAlert("Erreur", "Vous ne pouvez supprimer que vos propres questions.");
+            return;
+        }
+
+        try {
+            forumController.deleteQuestion(question);
+        } catch (SecurityException e) {
+            showAlert("Erreur", e.getMessage());
+        }
     }
 
     private void setupBoundsListener() {
@@ -175,11 +230,9 @@ public class QuestionCardController {
                 boundsDebounceTimer.playFromStart();
             });
 
-            // Initial check
             Platform.runLater(this::checkIntersectionAndStopVideo);
         }
 
-        // Remove listener when scene is unloaded
         contentVBox.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (oldScene != null && newScene == null) {
                 if (scrollPane != null && boundsListener != null) {
@@ -249,72 +302,123 @@ public class QuestionCardController {
     }
 
     public void disposeVideo() {
-        if (mediaPlayer != null) {
+        if (mediaPlayer == null) {
+            if (isFullScreen) {
+                isFullScreen = false;
+                fullScreenLayout = null;
+            }
+            return;
+        }
+
+        // Run all cleanup on the JavaFX thread to avoid concurrency issues
+        Platform.runLater(() -> {
             try {
                 isPlaying = false;
                 mediaPlayer.stop();
                 mediaPlayer.setVolume(0.0);
                 mediaPlayer.setMute(true);
 
-                if (currentTimeListener != null) mediaPlayer.currentTimeProperty().removeListener(currentTimeListener);
-                if (valueChangingListener != null) progressSlider.valueChangingProperty().removeListener(valueChangingListener);
-                if (volumeListener != null) volumeSlider.valueProperty().removeListener(volumeListener);
+                // Remove listeners safely
+                if (currentTimeListener != null) {
+                    mediaPlayer.currentTimeProperty().removeListener(currentTimeListener);
+                    currentTimeListener = null;
+                }
+                if (valueChangingListener != null) {
+                    progressSlider.valueChangingProperty().removeListener(valueChangingListener);
+                    valueChangingListener = null;
+                }
+                if (volumeListener != null) {
+                    volumeSlider.valueProperty().removeListener(volumeListener);
+                    volumeListener = null;
+                }
 
+                // Dispose of the MediaPlayer
                 mediaPlayer.dispose();
-                activeMediaPlayers.remove(mediaPlayer);
-                mediaPlayerCache.remove(question.getMediaPath() + "_video"); // Remove from cache
+
+                // Update shared collections
+                synchronized (activeMediaPlayers) {
+                    activeMediaPlayers.remove(mediaPlayer);
+                }
+                mediaPlayerCache.remove(question.getMediaPath() + "_video");
+
+                // Set to null after disposal to avoid concurrent access
+                questionVideo.setMediaPlayer(null);
+                mediaPlayer = null;
+                playPauseButton.setText("▶");
+
+                if (isFullScreen) {
+                    isFullScreen = false;
+                    fullScreenLayout = null;
+                }
             } catch (Exception e) {
                 System.err.println("Error disposing MediaPlayer: " + e.getMessage());
-            } finally {
-                shutdownExecutor.schedule(() -> {
-                    if (mediaPlayer != null) {
-                        mediaPlayer.stop();
-                        mediaPlayer.setVolume(0.0);
-                        mediaPlayer.setMute(true);
-                        mediaPlayer.dispose();
-                    }
-                }, 200, TimeUnit.MILLISECONDS);
-
-                mediaPlayer = null;
-                questionVideo.setMediaPlayer(null);
-                playPauseButton.setText("▶");
             }
-        }
-        if (isFullScreen) {
-            isFullScreen = false;
-            fullScreenLayout = null;
-        }
+        });
+
+        shutdownExecutor.schedule(() -> {
+            Platform.runLater(() -> {
+                if (mediaPlayer != null) {
+                    try {
+                        mediaPlayer.stop();
+                        mediaPlayer.dispose();
+                        mediaPlayer = null;
+                    } catch (Exception e) {
+                        System.err.println("Final cleanup failed: " + e.getMessage());
+                    }
+                }
+            });
+        }, 200, TimeUnit.MILLISECONDS);
     }
 
     public static void stopAllVideos() {
-        // Create a copy of the list to avoid ConcurrentModificationException
         List<QuestionCardController> controllersCopy;
         synchronized (allControllers) {
             controllersCopy = new ArrayList<>(allControllers);
         }
-        for (QuestionCardController controller : controllersCopy) {
-            controller.disposeVideo();
-        }
+        // Schedule disposal for each controller on the JavaFX thread
+        Platform.runLater(() -> {
+            for (QuestionCardController controller : controllersCopy) {
+                controller.disposeVideo();
+            }
+        });
     }
 
     public void updatePrivilegeUI(Utilisateur user) {
-        commentAuthor.setText(user.getNickname());
+        TextFlow authorFlow = new TextFlow();
+
+        if (user.getRole() == Role.ADMIN) {
+            Text adminText = new Text("Admin ");
+            adminText.setStyle("-fx-fill: #009dff;");
+            Text usernameText = new Text(user.getNickname());
+            usernameText.setStyle("-fx-fill: white;");
+            authorFlow.getChildren().addAll(adminText, usernameText);
+        } else {
+            Text usernameText = new Text(user.getNickname());
+            usernameText.setStyle("-fx-fill: white;");
+            authorFlow.getChildren().add(usernameText);
+        }
+
         switch (user.getPrivilege() != null ? user.getPrivilege() : "regular") {
             case "top_contributor" -> {
-                commentAuthor.setStyle("-fx-text-fill: silver;");
+                authorFlow.setStyle("-fx-text-fill: silver;"); // Override username color
                 crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png"));
                 crownIcon.setVisible(true);
             }
             case "top_fan" -> {
-                commentAuthor.setStyle("-fx-text-fill: gold;");
+                authorFlow.setStyle("-fx-text-fill: gold;");
                 crownIcon.setImage(new Image("/forumUI/icons/crown.png"));
                 crownIcon.setVisible(true);
             }
             default -> {
-                commentAuthor.setStyle("-fx-text-fill: white;");
+                if (user.getRole() != Role.ADMIN) {
+                    authorFlow.setStyle("-fx-text-fill: white;");
+                }
                 crownIcon.setVisible(false);
             }
         }
+
+        commentAuthor.setGraphic(authorFlow);
+        commentAuthor.setText("");
     }
 
     public Question getQuestion() {
@@ -345,7 +449,7 @@ public class QuestionCardController {
                 if ("image".equals(mediaType)) {
                     Image image = imageCache.computeIfAbsent(cacheKey, k -> {
                         Image img = new Image(fileUri, originalWidth, originalHeight, true, true);
-                        if (img.isError()) System.err.println("Failed to cache image: " + file.getAbsolutePath());
+                        if (img.isError()) System.err.println("Failed to cache image: " + file.getAbsolutePath() + " - " + img.getException());
                         return img;
                     });
 
@@ -360,14 +464,19 @@ public class QuestionCardController {
                             mediaContainer.setManaged(true);
                         });
                     } else {
-                        System.err.println("Failed to load image: " + file.getAbsolutePath());
-                        Platform.runLater(this::resetMediaState);
+                        System.err.println("Failed to load image: " + file.getAbsolutePath() + " - " + image.getException());
+                        Platform.runLater(() -> {
+                            showFallbackMedia();
+                            showAlert("Erreur", "Impossible de charger l'image: " + image.getException().getMessage());
+                        });
                     }
                 } else if ("video".equals(mediaType)) {
-                    // Validate video file format before creating Media
-                    if (!isValidVideoFormat(file)) {
-                        System.err.println("Invalid or unsupported video format: " + file.getAbsolutePath());
-                        Platform.runLater(this::resetMediaState);
+                    if (!isValidVideoFormat(file) || !isPlayableVideo(file)) {
+                        System.err.println("Invalid or unplayable video format: " + file.getAbsolutePath());
+                        Platform.runLater(() -> {
+                            showFallbackMedia();
+                            showAlert("Erreur", "Format vidéo non valide ou fichier corrompu.");
+                        });
                         return;
                     }
 
@@ -377,14 +486,17 @@ public class QuestionCardController {
                         player.setAutoPlay(false);
                         player.setOnError(() -> {
                             System.err.println("MediaPlayer error for file " + file.getAbsolutePath() + ": " + player.getError().getMessage());
-                            Platform.runLater(this::resetMediaState);
+                            Platform.runLater(() -> {
+                                showFallbackMedia();
+                                showAlert("Erreur", "Impossible de lire la vidéo: " + player.getError().getMessage());
+                            });
                         });
                         player.setOnReady(() -> {
                             double width = player.getMedia().getWidth();
                             double height = player.getMedia().getHeight();
                             if (width <= 0 || height <= 0) {
-                                System.err.println("Invalid media dimensions (width or height is 0 or negative) for file: " + file.getAbsolutePath());
-                                Platform.runLater(this::resetMediaState);
+                                System.err.println("Invalid media dimensions for file: " + file.getAbsolutePath());
+                                Platform.runLater(this::showFallbackMedia);
                             } else {
                                 player.pause();
                                 player.setMute(true);
@@ -409,7 +521,10 @@ public class QuestionCardController {
                 }
             } catch (Exception e) {
                 System.err.println("Error loading question media for file " + mediaPath + ": " + e.getMessage());
-                Platform.runLater(this::resetMediaState);
+                Platform.runLater(() -> {
+                    showFallbackMedia();
+                    showAlert("Erreur", "Erreur lors du chargement du média: " + e.getMessage());
+                });
             }
         });
     }
@@ -417,9 +532,41 @@ public class QuestionCardController {
     private boolean isValidVideoFormat(File file) {
         String fileName = file.getName().toLowerCase();
         if (!fileName.endsWith(".mp4")) {
-            return false; // Only support MP4 for now, extend as needed
+            return false;
         }
-        return true; // Add more robust validation (e.g., using Apache Tika or FFmpeg) if necessary
+        return true;
+    }
+
+    private boolean isPlayableVideo(File file) {
+        try {
+            Media media = new Media(file.toURI().toString());
+            MediaPlayer testPlayer = new MediaPlayer(media);
+            testPlayer.setOnError(() -> { throw new RuntimeException("Invalid media"); });
+            Thread.sleep(100);
+            testPlayer.dispose();
+            return true;
+        } catch (Exception e) {
+            System.err.println("Video is not playable: " + file.getAbsolutePath() + " - " + e.getMessage());
+            return false;
+        }
+    }
+
+    private void showFallbackMedia() {
+        Image fallbackImage = imageCache.computeIfAbsent("video_error", k ->
+                new Image(getClass().getResource("/forumUI/icons/videoError.jpg").toExternalForm(), originalWidth, originalHeight, true, true)
+        );
+        if (!fallbackImage.isError()) {
+            questionImage.setImage(fallbackImage);
+            questionImage.setVisible(true);
+            questionImage.setManaged(true);
+            videoWrapper.setVisible(false);
+            videoWrapper.setManaged(false);
+            mediaContainer.setVisible(true);
+            mediaContainer.setManaged(true);
+        } else {
+            System.err.println("Failed to load fallback image: " + fallbackImage.getException());
+            resetMediaState();
+        }
     }
 
     private void setupVideoControls() {
@@ -437,15 +584,17 @@ public class QuestionCardController {
                 isPlaying = false;
                 playPauseButton.setText("▶");
             } else {
-                for (MediaPlayer otherPlayer : new ArrayList<>(activeMediaPlayers)) {
-                    if (otherPlayer != mediaPlayer) {
-                        otherPlayer.pause();
-                        otherPlayer.setVolume(0.0);
-                        otherPlayer.setMute(true);
+                synchronized (activeMediaPlayers) {
+                    for (MediaPlayer otherPlayer : new ArrayList<>(activeMediaPlayers)) {
+                        if (otherPlayer != mediaPlayer) {
+                            otherPlayer.pause();
+                            otherPlayer.setVolume(0.0);
+                            otherPlayer.setMute(true);
+                        }
                     }
+                    activeMediaPlayers.clear();
+                    activeMediaPlayers.add(mediaPlayer);
                 }
-                activeMediaPlayers.clear();
-                activeMediaPlayers.add(mediaPlayer);
 
                 try {
                     mediaPlayer.play();
@@ -549,10 +698,9 @@ public class QuestionCardController {
             else System.err.println("Failed to load stylesheet: /forumUI/forum.css");
             stage.setScene(fullScreenScene);
 
-            // Safely calculate video aspect ratio, handle zero or negative values
             double videoWidth = mediaPlayer.getMedia().getWidth();
             double videoHeight = mediaPlayer.getMedia().getHeight();
-            double videoAspectRatio = (videoHeight > 0) ? (videoWidth / videoHeight) : 1.0; // Default to 1.0 if height is 0 or negative
+            double videoAspectRatio = (videoHeight > 0) ? (videoWidth / videoHeight) : 1.0;
 
             double availableHeight = screenHeight - controlBarHeight;
             double calculatedVideoWidth, calculatedVideoHeight;
@@ -883,7 +1031,13 @@ public class QuestionCardController {
             File file = new File(game.getImagePath());
             if (file.exists()) {
                 String cacheKey = game.getImagePath();
-                Image image = imageCache.computeIfAbsent(cacheKey, k -> new Image(file.toURI().toString(), 100, 100, true, true));
+                Image image = imageCache.computeIfAbsent(cacheKey, k -> {
+                    Image img = new Image(file.toURI().toString(), 100, 100, true, true);
+                    if (img.isError()) {
+                        System.err.println("Failed to load game image: " + game.getImagePath() + " - " + img.getException());
+                    }
+                    return img;
+                });
                 if (!image.isError()) {
                     gameIcon.setImage(image);
                 } else {
@@ -906,5 +1060,28 @@ public class QuestionCardController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
+        icon.setFitHeight(80);
+        icon.setFitWidth(80);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
+        alert.showAndWait();
     }
 }

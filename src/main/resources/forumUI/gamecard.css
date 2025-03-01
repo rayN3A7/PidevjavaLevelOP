@@ -1,0 +1,45 @@
+.game-card {
+    -fx-background-color: #1e2a38;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 10, 0, 0, 4);
+    -fx-pref-width: 300px; /* Consistent width */
+    -fx-alignment: center;
+}
+
+.game-card:hover {
+    -fx-scale-y: 1.05;
+    -fx-scale-x: 1.05;
+    -fx-effect: dropshadow(gaussian, #ff007f, 15, 0, 0, 6);
+}
+
+.game-image {
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.game-name {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+    -fx-padding: 5 0;
+    -fx-alignment: center;
+}
+
+.game-type {
+    -fx-font-size: 14px;
+    -fx-text-fill: #aaaaaa;
+    -fx-alignment: center;
+}
+
+.card-button {
+    -fx-background-color: #ff007f;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 6 12;
+    -fx-background-radius: 5;
+}
+
+.card-button:hover {
+    -fx-background-color: #cc0066;
+}

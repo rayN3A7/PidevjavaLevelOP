@@ -61,8 +61,6 @@
     -fx-spacing: 2px;
 }
 
-
-
 .votes-label {
     -fx-font-size: 12px;
     -fx-text-fill: #b0b0b0;
@@ -75,8 +73,9 @@
     -fx-pref-width: 30px;
     -fx-pref-height: 30px;
     -fx-border-color: #ff007f;
-    -fx-padding: 1px 1px 1px 1px;
+    -fx-padding: 1px;
     -fx-border-width: 2px;
+    -fx-border-radius: 15px; /* Rounded corners for vote buttons */
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 10, 0.5, 0, 0);
 }
 
@@ -87,7 +86,7 @@
 .vote-button:hover {
     -fx-background-color: rgba(255, 0, 127, 0.2);
     -fx-border-color: #ff007f;
-    -fx-border-radius: 100%;
+    -fx-border-radius: 15px; /* Maintain rounded corners on hover */
 }
 
 /* Comment Author Styling */
@@ -114,8 +113,8 @@
     -fx-background-color: linear-gradient(to right, #ff007f, #ff69b4);
     -fx-text-fill: white;
     -fx-font-size: 14px;
-    -fx-padding: 10px 20px;
-    -fx-background-radius: 25px;
+    -fx-padding: 8px 16px; /* Slightly smaller padding for consistency */
+    -fx-background-radius: 25px; /* Rounded corners, no pointy edges */
     -fx-border-color: transparent;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 3);
 }
@@ -132,8 +131,8 @@
     -fx-background-color: linear-gradient(to right, #ff007f, #ff69b4);
     -fx-text-fill: white;
     -fx-font-size: 14px;
-    -fx-padding: 10px 20px;
-    -fx-background-radius: 25px;
+    -fx-padding: 8px 16px; /* Slightly smaller padding for consistency */
+    -fx-background-radius: 25px; /* Rounded corners, no pointy edges */
     -fx-border-color: transparent;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 3);
 }
@@ -151,7 +150,7 @@
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-padding: 12px 24px;
-    -fx-background-radius: 30px;
+    -fx-background-radius: 25px; /* Rounded corners, no pointy edges */
     -fx-border-color: transparent;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 10, 0.5, 0, 4);
 }
@@ -171,6 +170,7 @@
     -fx-padding: 8px 16px;
     -fx-border-color: transparent;
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 6, 0.5, 0, 2);
+    -fx-background-radius: 25px; /* Rounded corners, no pointy edges */
 }
 
 .back-button:hover {
@@ -220,4 +220,34 @@
     -fx-alignment: center-left;
     -fx-spacing: 5;
     -fx-padding: 2px 0 0 0;
+}
+
+.reply-input {
+    -fx-pref-width: 300px;
+    -fx-background-color: #2a2a2a;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: gray;
+    -fx-border-radius: 5px;
+}
+
+/* New style for Reply, Show Replies, and Hide Replies buttons */
+.reply-toggle-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ff007f;
+    -fx-font-size: 12px; /* Smaller font size */
+    -fx-padding: 4px 8px; /* Smaller padding for a compact look */
+    -fx-background-radius: 15px; /* Rounded corners, no pointy edges */
+    -fx-border-color: #ff007f;
+    -fx-border-width: 1.5px;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.2), 5, 0.5, 0, 1);
+}
+
+.reply-toggle-button:hover {
+    -fx-background-color: rgba(255, 0, 127, 0.1); /* Subtle hover effect */
+    -fx-text-fill: #ff4dab; /* Slightly lighter pink on hover */
+    -fx-border-color: #ff4dab;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 7, 0.5, 0, 2);
+    -fx-cursor: hand;
 }

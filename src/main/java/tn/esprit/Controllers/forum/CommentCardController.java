@@ -7,6 +7,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.Popup;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -15,9 +17,11 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.CommentaireService;
 import tn.esprit.Services.EmojiService;
+import tn.esprit.Services.UtilisateurService;
 import tn.esprit.utils.ProfanityChecker;
 import tn.esprit.utils.SessionManager;
 
@@ -67,6 +71,7 @@ public class CommentCardController {
     private int userId = SessionManager.getInstance().getUserId();
     private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
     private static final Map<String, Image> imageCache = new HashMap<>();
+    private UtilisateurService us = new UtilisateurService(); // Added for role checking
 
     public void setCommentData(Commentaire commentaire, QuestionDetailsController questionDetailsController) {
         this.questionDetailsController = questionDetailsController;
@@ -77,48 +82,108 @@ public class CommentCardController {
 
         upvoteButton.setOnAction(e -> questionDetailsController.handleUpvoteC(commentaire, votesLabel, downvoteButton));
         downvoteButton.setOnAction(e -> questionDetailsController.handleDownvoteC(commentaire, votesLabel, downvoteButton));
-        deleteButton.setOnAction(e -> questionDetailsController.deleteComment(commentaire));
 
         editCommentField.setVisible(false);
         editButtonsBox.setVisible(false);
 
-        updateButton.setOnAction(event -> enableEditMode());
-        saveButton.setOnAction(event -> saveUpdatedComment());
-        boolean isOwner = commentaire.getUtilisateur().getId() == userId;
-        deleteButton.setVisible(isOwner);
-        updateButton.setVisible(isOwner);
+        // Set up update and delete actions with role-based permission checks
+        updateButton.setOnAction(event -> handleUpdateComment());
+        deleteButton.setOnAction(e -> handleDeleteComment());
 
+        // Determine visibility based on user role and ownership
+        Utilisateur currentUser = us.getOne(userId);
+        if (currentUser == null) {
+            updateButton.setVisible(false);
+            deleteButton.setVisible(false);
+        } else {
+            boolean isOwner = commentaire.getUtilisateur().getId() == userId;
+            if (currentUser.getRole() == Role.ADMIN) {
+                // Admin can update/delete any comment
+                updateButton.setVisible(true);
+                deleteButton.setVisible(true);
+            } else {
+                // Client/Coach can only update/delete their own comments
+                updateButton.setVisible(isOwner);
+                deleteButton.setVisible(isOwner);
+            }
+        }
+
+        saveButton.setOnAction(event -> saveUpdatedComment());
         reactButton.setOnAction(e -> showEmojiPicker());
         displayReactions();
         displayUserReaction();
         updatePrivilegeUI(commentaire.getUtilisateur());
     }
 
+    private void handleUpdateComment() {
+        Utilisateur currentUser = us.getOne(userId);
+        if (currentUser == null) {
+            showAlert("Erreur", "Utilisateur non trouvé.");
+            return;
+        }
+
+        if (currentUser.getRole() != Role.ADMIN && commentaire.getUtilisateur().getId() != userId) {
+            showAlert("Erreur", "Vous ne pouvez modifier que vos propres commentaires.");
+            return;
+        }
+
+        enableEditMode();
+    }
+
+    private void handleDeleteComment() {
+        Utilisateur currentUser = us.getOne(userId);
+        if (currentUser == null) {
+            showAlert("Erreur", "Utilisateur non trouvé.");
+            return;
+        }
+
+        if (currentUser.getRole() != Role.ADMIN && commentaire.getUtilisateur().getId() != userId) {
+            showAlert("Erreur", "Vous ne pouvez supprimer que vos propres commentaires.");
+            return;
+        }
+
+        questionDetailsController.deleteComment(commentaire);
+    }
+
     public void updatePrivilegeUI(Utilisateur user) {
-        commentAuthor.setText(user.getNickname());
+        TextFlow authorFlow = new TextFlow();
+
+        if (user.getRole() == Role.ADMIN) {
+            Text adminText = new Text("Admin ");
+            adminText.setStyle("-fx-fill: #009dff;");
+            Text usernameText = new Text(user.getNickname());
+            usernameText.setStyle("-fx-fill: white;");
+            authorFlow.getChildren().addAll(adminText, usernameText);
+        } else {
+            Text usernameText = new Text(user.getNickname());
+            usernameText.setStyle("-fx-fill: white;");
+            authorFlow.getChildren().add(usernameText);
+        }
+
         switch (user.getPrivilege() != null ? user.getPrivilege() : "regular") {
             case "top_contributor" -> {
-                commentAuthor.setStyle("-fx-text-fill: silver;");
+                authorFlow.setStyle("-fx-text-fill: silver;");
                 crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png"));
                 crownIcon.setVisible(true);
             }
             case "top_fan" -> {
-                commentAuthor.setStyle("-fx-text-fill: gold;");
+                authorFlow.setStyle("-fx-text-fill: gold;");
                 crownIcon.setImage(new Image("/forumUI/icons/crown.png"));
                 crownIcon.setVisible(true);
             }
             default -> {
-                commentAuthor.setStyle("-fx-text-fill: white;");
+                if (user.getRole() != Role.ADMIN) {
+                    authorFlow.setStyle("-fx-text-fill: white;");
+                }
                 crownIcon.setVisible(false);
             }
         }
+
+        commentAuthor.setGraphic(authorFlow);
+        commentAuthor.setText("");
     }
 
     private void enableEditMode() {
-        if (commentaire.getUtilisateur().getId() != userId) {
-            showAlert("Erreur", "Vous ne pouvez modifier que vos propres commentaires.");
-            return;
-        }
         editCommentField.setText(commentaire.getContenu());
         editCommentField.setVisible(true);
         editButtonsBox.setVisible(true);
@@ -164,8 +229,19 @@ public class CommentCardController {
                     if (!proceed[0]) return;
                 }
 
+                Utilisateur currentUser = us.getOne(userId);
+                if (currentUser == null) {
+                    Platform.runLater(() -> showAlert("Erreur", "Utilisateur non trouvé."));
+                    return;
+                }
+
+                if (currentUser.getRole() != Role.ADMIN && commentaire.getUtilisateur().getId() != userId) {
+                    Platform.runLater(() -> showAlert("Erreur", "Vous ne pouvez modifier que vos propres commentaires."));
+                    return;
+                }
+
                 commentaire.setContenu(updatedContent);
-                commentaireService.update(commentaire);
+                commentaireService.update(commentaire, userId);
                 Platform.runLater(() -> {
                     commentContent.setText(updatedContent);
                     commentContent.setVisible(true);
@@ -175,6 +251,8 @@ public class CommentCardController {
                 });
             } catch (IOException e) {
                 Platform.runLater(() -> showProfanityWarningAlert("Erreur Réseau", "Impossible de vérifier le contenu pour le moment. Veuillez réessayer plus tard. Détails: " + e.getMessage()));
+            } catch (SecurityException e) {
+                Platform.runLater(() -> showAlert("Erreur", e.getMessage()));
             }
         });
     }

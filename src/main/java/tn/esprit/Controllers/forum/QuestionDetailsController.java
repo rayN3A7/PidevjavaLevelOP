@@ -124,9 +124,9 @@ public class QuestionDetailsController {
                 commentaire.setCreation_at(new java.sql.Timestamp(System.currentTimeMillis()));
                 commentaire.setQuestion(currentQuestion);
 
-                commentaireService.add(commentaire);
+                commentaireService.add(commentaire); // Now updates commentaire with commentaire_id
                 Platform.runLater(() -> {
-                    createCommentCard(commentaire);
+                    createCommentCard(commentaire); // Pass the fully initialized commentaire
                     commentInput.clear();
                     UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
                     if (change.isChanged()) {
@@ -211,17 +211,24 @@ public class QuestionDetailsController {
     }
 
     public void deleteComment(Commentaire commentaire) {
-        if (commentaire.getUtilisateur().getId() != userId) {
+        Utilisateur currentUser = us.getOne(userId);
+        if (currentUser == null) {
+            showAlert("Erreur", "Utilisateur non trouvé.");
+            return;
+        }
+
+        if (currentUser.getRole() != Role.ADMIN && commentaire.getUtilisateur().getId() != userId) {
             showAlert("Erreur", "Vous ne pouvez supprimer que vos propres commentaires.");
             return;
         }
+
         executorService.submit(() -> {
             try {
                 for (Node node : commentContainer.getChildren()) {
                     if (node instanceof VBox) {
                         CommentCardController controller = (CommentCardController) node.getUserData();
                         if (controller != null && controller.getCommentaire().getCommentaire_id() == commentaire.getCommentaire_id()) {
-                            commentaireService.delete(commentaire);
+                            commentaireService.delete(commentaire.getCommentaire_id(), userId);
                             Platform.runLater(() -> {
                                 commentContainer.getChildren().remove(node);
                                 commentContainer.requestLayout();
@@ -235,6 +242,8 @@ public class QuestionDetailsController {
                         }
                     }
                 }
+            } catch (SecurityException e) {
+                Platform.runLater(() -> showAlert("Erreur", e.getMessage()));
             } catch (Exception e) {
                 System.err.println("Error deleting comment: " + e.getMessage());
             }

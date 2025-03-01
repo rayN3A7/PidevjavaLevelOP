@@ -12,10 +12,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import tn.esprit.Models.Question;
+import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.QuestionService;
 import tn.esprit.Services.UtilisateurService;
@@ -34,17 +36,22 @@ public class ForumController implements Initializable {
     private final QuestionService questionService = new QuestionService();
     @FXML private Button addQuestionButton;
     @FXML private TextField searchField;
+    @FXML private BorderPane mainLayout;
+
     private UtilisateurService us = new UtilisateurService();
     private int userId = SessionManager.getInstance().getUserId();
     private static final Map<String, Image> imageCache = new HashMap<>();
     private Map<Question, Parent> questionCardMap; // Cache question cards
     private List<Question> allQuestions;
-    private PauseTransition debounceTimer; // For debouncing search input
+    private PauseTransition debounceTimer;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         questionCardMap = new HashMap<>();
         debounceTimer = new PauseTransition(Duration.millis(300));
+        if (SessionManager.getInstance().getRole() == Role.ADMIN) {
+            loadAdminSidebar();
+        }
         loadQuestionsLazy();
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -57,8 +64,18 @@ public class ForumController implements Initializable {
                 QuestionCardController.stopAllVideos();
             }
         });
+
     }
 
+    private void loadAdminSidebar() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/sidebarAdmin.fxml"));
+            VBox adminSidebar = loader.load();
+            mainLayout.setLeft(adminSidebar); // Dynamically set the sidebar
+        } catch (IOException e) {
+            System.err.println("Error loading admin sidebar: " + e.getMessage());
+        }
+    }
     public void loadQuestionsLazy() {
         new Thread(() -> {
             allQuestions = questionService.getAll();
@@ -68,7 +85,7 @@ public class ForumController implements Initializable {
                 for (Question question : allQuestions) {
                     addQuestionCard(question);
                 }
-                filterQuestionsRealTime(""); // Initial display with no filter
+                filterQuestionsRealTime("");
             });
         }).start();
     }
@@ -225,11 +242,19 @@ public class ForumController implements Initializable {
     }
 
     public void updateQuestion(Question question) {
-        if (question.getUser().getId() != userId) {
+        Utilisateur currentUser = us.getOne(userId);
+        if (currentUser == null) {
+            showAlert("Erreur", "Utilisateur non trouvé.");
+            return;
+        }
+
+        if (currentUser.getRole() != Role.ADMIN && question.getUser().getId() != userId) {
             showAlert("Erreur", "Vous ne pouvez modifier que vos propres questions.");
             return;
         }
+
         try {
+            questionService.update(question, userId);
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/UpdateQuestionForm.fxml"));
             Parent root = loader.load();
             UpdateQuestionController updateController = loader.getController();
@@ -238,20 +263,29 @@ public class ForumController implements Initializable {
             Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
             stage.setScene(newScene);
             stage.show();
+        } catch (SecurityException e) {
+            showAlert("Erreur", e.getMessage());
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     public void deleteQuestion(Question question) {
-        if (question.getUser().getId() != userId) {
+        Utilisateur currentUser = us.getOne(userId);
+        if (currentUser == null) {
+            showAlert("Erreur", "Utilisateur non trouvé.");
+            return;
+        }
+
+        if (currentUser.getRole() != Role.ADMIN && question.getUser().getId() != userId) {
             showAlert("Erreur", "Vous ne pouvez supprimer que vos propres questions.");
             return;
         }
+
         try {
+            questionService.delete(question.getQuestion_id(), userId);
             Parent questionCard = questionCardMap.get(question);
             if (questionCard != null) {
-                questionService.delete(question);
                 Platform.runLater(() -> {
                     questionCardContainer.getChildren().remove(questionCard);
                     questionCardMap.remove(question);
@@ -264,6 +298,8 @@ public class ForumController implements Initializable {
                 }
                 updatePrivilegeUI(userId);
             }
+        } catch (SecurityException e) {
+            showAlert("Erreur", e.getMessage());
         } catch (Exception e) {
             System.err.println("Error deleting question: " + e.getMessage());
         }
