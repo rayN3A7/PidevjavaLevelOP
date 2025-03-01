@@ -48,36 +48,109 @@ public class CommentaireService implements IService<Commentaire> {
         us.updateUserPrivilege(commentaire.getUtilisateur().getId());
     }
 
-    public void upvoteComment(int commentaire_id) {
-        String query = "UPDATE Commentaire SET Votes = Votes + 1 WHERE Commentaire_id = ?";
-        try (PreparedStatement ps = connexion.prepareStatement(query)) {
-            ps.setInt(1, commentaire_id);
-            ps.executeUpdate();
+    public void upvoteComment(int commentaireId, int userId) {
+        String checkVoteQuery = "SELECT vote_type FROM commentaire_votes WHERE commentaire_id = ? AND user_id = ?";
+        String updateVoteQuery = "INSERT INTO commentaire_votes (commentaire_id, user_id, vote_type) VALUES (?, ?, 'UP') " +
+                "ON DUPLICATE KEY UPDATE vote_type = CASE " +
+                "WHEN vote_type = 'DOWN' THEN 'UP' " +
+                "WHEN vote_type = 'NONE' THEN 'UP' " +
+                "ELSE 'NONE' END";
+        String updateVotesQuery = "UPDATE Commentaire SET Votes = Votes + 1 WHERE Commentaire_id = ?";
+
+        try {
+            // Check current vote
+            String currentVote = getUserVote(commentaireId, userId);
+            if ("UP".equals(currentVote)) {
+                // User already upvoted, no action needed
+                return;
+            } else if ("DOWN".equals(currentVote)) {
+                // User previously downvoted, switch to upvote and adjust votes
+                updateVoteInDb(commentaireId, userId, "UP");
+                updateVotesQuery = "UPDATE Commentaire SET Votes = Votes + 1 WHERE Commentaire_id = ?"; // +2 to undo downvote (-1) and add upvote (+1)
+            } else {
+                // No vote or NONE, just upvote
+                updateVoteInDb(commentaireId, userId, "UP");
+            }
+
+            try (PreparedStatement ps = connexion.prepareStatement(updateVotesQuery)) {
+                ps.setInt(1, commentaireId);
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to upvote comment: " + e.getMessage(), e);
         }
     }
 
-    public void downvoteComment(int commentaire_id) {
-        String query = "UPDATE Commentaire SET Votes = Votes - 1 WHERE Commentaire_id = ? AND Votes > 0";
-        try (PreparedStatement ps = connexion.prepareStatement(query)) {
-            ps.setInt(1, commentaire_id);
-            ps.executeUpdate();
+    public void downvoteComment(int commentaireId, int userId) {
+        String checkVoteQuery = "SELECT vote_type FROM commentaire_votes WHERE commentaire_id = ? AND user_id = ?";
+        String updateVoteQuery = "INSERT INTO commentaire_votes (commentaire_id, user_id, vote_type) VALUES (?, ?, 'DOWN') " +
+                "ON DUPLICATE KEY UPDATE vote_type = CASE " +
+                "WHEN vote_type = 'UP' THEN 'DOWN' " +
+                "WHEN vote_type = 'NONE' THEN 'DOWN' " +
+                "ELSE 'NONE' END";
+        String updateVotesQuery = "UPDATE Commentaire SET Votes = Votes - 1 WHERE Commentaire_id = ? AND Votes > 0";
+
+        try {
+            // Check current vote
+            String currentVote = getUserVote(commentaireId, userId);
+            if ("DOWN".equals(currentVote)) {
+                // User already downvoted, no action needed
+                return;
+            } else if ("UP".equals(currentVote)) {
+                // User previously upvoted, switch to downvote and adjust votes
+                updateVoteInDb(commentaireId, userId, "DOWN");
+                updateVotesQuery = "UPDATE Commentaire SET Votes = Votes - 1 WHERE Commentaire_id = ?"; // -2 to undo upvote (+1) and add downvote (-1)
+            } else {
+                // No vote or NONE, just downvote
+                updateVoteInDb(commentaireId, userId, "DOWN");
+            }
+
+            try (PreparedStatement ps = connexion.prepareStatement(updateVotesQuery)) {
+                ps.setInt(1, commentaireId);
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to downvote comment: " + e.getMessage(), e);
         }
     }
 
-    public int getVotes(int Commentaire_id) {
+    private void updateVoteInDb(int commentaireId, int userId, String voteType) throws SQLException {
+        String query = "INSERT INTO commentaire_votes (commentaire_id, user_id, vote_type) VALUES (?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE vote_type = ?";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, commentaireId);
+            ps.setInt(2, userId);
+            ps.setString(3, voteType);
+            ps.setString(4, voteType);
+            ps.executeUpdate();
+        }
+    }
+
+    public String getUserVote(int commentaireId, int userId) {
+        String query = "SELECT vote_type FROM commentaire_votes WHERE commentaire_id = ? AND user_id = ?";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, commentaireId);
+            ps.setInt(2, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("vote_type");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get user vote for comment: " + e.getMessage(), e);
+        }
+        return "NONE"; // Default to no vote
+    }
+
+    public int getVotes(int commentaireId) {
         String query = "SELECT Votes FROM Commentaire WHERE Commentaire_id = ?";
         try (PreparedStatement ps = connexion.prepareStatement(query)) {
-            ps.setInt(1, Commentaire_id);
+            ps.setInt(1, commentaireId);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 return rs.getInt("Votes");
             }
         } catch (SQLException e) {
-            throw new RuntimeException("Failed to get votes: " + e.getMessage(), e);
+            throw new RuntimeException("Failed to get votes for comment: " + e.getMessage(), e);
         }
         return 0;
     }

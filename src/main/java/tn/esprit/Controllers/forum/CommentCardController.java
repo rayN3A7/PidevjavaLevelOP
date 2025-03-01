@@ -2,11 +2,13 @@ package tn.esprit.Controllers.forum;
 
 import javafx.animation.ScaleTransition;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.control.ScrollPane;
 import javafx.stage.Popup;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import tn.esprit.Models.Commentaire;
 import javafx.application.Platform;
@@ -16,8 +18,11 @@ import javafx.scene.image.ImageView;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.CommentaireService;
 import tn.esprit.Services.EmojiService;
+import tn.esprit.utils.ProfanityChecker;
 import tn.esprit.utils.SessionManager;
 
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -60,11 +65,13 @@ public class CommentCardController {
     private QuestionDetailsController questionDetailsController;
     private CommentaireService commentaireService = new CommentaireService();
     private int userId = SessionManager.getInstance().getUserId();
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(4);
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private static final Map<String, Image> imageCache = new HashMap<>();
 
     public void setCommentData(Commentaire commentaire, QuestionDetailsController questionDetailsController) {
         this.questionDetailsController = questionDetailsController;
         this.commentaire = commentaire;
+        commentAuthor.getParent().setUserData(this);
         commentAuthor.setText(commentaire.getUtilisateur().getNickname());
         commentContent.setText(commentaire.getContenu());
 
@@ -77,29 +84,41 @@ public class CommentCardController {
 
         updateButton.setOnAction(event -> enableEditMode());
         saveButton.setOnAction(event -> saveUpdatedComment());
+        boolean isOwner = commentaire.getUtilisateur().getId() == userId;
+        deleteButton.setVisible(isOwner);
+        updateButton.setVisible(isOwner);
+
         reactButton.setOnAction(e -> showEmojiPicker());
         displayReactions();
         displayUserReaction();
-        Utilisateur user = commentaire.getUtilisateur();
+        updatePrivilegeUI(commentaire.getUtilisateur());
+    }
+
+    public void updatePrivilegeUI(Utilisateur user) {
         commentAuthor.setText(user.getNickname());
         switch (user.getPrivilege() != null ? user.getPrivilege() : "regular") {
-            case "top_contributor":
+            case "top_contributor" -> {
                 commentAuthor.setStyle("-fx-text-fill: silver;");
                 crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png"));
                 crownIcon.setVisible(true);
-                break;
-            case "top_fan":
+            }
+            case "top_fan" -> {
                 commentAuthor.setStyle("-fx-text-fill: gold;");
                 crownIcon.setImage(new Image("/forumUI/icons/crown.png"));
                 crownIcon.setVisible(true);
-                break;
-            default:
+            }
+            default -> {
                 commentAuthor.setStyle("-fx-text-fill: white;");
                 crownIcon.setVisible(false);
-                break;
+            }
         }
     }
+
     private void enableEditMode() {
+        if (commentaire.getUtilisateur().getId() != userId) {
+            showAlert("Erreur", "Vous ne pouvez modifier que vos propres commentaires.");
+            return;
+        }
         editCommentField.setText(commentaire.getContenu());
         editCommentField.setVisible(true);
         editButtonsBox.setVisible(true);
@@ -107,33 +126,96 @@ public class CommentCardController {
         updateButton.setVisible(false);
     }
 
-    private void saveUpdatedComment() {
-        String updatedContent = editCommentField.getText().trim();
-        if (updatedContent.isEmpty()) {
-            System.out.println("Comment cannot be empty!");
-            return;
-        }
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
 
-        commentaire.setContenu(updatedContent);
-        commentaireService.update(commentaire);
-        commentContent.setText(updatedContent);
-        commentContent.setVisible(true);
-        updateButton.setVisible(true);
-        editCommentField.setVisible(false);
-        editButtonsBox.setVisible(false);
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
+        icon.setFitHeight(60);
+        icon.setFitWidth(60);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+        alert.showAndWait();
     }
 
-    private void displayReactions() {
+    private void saveUpdatedComment() {
+        String updatedContent = editCommentField.getText().trim();
+        if (updatedContent.isEmpty()) return;
+
+        executorService.submit(() -> {
+            try {
+                if (ProfanityChecker.containsProfanity(updatedContent)) {
+                    final boolean[] proceed = {false}; // Use an array to update from within lambda
+                    Platform.runLater(() -> {
+                        proceed[0] = showProfanityWarningAlert("Avertissement",
+                                "Votre commentaire contient des mots inappropriés. Vous risquez d'être banni ou signalé. Voulez-vous ajouter quand même?");
+                    });
+                    // Wait for the UI thread to complete (simple polling, could be improved with a semaphore or callback)
+                    while (!Thread.currentThread().isInterrupted() && !proceed[0] && !Platform.isFxApplicationThread()) {
+                        Thread.yield(); // Avoid busy-waiting, but this is a simple solution
+                    }
+                    if (!proceed[0]) return;
+                }
+
+                commentaire.setContenu(updatedContent);
+                commentaireService.update(commentaire);
+                Platform.runLater(() -> {
+                    commentContent.setText(updatedContent);
+                    commentContent.setVisible(true);
+                    updateButton.setVisible(true);
+                    editCommentField.setVisible(false);
+                    editButtonsBox.setVisible(false);
+                });
+            } catch (IOException e) {
+                Platform.runLater(() -> showProfanityWarningAlert("Erreur Réseau", "Impossible de vérifier le contenu pour le moment. Veuillez réessayer plus tard. Détails: " + e.getMessage()));
+            }
+        });
+    }
+
+    private boolean showProfanityWarningAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
+        icon.setFitHeight(60);
+        icon.setFitWidth(60);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType addAnywayButton = new ButtonType("Ajouter quand même", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton, addAnywayButton);
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
+
+        return alert.showAndWait()
+                .filter(response -> response == addAnywayButton)
+                .isPresent();
+    }
+
+    public void displayReactions() {
         reactionContainer.getChildren().clear();
         Map<String, Integer> reactions = commentaire.getReactions();
         for (Map.Entry<String, Integer> entry : reactions.entrySet()) {
             String emojiUrl = entry.getKey();
             int count = entry.getValue();
             HBox reactionBox = new HBox(2);
-            reactionBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+            reactionBox.setAlignment(Pos.CENTER_LEFT);
 
             if (emojiUrl.contains("twemoji")) {
-                Image emojiImage = new Image(emojiUrl, 32, 32, true, true);
+                Image emojiImage = imageCache.computeIfAbsent(emojiUrl, k -> new Image(emojiUrl, 32, 32, true, true));
                 if (!emojiImage.isError()) {
                     ImageView emojiIcon = new ImageView(emojiImage);
                     emojiIcon.setFitWidth(32);
@@ -197,11 +279,11 @@ public class CommentCardController {
         return url;
     }
 
-    private void displayUserReaction() {
+    public void displayUserReaction() {
         String userReaction = commentaire.getUserReaction();
         if (userReaction != null && !userReaction.isEmpty()) {
             if (userReaction.contains("twemoji")) {
-                Image emojiImage = new Image(userReaction, 30, 30, true, true);
+                Image emojiImage = imageCache.computeIfAbsent(userReaction, k -> new Image(userReaction, 30, 30, true, true));
                 if (!emojiImage.isError()) {
                     selectedEmojiImage.setImage(emojiImage);
                 } else {
@@ -227,131 +309,145 @@ public class CommentCardController {
         emojiBox.setPadding(new Insets(15));
         emojiBox.getStyleClass().add("emoji-picker");
 
-        try {
-            List<Image> emojis = EmojiService.fetchEmojis();
-            HBox row = new HBox(8);
-            int emojiCount = 0;
-            for (Image emoji : emojis) {
-                ImageView emojiImage = new ImageView(emoji);
-                emojiImage.setFitWidth(30);
-                emojiImage.setFitHeight(30);
-                emojiImage.setPreserveRatio(true);
-                emojiImage.setOnMouseClicked(e -> {
-                    handleReaction(emoji.getUrl());
-                    popup.hide();
-                    displayReactions();
-                    displayUserReaction();
-                });
+        executorService.submit(() -> {
+            try {
+                List<Image> emojis = EmojiService.fetchEmojis();
+                Platform.runLater(() -> {
+                    HBox row = new HBox(8);
+                    int emojiCount = 0;
+                    for (Image emoji : emojis) {
+                        ImageView emojiImage = new ImageView(emoji);
+                        emojiImage.setFitWidth(30);
+                        emojiImage.setFitHeight(30);
+                        emojiImage.setPreserveRatio(true);
+                        emojiImage.setOnMouseClicked(e -> {
+                            handleReaction(emoji.getUrl());
+                            popup.hide();
+                            displayReactions();
+                            displayUserReaction();
+                        });
 
-                emojiImage.setOnMouseEntered(e -> {
-                    ScaleTransition scaleIn = new ScaleTransition(Duration.millis(150), emojiImage);
-                    scaleIn.setToX(1.1);
-                    scaleIn.setToY(1.1);
-                    scaleIn.play();
-                });
-                emojiImage.setOnMouseExited(e -> {
-                    ScaleTransition scaleOut = new ScaleTransition(Duration.millis(150), emojiImage);
-                    scaleOut.setToX(1.0);
-                    scaleOut.setToY(1.0);
-                    scaleOut.play();
-                });
+                        emojiImage.setOnMouseEntered(e -> {
+                            ScaleTransition scaleIn = new ScaleTransition(Duration.millis(150), emojiImage);
+                            scaleIn.setToX(1.1);
+                            scaleIn.setToY(1.1);
+                            scaleIn.play();
+                        });
+                        emojiImage.setOnMouseExited(e -> {
+                            ScaleTransition scaleOut = new ScaleTransition(Duration.millis(150), emojiImage);
+                            scaleOut.setToX(1.0);
+                            scaleOut.setToY(1.0);
+                            scaleOut.play();
+                        });
 
-                row.getChildren().add(emojiImage);
-                emojiCount++;
-                if (emojiCount % 7 == 0) {
-                    emojiBox.getChildren().add(row);
-                    row = new HBox(8);
-                }
+                        row.getChildren().add(emojiImage);
+                        emojiCount++;
+                        if (emojiCount % 7 == 0) {
+                            emojiBox.getChildren().add(row);
+                            row = new HBox(8);
+                        }
+                    }
+                    if (!row.getChildren().isEmpty()) {
+                        emojiBox.getChildren().add(row);
+                    }
+
+                    scrollPane.setContent(emojiBox);
+                    scrollPane.setPrefSize(250, 200);
+                    popup.getContent().add(scrollPane);
+                    popup.show(reactButton, reactButton.getScene().getWindow().getX() + reactButton.localToScene(0, 0).getX(),
+                            reactButton.getScene().getWindow().getY() + reactButton.localToScene(0, 0).getY() + reactButton.getHeight());
+                });
+            } catch (Exception e) {
+                System.err.println("Failed to load emojis: " + e.getMessage());
+                Platform.runLater(() -> {
+                    String[] fallbackPaths = {
+                            "/forumUI/icons/like.png", "/forumUI/icons/love.png", "/forumUI/icons/haha.png", "/forumUI/icons/wow.png",
+                            "/forumUI/icons/sad.png", "/forumUI/icons/angry.png", "/forumUI/icons/applause.png", "/forumUI/icons/fire.png",
+                            "/forumUI/icons/100.png", "/forumUI/icons/party.png", "/forumUI/icons/ok.png", "/forumUI/icons/blue_heart.png",
+                            "/forumUI/icons/cool.png", "/forumUI/icons/poop.png", "/forumUI/icons/rocket.png", "/forumUI/icons/trophy.png",
+                            "/forumUI/icons/gift.png", "/forumUI/icons/game.png", "/forumUI/icons/die.png", "/forumUI/icons/collision.png",
+                            "/forumUI/icons/pray.png", "/forumUI/icons/runner.png", "/forumUI/icons/crown.png", "/forumUI/icons/slots.png"
+                    };
+                    HBox row = new HBox(8);
+                    int emojiCount = 0;
+                    for (String path : fallbackPaths) {
+                        Image fallbackImage = imageCache.computeIfAbsent(path, k -> new Image(getClass().getResourceAsStream(path), 30, 30, true, true));
+                        ImageView emojiImage = new ImageView(fallbackImage);
+                        emojiImage.setFitWidth(30);
+                        emojiImage.setFitHeight(30);
+                        emojiImage.setPreserveRatio(true);
+                        emojiImage.setOnMouseClicked(m -> {
+                            handleReaction(path);
+                            popup.hide();
+                            displayReactions();
+                            displayUserReaction();
+                        });
+
+                        emojiImage.setOnMouseEntered(m -> {
+                            ScaleTransition scaleIn = new ScaleTransition(Duration.millis(150), emojiImage);
+                            scaleIn.setToX(1.1);
+                            scaleIn.setToY(1.1);
+                            scaleIn.play();
+                        });
+                        emojiImage.setOnMouseExited(m -> {
+                            ScaleTransition scaleOut = new ScaleTransition(Duration.millis(150), emojiImage);
+                            scaleOut.setToX(1.0);
+                            scaleOut.setToY(1.0);
+                            scaleOut.play();
+                        });
+
+                        row.getChildren().add(emojiImage);
+                        emojiCount++;
+                        if (emojiCount % 7 == 0) {
+                            emojiBox.getChildren().add(row);
+                            row = new HBox(8);
+                        }
+                    }
+                    if (!row.getChildren().isEmpty()) {
+                        emojiBox.getChildren().add(row);
+                    }
+
+                    scrollPane.setContent(emojiBox);
+                    scrollPane.setPrefSize(350, 300);
+                    popup.getContent().add(scrollPane);
+                    popup.show(reactButton, reactButton.getScene().getWindow().getX() + reactButton.localToScene(0, 0).getX(),
+                            reactButton.getScene().getWindow().getY() + reactButton.localToScene(0, 0).getY() + reactButton.getHeight());
+                });
             }
-            if (!row.getChildren().isEmpty()) {
-                emojiBox.getChildren().add(row);
-            }
-
-            scrollPane.setContent(emojiBox);
-            scrollPane.setPrefSize(250, 200);
-        } catch (Exception e) {
-            System.err.println("Failed to load emojis: " + e.getMessage());
-            String[] fallbackPaths = {
-                    "/forumUI/icons/like.png", "/forumUI/icons/love.png", "/forumUI/icons/haha.png", "/forumUI/icons/wow.png",
-                    "/forumUI/icons/sad.png", "/forumUI/icons/angry.png", "/forumUI/icons/applause.png", "/forumUI/icons/fire.png",
-                    "/forumUI/icons/100.png", "/forumUI/icons/party.png", "/forumUI/icons/ok.png", "/forumUI/icons/blue_heart.png",
-                    "/forumUI/icons/cool.png", "/forumUI/icons/poop.png", "/forumUI/icons/rocket.png", "/forumUI/icons/trophy.png",
-                    "/forumUI/icons/gift.png", "/forumUI/icons/game.png", "/forumUI/icons/die.png", "/forumUI/icons/collision.png",
-                    "/forumUI/icons/pray.png", "/forumUI/icons/runner.png", "/forumUI/icons/crown.png", "/forumUI/icons/slots.png"
-            };
-            HBox row = new HBox(8);
-            int emojiCount = 0;
-            for (String path : fallbackPaths) {
-                Image fallbackImage = new Image(getClass().getResourceAsStream(path), 30, 30, true, true);
-                ImageView emojiImage = new ImageView(fallbackImage);
-                emojiImage.setFitWidth(30);
-                emojiImage.setFitHeight(30);
-                emojiImage.setPreserveRatio(true);
-                emojiImage.setOnMouseClicked(m -> {
-                    handleReaction(path);
-                    popup.hide();
-                    displayReactions();
-                    displayUserReaction();
-                });
-
-                emojiImage.setOnMouseEntered(m -> {
-                    ScaleTransition scaleIn = new ScaleTransition(Duration.millis(150), emojiImage);
-                    scaleIn.setToX(1.1);
-                    scaleIn.setToY(1.1);
-                    scaleIn.play();
-                });
-                emojiImage.setOnMouseExited(m -> {
-                    ScaleTransition scaleOut = new ScaleTransition(Duration.millis(150), emojiImage);
-                    scaleOut.setToX(1.0);
-                    scaleOut.setToY(1.0);
-                    scaleOut.play();
-                });
-
-                row.getChildren().add(emojiImage);
-                emojiCount++;
-                if (emojiCount % 7 == 0) {
-                    emojiBox.getChildren().add(row);
-                    row = new HBox(8);
-                }
-            }
-            if (!row.getChildren().isEmpty()) {
-                emojiBox.getChildren().add(row);
-            }
-
-            scrollPane.setContent(emojiBox);
-            scrollPane.setPrefSize(350, 300);
-        }
-
-        popup.getContent().add(scrollPane);
-        popup.show(reactButton, reactButton.getScene().getWindow().getX() + reactButton.localToScene(0, 0).getX(),
-                reactButton.getScene().getWindow().getY() + reactButton.localToScene(0, 0).getY() + reactButton.getHeight());
+        });
     }
 
     private void handleReaction(String emojiUrl) {
-        int userId = SessionManager.getInstance().getUserId();
-        CommentaireService service = new CommentaireService();
+        executorService.submit(() -> {
+            int userId = SessionManager.getInstance().getUserId();
+            CommentaireService service = new CommentaireService();
 
-        // Check if the user has already reacted to this comment
-        String existingReaction = service.getUserReaction(commentaire.getCommentaire_id(), userId);
-        if (existingReaction != null) {
-            // If the user has reacted, remove the existing reaction
-            service.removeReaction(commentaire.getCommentaire_id(), userId);
-            commentaire.getReactions().remove(existingReaction);
-            if (commentaire.getReactions().containsKey(existingReaction)) {
-                int currentCount = commentaire.getReactions().get(existingReaction);
-                if (currentCount > 1) {
-                    commentaire.getReactions().put(existingReaction, currentCount - 1);
-                } else {
-                    commentaire.getReactions().remove(existingReaction);
+            String existingReaction = service.getUserReaction(commentaire.getCommentaire_id(), userId);
+            if (existingReaction != null) {
+                service.removeReaction(commentaire.getCommentaire_id(), userId);
+                commentaire.getReactions().remove(existingReaction);
+                if (commentaire.getReactions().containsKey(existingReaction)) {
+                    int currentCount = commentaire.getReactions().get(existingReaction);
+                    if (currentCount > 1) {
+                        commentaire.getReactions().put(existingReaction, currentCount - 1);
+                    } else {
+                        commentaire.getReactions().remove(existingReaction);
+                    }
                 }
             }
-        }
 
-        // Add the new reaction
-        service.addReaction(commentaire.getCommentaire_id(), userId, emojiUrl);
-        // Update the comment's reactions and user reaction
-        Map<String, Integer> updatedReactions = service.getReactions(commentaire.getCommentaire_id());
-        commentaire.setReactions(updatedReactions);
-        commentaire.setUserReaction(emojiUrl); // Set the user's specific reaction (image URL)
+            service.addReaction(commentaire.getCommentaire_id(), userId, emojiUrl);
+            Map<String, Integer> updatedReactions = service.getReactions(commentaire.getCommentaire_id());
+            commentaire.setReactions(updatedReactions);
+            commentaire.setUserReaction(emojiUrl);
+            Platform.runLater(() -> {
+                displayReactions();
+                displayUserReaction();
+            });
+        });
+    }
+
+    public Commentaire getCommentaire() {
+        return commentaire;
     }
 }

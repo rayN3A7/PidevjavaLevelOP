@@ -23,8 +23,6 @@ public class QuestionService implements IService<Question> {
         connexion = MyDatabase.getInstance().getCnx();
     }
 
-    // In QuestionService.java
-
     @Override
     public void add(Question question) {
         Utilisateur user = question.getUser();
@@ -90,24 +88,97 @@ public class QuestionService implements IService<Question> {
         }
     }
 
-    public void upvoteQuestion(int questionId) {
-        String query = "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ?";
-        try (PreparedStatement ps = connexion.prepareStatement(query)) {
-            ps.setInt(1, questionId);
-            ps.executeUpdate();
+    public void upvoteQuestion(int questionId, int userId) {
+        String checkVoteQuery = "SELECT vote_type FROM question_votes WHERE question_id = ? AND user_id = ?";
+        String updateVoteQuery = "INSERT INTO question_votes (question_id, user_id, vote_type) VALUES (?, ?, 'UP') " +
+                "ON DUPLICATE KEY UPDATE vote_type = CASE " +
+                "WHEN vote_type = 'DOWN' THEN 'UP' " +
+                "WHEN vote_type = 'NONE' THEN 'UP' " +
+                "ELSE 'NONE' END";
+        String updateVotesQuery = "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ?";
+
+        try {
+            // Check current vote
+            String currentVote = getUserVote(questionId, userId);
+            if ("UP".equals(currentVote)) {
+                // User already upvoted, no action needed
+                return;
+            } else if ("DOWN".equals(currentVote)) {
+                // User previously downvoted, switch to upvote and adjust votes
+                updateVoteInDb(questionId, userId, "UP");
+                updateVotesQuery = "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ?"; // +2 to undo downvote (-1) and add upvote (+1)
+            } else {
+                // No vote or NONE, just upvote
+                updateVoteInDb(questionId, userId, "UP");
+            }
+
+            try (PreparedStatement ps = connexion.prepareStatement(updateVotesQuery)) {
+                ps.setInt(1, questionId);
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to upvote question: " + e.getMessage(), e);
         }
     }
 
-    public void downvoteQuestion(int questionId) {
-        String query = "UPDATE Questions SET Votes = Votes - 1 WHERE question_id = ? AND Votes > 0";
-        try (PreparedStatement ps = connexion.prepareStatement(query)) {
-            ps.setInt(1, questionId);
-            ps.executeUpdate();
+    public void downvoteQuestion(int questionId, int userId) {
+        String checkVoteQuery = "SELECT vote_type FROM question_votes WHERE question_id = ? AND user_id = ?";
+        String updateVoteQuery = "INSERT INTO question_votes (question_id, user_id, vote_type) VALUES (?, ?, 'DOWN') " +
+                "ON DUPLICATE KEY UPDATE vote_type = CASE " +
+                "WHEN vote_type = 'UP' THEN 'DOWN' " +
+                "WHEN vote_type = 'NONE' THEN 'DOWN' " +
+                "ELSE 'NONE' END";
+        String updateVotesQuery = "UPDATE Questions SET Votes = Votes - 1 WHERE question_id = ?";
+
+        try {
+            // Check current vote
+            String currentVote = getUserVote(questionId, userId);
+            if ("DOWN".equals(currentVote)) {
+                // User already downvoted, no action needed
+                return;
+            } else if ("UP".equals(currentVote)) {
+                // User previously upvoted, switch to downvote and adjust votes
+                updateVoteInDb(questionId, userId, "DOWN");
+                updateVotesQuery = "UPDATE Questions SET Votes = Votes - 1 WHERE question_id = ?"; // -2 to undo upvote (+1) and add downvote (-1)
+            } else {
+                // No vote or NONE, just downvote
+                updateVoteInDb(questionId, userId, "DOWN");
+            }
+
+            try (PreparedStatement ps = connexion.prepareStatement(updateVotesQuery)) {
+                ps.setInt(1, questionId);
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to downvote question: " + e.getMessage(), e);
         }
+    }
+
+    private void updateVoteInDb(int questionId, int userId, String voteType) throws SQLException {
+        String query = "INSERT INTO question_votes (question_id, user_id, vote_type) VALUES (?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE vote_type = ?";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, questionId);
+            ps.setInt(2, userId);
+            ps.setString(3, voteType);
+            ps.setString(4, voteType);
+            ps.executeUpdate();
+        }
+    }
+
+    public String getUserVote(int questionId, int userId) {
+        String query = "SELECT vote_type FROM question_votes WHERE question_id = ? AND user_id = ?";
+        try (PreparedStatement ps = connexion.prepareStatement(query)) {
+            ps.setInt(1, questionId);
+            ps.setInt(2, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("vote_type");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to get user vote: " + e.getMessage(), e);
+        }
+        return "NONE"; // Default to no vote
     }
 
     public int getVotes(int questionId) {

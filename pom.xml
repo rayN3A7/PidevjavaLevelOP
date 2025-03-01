@@ -26,11 +26,7 @@
             <artifactId>javafx-media</artifactId>
             <version>21</version>
         </dependency>
-        <dependency>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-            <version>4.10.0</version>
-        </dependency>
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-imaging</artifactId>
@@ -94,7 +90,11 @@
             <artifactId>google-http-client-gson</artifactId>
             <version>1.39.2</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
+        </dependency>
         <!-- Google API Client -->
         <dependency>
             <groupId>com.google.api-client</groupId>
@@ -157,8 +157,13 @@
             <version>19</version>
         </dependency>
 
-
     </dependencies>
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+    </repositories>
     <dependencyManagement>
         <dependencies>
             <dependency>
