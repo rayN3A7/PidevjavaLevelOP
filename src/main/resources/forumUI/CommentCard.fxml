@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 <?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.Region?>
 
-<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.forum.CommentCardController" spacing="5" styleClass="comment-card">
+<?import javafx.scene.control.Tooltip?>
+<StackPane xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.forum.CommentCardController" styleClass="comment-card">
+    <!-- Main content -->
     <HBox spacing="10" styleClass="comment-card-hbox">
         <VBox spacing="5" styleClass="vote-box" alignment="TOP_LEFT">
             <Button text="▲" fx:id="upvoteButton" styleClass="vote-button"/>
@@ -22,12 +23,13 @@
             <Label fx:id="commentContent" styleClass="comment-content" wrapText="true"/>
             <TextField fx:id="editCommentField" visible="false" styleClass="edit-comment-field"/>
             <HBox spacing="5" alignment="CENTER_LEFT" styleClass="comment-meta">
-                <Label fx:id="votesLabel" styleClass="votes-label"  visible="true"/>
+                <Label fx:id="votesLabel" styleClass="votes-label" visible="true"/>
                 <HBox spacing="4" fx:id="reactionContainer" styleClass="reaction-container"/>
             </HBox>
-            <HBox  alignment="CENTER_LEFT" styleClass="reaction-actions">
+            <HBox alignment="CENTER_LEFT" styleClass="reaction-actions">
                 <Button fx:id="reactButton" text="👍" styleClass="action-button"/>
                 <ImageView fx:id="selectedEmojiImage" styleClass="selected-emoji-image" fitWidth="20" fitHeight="20" preserveRatio="true"/>
+                <Button fx:id="replyButton" text="Reply" styleClass="reply-toggle-button"/>
                 <Button fx:id="deleteButton" text="Delete" styleClass="update-delete-button"/>
                 <Button fx:id="updateButton" text="Update" styleClass="update-delete-button"/>
             </HBox>
@@ -35,6 +37,24 @@
                 <Button fx:id="saveButton" text="Save" styleClass="action-button"/>
                 <Button fx:id="cancelButton" text="Cancel" styleClass="action-button"/>
             </HBox>
+            <!-- Reply Input Section -->
+            <VBox fx:id="replyInputBox" spacing="5" visible="false" styleClass="reply-section">
+                <TextField fx:id="replyInput" promptText="Write a reply..." styleClass="reply-input"/>
+                <HBox spacing="5">
+                    <Button fx:id="submitReplyButton" text="Submit" styleClass="action-button"/>
+                    <Button fx:id="cancelReplyButton" text="Cancel" styleClass="action-button"/>
+                </HBox>
+            </VBox>
+            <!-- Replies Toggle and Container -->
+            <Button fx:id="toggleRepliesButton" text="Show Replies" styleClass="reply-toggle-button" visible="false"/>
+            <VBox fx:id="repliesContainer" spacing="5" visible="false" styleClass="replies-container"/>
         </VBox>
     </HBox>
-</VBox>
+
+    <!-- Report button in the top-right corner -->
+    <Button fx:id="reportButton" text="⚠" styleClass="report-button" StackPane.alignment="TOP_RIGHT">
+        <tooltip>
+            <Tooltip text="Report this comment"/>
+        </tooltip>
+    </Button>
+</StackPane>

@@ -1,11 +1,15 @@
 package tn.esprit.Services;
 
+import javafx.application.Platform;
+import javafx.event.Event;
+import javafx.scene.Node;
 import tn.esprit.Interfaces.IService;
 import tn.esprit.Models.Games;
 import tn.esprit.Models.Question;
 import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.utils.MyDatabase;
+import tn.esprit.utils.PrivilegeEvent;
 import tn.esprit.utils.SessionManager;
 import tn.esprit.Services.UtilisateurService;
 import java.sql.*;
@@ -19,7 +23,7 @@ public class QuestionService implements IService<Question> {
     private static Connection connexion;
     private UtilisateurService us = new UtilisateurService();
     private int userId = SessionManager.getInstance().getUserId();
-
+    private Node eventTarget; // To fire events, set via setter
     public QuestionService() {
         connexion = MyDatabase.getInstance().getCnx();
     }
@@ -69,6 +73,10 @@ public class QuestionService implements IService<Question> {
                 }
             }
             connexion.commit();
+
+            // Trigger privilege update for the user who created the question
+            us.updateUserPrivilege(user.getId());
+
         } catch (SQLException e) {
             if (connexion != null) {
                 try {
@@ -88,8 +96,11 @@ public class QuestionService implements IService<Question> {
             }
         }
     }
-
-    public void upvoteQuestion(int questionId, int userId) {
+    public void setEventTarget(Node eventTarget) {
+        this.eventTarget = eventTarget;
+        us.setEventTarget(eventTarget); // Propagate to UtilisateurService
+    }
+    public void upvoteQuestion(int questionId) {
         String checkVoteQuery = "SELECT vote_type FROM question_votes WHERE question_id = ? AND user_id = ?";
         String updateVoteQuery = "INSERT INTO question_votes (question_id, user_id, vote_type) VALUES (?, ?, 'UP') " +
                 "ON DUPLICATE KEY UPDATE vote_type = CASE " +
@@ -99,6 +110,12 @@ public class QuestionService implements IService<Question> {
         String updateVotesQuery = "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ?";
 
         try {
+            int userId = SessionManager.getInstance().getUserId();
+            Question question = getOne(questionId);
+            if (question == null) {
+                throw new RuntimeException("Question not found for ID: " + questionId);
+            }
+
             // Check current vote
             String currentVote = getUserVote(questionId, userId);
             if ("UP".equals(currentVote)) {
@@ -117,21 +134,45 @@ public class QuestionService implements IService<Question> {
                 ps.setInt(1, questionId);
                 ps.executeUpdate();
             }
+
+            // Trigger privilege update for the question owner after voting
+            UtilisateurService.PrivilegeChange ownerChange = us.updateUserPrivilege(question.getUser().getId());
+            if (ownerChange.isChanged() && eventTarget != null) {
+                Platform.runLater(() -> {
+                    PrivilegeEvent event = new PrivilegeEvent(question.getUser().getId(), ownerChange.getNewPrivilege());
+                    Event.fireEvent(eventTarget, event);
+                });
+            }
+
+            // Trigger privilege update for the voter (current user)
+            int voterId = SessionManager.getInstance().getUserId();
+            UtilisateurService.PrivilegeChange voterChange = us.updateUserPrivilege(voterId);
+            if (voterChange.isChanged() && eventTarget != null) {
+                Platform.runLater(() -> {
+                    PrivilegeEvent event = new PrivilegeEvent(voterId, voterChange.getNewPrivilege());
+                    Event.fireEvent(eventTarget, event);
+                });
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to upvote question: " + e.getMessage(), e);
         }
     }
-
-    public void downvoteQuestion(int questionId, int userId) {
+    public void downvoteQuestion(int questionId) {
         String checkVoteQuery = "SELECT vote_type FROM question_votes WHERE question_id = ? AND user_id = ?";
         String updateVoteQuery = "INSERT INTO question_votes (question_id, user_id, vote_type) VALUES (?, ?, 'DOWN') " +
                 "ON DUPLICATE KEY UPDATE vote_type = CASE " +
                 "WHEN vote_type = 'UP' THEN 'DOWN' " +
                 "WHEN vote_type = 'NONE' THEN 'DOWN' " +
                 "ELSE 'NONE' END";
-        String updateVotesQuery = "UPDATE Questions SET Votes = Votes - 1 WHERE question_id = ?";
+        String updateVotesQuery = "UPDATE Questions SET Votes = Votes - 1 WHERE question_id = ? AND Votes > 0";
 
         try {
+            int userId = SessionManager.getInstance().getUserId();
+            Question question = getOne(questionId);
+            if (question == null) {
+                throw new RuntimeException("Question not found for ID: " + questionId);
+            }
+
             // Check current vote
             String currentVote = getUserVote(questionId, userId);
             if ("DOWN".equals(currentVote)) {
@@ -150,6 +191,27 @@ public class QuestionService implements IService<Question> {
                 ps.setInt(1, questionId);
                 ps.executeUpdate();
             }
+
+            // Trigger privilege update for the question owner after voting
+            UtilisateurService.PrivilegeChange ownerChange = us.updateUserPrivilege(question.getUser().getId());
+            if (ownerChange.isChanged() && eventTarget != null) {
+                Platform.runLater(() -> {
+                    PrivilegeEvent event = new PrivilegeEvent(question.getUser().getId(), ownerChange.getNewPrivilege());
+                    Event.fireEvent(eventTarget, event);
+                });
+            }
+
+            // Trigger privilege update for the voter (current user)
+            int voterId = SessionManager.getInstance().getUserId();
+            UtilisateurService.PrivilegeChange voterChange = us.updateUserPrivilege(voterId);
+            if (voterChange.isChanged() && eventTarget != null) {
+                Platform.runLater(() -> {
+                    PrivilegeEvent event = new PrivilegeEvent(voterId, voterChange.getNewPrivilege());
+                    Event.fireEvent(eventTarget, event);
+                });
+            }
+
+
         } catch (SQLException e) {
             throw new RuntimeException("Failed to downvote question: " + e.getMessage(), e);
         }
@@ -282,6 +344,10 @@ public class QuestionService implements IService<Question> {
             ps.setString(5, question.getMediaType());
             ps.setInt(6, question.getQuestion_id());
             ps.executeUpdate();
+
+            // Trigger privilege update for the user who updated the question
+            us.updateUserPrivilege(userId);
+
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update question: " + e.getMessage(), e);
         }
@@ -301,6 +367,13 @@ public class QuestionService implements IService<Question> {
                 ps.setInt(1, questionId);
                 ps.executeUpdate();
             }
+
+            // Trigger privilege update for the user who deleted the question
+            Question question = getOne(questionId);
+            if (question != null) {
+                us.updateUserPrivilege(question.getUser().getId());
+            }
+
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete question: " + e.getMessage(), e);
         }

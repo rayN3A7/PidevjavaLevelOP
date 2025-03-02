@@ -21,11 +21,11 @@ import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.QuestionService;
 import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.PrivilegeEvent;
 import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +41,7 @@ public class ForumController implements Initializable {
     private UtilisateurService us = new UtilisateurService();
     private int userId = SessionManager.getInstance().getUserId();
     private static final Map<String, Image> imageCache = new HashMap<>();
-    private Map<Question, Parent> questionCardMap; // Cache question cards
+    private Map<Question, Parent> questionCardMap;
     private List<Question> allQuestions;
     private PauseTransition debounceTimer;
 
@@ -64,18 +64,29 @@ public class ForumController implements Initializable {
                 QuestionCardController.stopAllVideos();
             }
         });
-
+        questionCardContainer.addEventHandler(PrivilegeEvent.PRIVILEGE_CHANGED, event -> {
+            Utilisateur user = us.getOne(event.getUserId());
+            if (user != null) {
+                updatePrivilegeUI(event.getUserId());
+                if (event.getUserId() == userId) {
+                    UtilisateurService.PrivilegeChange change = new UtilisateurService.PrivilegeChange(user.getPrivilege(), event.getNewPrivilege());
+                    showPrivilegeAlert(change);
+                }
+            }
+        });
+        us.setEventTarget(questionCardContainer); // Set event target for service
     }
 
     private void loadAdminSidebar() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/sidebarAdmin.fxml"));
             VBox adminSidebar = loader.load();
-            mainLayout.setLeft(adminSidebar); // Dynamically set the sidebar
+            mainLayout.setLeft(adminSidebar);
         } catch (IOException e) {
             System.err.println("Error loading admin sidebar: " + e.getMessage());
         }
     }
+
     public void loadQuestionsLazy() {
         new Thread(() -> {
             allQuestions = questionService.getAll();
@@ -125,7 +136,7 @@ public class ForumController implements Initializable {
             questionCardMap.put(question, questionCard);
             Platform.runLater(() -> {
                 questionCardContainer.getChildren().add(questionCard);
-                questionCard.setVisible(false); // Initially hidden for lazy loading
+                questionCard.setVisible(false);
                 filterQuestionsRealTime(searchField.getText().trim().toLowerCase());
             });
         } catch (IOException e) {
@@ -141,18 +152,14 @@ public class ForumController implements Initializable {
                     Platform.runLater(() -> showAlert("Erreur", "Vous avez déjà upvoté cette question."));
                     return;
                 }
-                // Allow upvote if no vote or downvote exists
-                questionService.upvoteQuestion(question.getQuestion_id(), userId);
+                questionService.upvoteQuestion(question.getQuestion_id());
                 int updatedVotes = questionService.getVotes(question.getQuestion_id());
                 question.setVotes(updatedVotes);
                 Platform.runLater(() -> {
                     votesLabel.setText("Votes: " + updatedVotes);
-                    if (updatedVotes > 0) downvoteButton.setDisable(false);
-                    UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(question.getUser().getId());
-                    if (change.isChanged() && userId == question.getUser().getId()) {
-                        showPrivilegeAlert(change);
-                    }
-                    updatePrivilegeUI(question.getUser().getId());
+                    downvoteButton.setDisable(updatedVotes == 0);
+
+                    // Privilege updates are now handled via PrivilegeEvent in QuestionService
                 });
             } catch (Exception e) {
                 Platform.runLater(() -> showAlert("Erreur", "Erreur lors de l'upvote : " + e.getMessage()));
@@ -169,18 +176,14 @@ public class ForumController implements Initializable {
                     Platform.runLater(() -> showAlert("Erreur", "Vous avez déjà downvoté cette question."));
                     return;
                 }
-                // Allow downvote if no vote or upvote exists
-                questionService.downvoteQuestion(question.getQuestion_id(), userId);
+                questionService.downvoteQuestion(question.getQuestion_id());
                 int updatedVotes = questionService.getVotes(question.getQuestion_id());
                 question.setVotes(updatedVotes);
                 Platform.runLater(() -> {
                     votesLabel.setText("Votes: " + updatedVotes);
                     downvoteButton.setDisable(updatedVotes == 0);
-                    UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(question.getUser().getId());
-                    if (change.isChanged() && userId == question.getUser().getId()) {
-                        showPrivilegeAlert(change);
-                    }
-                    updatePrivilegeUI(question.getUser().getId());
+
+                    // Privilege updates are now handled via PrivilegeEvent in QuestionService
                 });
             } catch (Exception e) {
                 Platform.runLater(() -> showAlert("Erreur", "Erreur lors du downvote : " + e.getMessage()));
@@ -188,48 +191,58 @@ public class ForumController implements Initializable {
         }).start();
     }
 
-    private void showPrivilegeAlert(UtilisateurService.PrivilegeChange change) {
+    public void showPrivilegeAlert(UtilisateurService.PrivilegeChange change) {
         if (!change.isChanged()) return;
 
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.NONE);
-            alert.setHeaderText(null);
-            String oldPrivilege = change.getOldPrivilege();
-            String newPrivilege = change.getNewPrivilege();
-            boolean isPromotion = getPrivilegeRank(newPrivilege) > getPrivilegeRank(oldPrivilege);
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setHeaderText(null);
+        String oldPrivilege = change.getOldPrivilege();
+        String newPrivilege = change.getNewPrivilege();
+        boolean isPromotion = getPrivilegeRank(newPrivilege) > getPrivilegeRank(oldPrivilege);
 
-            alert.setTitle(isPromotion ? "Félicitations!" : "Mise à jour de privilège");
-            alert.setContentText(isPromotion ?
-                    (newPrivilege.equals("top_contributor") ? "Vous êtes passé de Regular à Top Contributor ! Bravo pour votre contribution !" :
-                            "Vous êtes maintenant un Top Fan depuis " + oldPrivilege + " ! Votre passion est récompensée !") :
-                    (oldPrivilege.equals("top_contributor") ? "Désolé, vous êtes redescendu de Top Contributor à Regular." :
-                            "Désolé, vous êtes passé de Top Fan à " + newPrivilege + "."));
+        if (isPromotion) {
+            alert.setTitle("Félicitations!");
+            String message = switch (newPrivilege) {
+                case "top_contributor" -> "Vous êtes passé de Regular à Top Contributor ! Bravo pour votre contribution !";
+                case "top_fan" -> "Vous êtes maintenant un Top Fan depuis " + oldPrivilege + " ! Votre passion est récompensée !";
+                default -> "Privilege mis à jour !";
+            };
+            alert.setContentText(message);
 
             ImageView icon = new ImageView(new Image(getClass().getResource(
-                    isPromotion ? (newPrivilege.equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png") :
-                            "/forumUI/icons/alert.png").toExternalForm()));
+                    newPrivilege.equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png"
+            ).toExternalForm()));
             icon.setFitHeight(60);
             icon.setFitWidth(60);
             alert.setGraphic(icon);
-
             Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-            stage.getIcons().add(new Image(getClass().getResource(isPromotion ? "/forumUI/icons/sucessalert.png" : "/forumUI/icons/alert.png").toString()));
+            stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toString()));
+        } else {
+            alert.setTitle("Mise à jour de privilège");
+            String message = switch (oldPrivilege) {
+                case "top_contributor" -> "Désolé, vous êtes redescendu de Top Contributor à Regular.";
+                case "top_fan" -> "Désolé, vous êtes passé de Top Fan à " + newPrivilege + ".";
+                default -> "Privilege mis à jour.";
+            };
+            alert.setContentText(message);
+            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+            stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
+        }
 
-            alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
-            alert.getDialogPane().getStyleClass().add("privilege-alert");
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("privilege-alert");
 
-            ButtonType okButton = new ButtonType(isPromotion ? "GG!" : "OK", ButtonBar.ButtonData.OK_DONE);
-            alert.getButtonTypes().setAll(okButton);
+        ButtonType okButton = new ButtonType(isPromotion ? "GG!" : "OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
 
-            FadeTransition fadeIn = new FadeTransition(Duration.millis(500), alert.getDialogPane());
-            fadeIn.setFromValue(0.0);
-            fadeIn.setToValue(1.0);
-            alert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
-                if (isShowing) fadeIn.play();
-            });
-
-            alert.showAndWait();
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(500), alert.getDialogPane());
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        alert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (isShowing) fadeIn.play();
         });
+
+        alert.showAndWait();
     }
 
     private int getPrivilegeRank(String privilege) {
@@ -263,6 +276,8 @@ public class ForumController implements Initializable {
             Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
             stage.setScene(newScene);
             stage.show();
+            checkPrivilegeChange(userId); // Check for logged-in user
+            checkPrivilegeChange(question.getUser().getId()); // Check for question owner
         } catch (SecurityException e) {
             showAlert("Erreur", e.getMessage());
         } catch (IOException e) {
@@ -290,13 +305,9 @@ public class ForumController implements Initializable {
                     questionCardContainer.getChildren().remove(questionCard);
                     questionCardMap.remove(question);
                     allQuestions.remove(question);
-                    questionCardContainer.requestLayout();
+                    checkPrivilegeChange(userId); // Check for logged-in user
+                    checkPrivilegeChange(question.getUser().getId()); // Check for question owner
                 });
-                UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(userId);
-                if (change.isChanged()) {
-                    showPrivilegeAlert(change);
-                }
-                updatePrivilegeUI(userId);
             }
         } catch (SecurityException e) {
             showAlert("Erreur", e.getMessage());
@@ -305,8 +316,22 @@ public class ForumController implements Initializable {
         }
     }
 
-    private void updatePrivilegeUI(int affectedUserId) {
+    private void checkPrivilegeChange(int affectedUserId) {
+        UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(affectedUserId);
+        if (change.isChanged()) {
+            Utilisateur updatedUser = us.getOne(affectedUserId); // Fetch latest data
+            if (updatedUser != null) {
+                updatePrivilegeUI(updatedUser.getId()); // Update UI instantly
+                if (affectedUserId == userId) {
+                    showPrivilegeAlert(change); // Immediate alert for logged-in user
+                }
+            }
+        }
+    }
+
+    public void updatePrivilegeUI(int affectedUserId) {
         Platform.runLater(() -> {
+            System.out.println("ForumController: Updating privilege UI for user ID " + affectedUserId);
             for (Node node : questionCardContainer.getChildren()) {
                 if (node instanceof Parent) {
                     QuestionCardController controller = (QuestionCardController) node.getUserData();
@@ -318,7 +343,8 @@ public class ForumController implements Initializable {
                     }
                 }
             }
-            questionCardContainer.requestLayout();
+            // Ensure all question cards are refreshed, even if not visible
+            loadQuestionsLazy(); // Force a full UI refresh if needed
         });
     }
 
@@ -370,6 +396,8 @@ public class ForumController implements Initializable {
                         }
                     }
                 }
+                checkPrivilegeChange(userId); // Check for logged-in user
+                checkPrivilegeChange(question.getUser().getId()); // Check for question owner
             });
         }).start();
     }

@@ -222,6 +222,16 @@
     -fx-padding: 2px 0 0 0;
 }
 
+/* Existing styles remain unchanged, adding reply-specific styles */
+.replies-container {
+    -fx-padding: 10px 0 0 20px;
+    -fx-spacing: 5px;
+}
+
+.reply-section {
+    -fx-padding: 5px 0;
+}
+
 .reply-input {
     -fx-pref-width: 300px;
     -fx-background-color: #2a2a2a;
@@ -230,24 +240,66 @@
     -fx-border-radius: 5px;
 }
 
-/* New style for Reply, Show Replies, and Hide Replies buttons */
 .reply-toggle-button {
     -fx-background-color: transparent;
     -fx-text-fill: #ff007f;
-    -fx-font-size: 12px; /* Smaller font size */
-    -fx-padding: 4px 8px; /* Smaller padding for a compact look */
-    -fx-background-radius: 15px; /* Rounded corners, no pointy edges */
+    -fx-font-size: 12px;
+    -fx-padding: 4px 8px;
+    -fx-background-radius: 15px;
     -fx-border-color: #ff007f;
     -fx-border-width: 1.5px;
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.2), 5, 0.5, 0, 1);
 }
 
 .reply-toggle-button:hover {
-    -fx-background-color: rgba(255, 0, 127, 0.1); /* Subtle hover effect */
-    -fx-text-fill: #ff4dab; /* Slightly lighter pink on hover */
+    -fx-background-color: rgba(255, 0, 127, 0.1);
+    -fx-text-fill: #ff4dab;
     -fx-border-color: #ff4dab;
-    -fx-scale-x: 1.05;
-    -fx-scale-y: 1.05;
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 7, 0.5, 0, 2);
     -fx-cursor: hand;
+}.emoji-picker {
+     -fx-background-color: #091221; /* White background, like Facebook */
+     -fx-border-color: #ff007f; /* Neon pink border */
+     -fx-border-width: 2;
+     -fx-border-radius: 15;
+     -fx-background-radius: 15;
+     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.2), 8, 0.5, 0, 3); /* Subtle shadow like Facebook */
+     -fx-padding: 15;
+     -fx-spacing: 8;
+ }
+
+.emoji-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: black;
+    -fx-font-size: 36px;
+    -fx-padding: 0;
+    -fx-background-radius: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.1), 4, 0.5, 0, 1);
+}
+
+.emoji-button:hover {
+    -fx-background-color: rgba(255, 0, 127, 0.15);
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
+}
+.report-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ff4081; /* Neon pink to match the theme */
+    -fx-font-size: 16px;
+    -fx-padding: 5;
+    -fx-border-width: 0;
+}
+
+.report-button:hover {
+    -fx-text-fill: #ff80ab; /* Lighter pink on hover */
+    -fx-cursor: hand;
+}
+
+.report-button:pressed {
+    -fx-text-fill: #d81b60; /* Darker pink when pressed */
+}
+
+/* Ensure the button has some margin from the edge of the card */
+.question-card .report-button,
+.comment-card .report-button {
+    -fx-margin: 5 5 0 0; /* Top-right corner spacing */
 }
