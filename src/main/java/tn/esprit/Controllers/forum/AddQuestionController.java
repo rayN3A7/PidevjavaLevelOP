@@ -1,11 +1,7 @@
 package tn.esprit.Controllers.forum;
 
+import javafx.animation.FadeTransition;
 import javafx.application.Platform;
-import tn.esprit.Models.Games;
-import tn.esprit.Models.Question;
-import tn.esprit.Models.Utilisateur;
-import tn.esprit.Services.GamesService;
-import tn.esprit.Services.QuestionService;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,9 +12,20 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tn.esprit.Models.Games;
+import tn.esprit.Models.Question;
+import tn.esprit.Models.Utilisateur;
+import tn.esprit.Services.GamesService;
+import tn.esprit.Services.QuestionService;
 import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.PrivilegeEvent;
 import tn.esprit.utils.ProfanityChecker;
 import tn.esprit.utils.SessionManager;
 
@@ -31,93 +38,141 @@ import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
-public class AddQuestionController implements Initializable {
-    @FXML
-    private TextField titleField;
-    @FXML
-    private TextArea contentField;
-    @FXML
-    private Button submitButton;
-    @FXML
-    private VBox questionCardContainer;
-    @FXML
-    private Button uploadMediaButton;
-    @FXML
-    private ImageView uploadedImageView;
-    @FXML
-    private ComboBox<String> gameComboBox;
+public class AddQuestionController implements Initializable, AutoCloseable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AddQuestionController.class);
+    private static final String DESTINATION_DIR = "C:\\xampp\\htdocs\\img";
+    private static final List<String> VALID_IMAGE_EXTENSIONS = List.of("png", "jpg", "jpeg", "gif");
+    private static final int THREAD_POOL_SIZE = 2;
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
-    private UtilisateurService us = new UtilisateurService();
-    private int userId = SessionManager.getInstance().getUserId();
-    private GamesService gamesService = new GamesService();
-    private QuestionService questionService = new QuestionService();
+    @FXML private TextField titleField;
+    @FXML private TextArea contentField;
+    @FXML private Button submitButton;
+    @FXML private VBox questionCardContainer;
+    @FXML private Button uploadMediaButton;
+    @FXML private ImageView uploadedImageView;
+    @FXML private ComboBox<String> gameComboBox;
+
+    private final UtilisateurService utilisateurService;
+    private final GamesService gamesService;
+    private final QuestionService questionService;
+    private final int userId;
     private String lastMediaPath;
     private String lastMediaType;
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(2);
+    private volatile boolean isShutdown;
+
+    // Cached loaders and resources
+    private final FXMLLoader forumLoader;
+
+    public AddQuestionController() {
+        utilisateurService = new UtilisateurService();
+        gamesService = new GamesService();
+        questionService = new QuestionService();
+        userId = SessionManager.getInstance().getUserId();
+        forumLoader = new FXMLLoader(getClass().getResource("/forumUI/Forum.fxml"));
+        isShutdown = false;
+    }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        loadGames();
+        loadGamesAsync();
+        setupPrivilegeEventHandler();
+        utilisateurService.setEventTarget(questionCardContainer);
     }
 
-    private void loadGames() {
-        executorService.submit(() -> {
-            List<Games> gamesList = gamesService.getAll();
-            Platform.runLater(() -> gameComboBox.getItems().setAll(
-                    gamesList.stream().map(Games::getGame_name).toList()
-            ));
+    private void loadGamesAsync() {
+        CompletableFuture.supplyAsync(gamesService::getAll, EXECUTOR_SERVICE)
+                .thenAcceptAsync(games -> gameComboBox.getItems().setAll(
+                        games.stream().map(Games::getGame_name).toList()
+                ), Platform::runLater)
+                .exceptionally(this::handleAsyncError);
+    }
+
+    private void setupPrivilegeEventHandler() {
+        questionCardContainer.addEventHandler(PrivilegeEvent.PRIVILEGE_CHANGED, event -> {
+            if (event.getUserId() == userId) {
+                Utilisateur updatedUser = utilisateurService.getOne(userId);
+                if (updatedUser != null) {
+                    UtilisateurService.PrivilegeChange change = new UtilisateurService.PrivilegeChange(
+                            updatedUser.getPrivilege(), event.getNewPrivilege());
+                    showPrivilegeAlert(change);
+                }
+            }
         });
     }
 
     @FXML
     private void handleUploadMedia(ActionEvent event) {
+        File selectedFile = selectMediaFile();
+        if (selectedFile == null || !isValidMediaFile(selectedFile)) {
+            showAlert("Erreur", "Type de fichier non supporté ou invalide.");
+            return;
+        }
+
+        uploadMediaAsync(selectedFile);
+    }
+
+    private File selectMediaFile() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Question Media");
-        fileChooser.getExtensionFilters().addAll(
+        fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Media Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.mp4")
         );
-
         Stage stage = (Stage) uploadMediaButton.getScene().getWindow();
-        File selectedFile = fileChooser.showOpenDialog(stage);
+        return fileChooser.showOpenDialog(stage);
+    }
 
-        if (selectedFile != null) {
-            executorService.submit(() -> {
-                try {
-                    String destinationDir = "C:\\xampp\\htdocs\\img";
-                    Path destinationPath = Paths.get(destinationDir);
-                    if (!Files.exists(destinationPath)) Files.createDirectories(destinationPath);
+    private void uploadMediaAsync(File selectedFile) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                Path destinationPath = prepareDestinationPath();
+                String fileName = "question_" + System.currentTimeMillis() + "_" + selectedFile.getName();
+                Path targetPath = destinationPath.resolve(fileName);
+                Files.copy(selectedFile.toPath(), targetPath);
 
-                    String fileName = "question_" + System.currentTimeMillis() + "_" + selectedFile.getName();
-                    Path targetPath = destinationPath.resolve(fileName);
-                    Files.copy(selectedFile.toPath(), targetPath);
+                lastMediaPath = fileName;
+                String fileExtension = getFileExtension(selectedFile);
 
-                    lastMediaPath = fileName;
-                    String fileExtension = selectedFile.getName().substring(selectedFile.getName().lastIndexOf(".") + 1).toLowerCase();
+                Platform.runLater(() -> processUploadedMedia(selectedFile, fileExtension, fileName));
+            } catch (IOException e) {
+                LOGGER.error("Failed to upload media: {}", selectedFile.getName(), e);
+                Platform.runLater(() -> showAlert("Erreur", "Failed to upload media: " + e.getMessage()));
+            }
+        }, EXECUTOR_SERVICE);
+    }
 
-                    Platform.runLater(() -> {
-                        if ("mp4".equals(fileExtension)) {
-                            lastMediaType = "video";
-                            uploadedImageView.setImage(null);
-                            showSuccessAlert("Succès", "Video uploaded successfully: " + fileName);
-                        } else {
-                            lastMediaType = "image";
-                            Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
-                            if (!image.isError()) {
-                                uploadedImageView.setImage(image);
-                                showSuccessAlert("Succès", "Image uploaded successfully: " + fileName);
-                            } else {
-                                showAlert("Erreur", "Failed to load image preview: " + image.getException().getMessage());
-                            }
-                        }
-                    });
-                } catch (IOException e) {
-                    Platform.runLater(() -> showAlert("Erreur", "Failed to upload media: " + e.getMessage()));
-                    e.printStackTrace();
-                }
-            });
+    private Path prepareDestinationPath() throws IOException {
+        Path destinationPath = Paths.get(DESTINATION_DIR);
+        if (!Files.exists(destinationPath)) {
+            Files.createDirectories(destinationPath);
+        }
+        return destinationPath;
+    }
+
+    private String getFileExtension(File file) {
+        return file.getName().substring(file.getName().lastIndexOf(".") + 1).toLowerCase();
+    }
+
+    private void processUploadedMedia(File selectedFile, String fileExtension, String fileName) {
+        if ("mp4".equals(fileExtension)) {
+            lastMediaType = "video";
+            uploadedImageView.setImage(null);
+            showSuccessAlert("Succès", "Video uploaded successfully: " + fileName);
+        } else {
+            lastMediaType = "image";
+            Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
+            if (!image.isError()) {
+                uploadedImageView.setImage(image);
+                showSuccessAlert("Succès", "Image uploaded successfully: " + fileName);
+            } else {
+                showAlert("Erreur", "Failed to load image preview: " + image.getException().getMessage());
+            }
         }
     }
 
@@ -127,56 +182,217 @@ public class AddQuestionController implements Initializable {
         String content = contentField.getText().trim();
         String selectedGame = gameComboBox.getValue();
 
-        if (title.isEmpty() || content.isEmpty() || selectedGame == null) {
+        if (!validateInput(title, content, selectedGame)) {
             showAlert("Erreur", "Tous les champs doivent être remplis.");
             return;
         }
 
-        executorService.submit(() -> {
-            try {
-                if (ProfanityChecker.containsProfanity(title) || ProfanityChecker.containsProfanity(content)) {
-                    final boolean[] proceed = {false}; // Use an array to update from within lambda
-                    Platform.runLater(() -> {
-                        proceed[0] = showProfanityWarningAlert("Avertissement",
-                                "Votre texte contient des mots inappropriés. Vous risquez d'être banni ou signalé. Voulez-vous ajouter quand même?");
-                    });
-                    // Wait for the UI thread to complete (simple polling, could be improved with a semaphore or callback)
-                    while (!Thread.currentThread().isInterrupted() && !proceed[0] && !Platform.isFxApplicationThread()) {
-                        Thread.yield(); // Avoid busy-waiting, but this is a simple solution
+        submitQuestionAsync(title, content, selectedGame);
+    }
+
+    private boolean validateInput(String title, String content, String selectedGame) {
+        return !title.isEmpty() && !content.isEmpty() && selectedGame != null;
+    }
+
+    private void submitQuestionAsync(String title, String content, String selectedGame) {
+        CompletableFuture.supplyAsync(() -> {
+                    try {
+                        if (ProfanityChecker.containsProfanity(title) || ProfanityChecker.containsProfanity(content)) {
+                            AtomicBoolean proceed = new AtomicBoolean(false);
+                            Platform.runLater(() -> proceed.set(showProfanityWarningAlert(
+                                    "Avertissement", "Votre texte contient des mots inappropriés. Voulez-vous ajouter quand même?"
+                            )));
+                            while (!proceed.get() && !Thread.currentThread().isInterrupted()) {
+                                Thread.onSpinWait(); // More efficient than Thread.yield()
+                            }
+                            if (!proceed.get()) return null;
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
                     }
-                    if (!proceed[0]) return;
+
+                    Games game = gamesService.getByName(selectedGame);
+                    if (game == null) {
+                        Platform.runLater(() -> showAlert("Erreur", "Le jeu sélectionné n'existe pas."));
+                        return null;
+                    }
+
+                    Utilisateur user = utilisateurService.getOne(userId);
+                    if (user == null) {
+                        Platform.runLater(() -> showAlert("Erreur", "Utilisateur non trouvé pour ID: " + userId));
+                        return null;
+                    }
+
+                    String mediaPath = lastMediaPath;
+                    String mediaType = lastMediaType != null ? lastMediaType : "image";
+                    Question question = new Question(title, content, game, user, 0,
+                            new Timestamp(System.currentTimeMillis()), mediaPath, mediaType);
+
+                    questionService.add(question);
+                    return question;
+                }, EXECUTOR_SERVICE)
+                .thenAcceptAsync(this::handleSubmissionResult, Platform::runLater)
+                .exceptionally(this::handleAsyncError);
+    }
+
+    private void handleSubmissionResult(Question question) {
+        if (question == null) return;
+
+        showSuccessAlert("Succès", "Question ajoutée avec succès !");
+        clearForm();
+        navigateToForumPage(question);
+        updateUserPrivilege();
+    }
+
+    private Void handleAsyncError(Throwable e) {
+        if (e instanceof IOException) {
+            showAlert("Erreur Réseau", "Impossible de vérifier le contenu: " + e.getMessage());
+        } else {
+            LOGGER.error("Failed to submit question", e);
+            showAlert("Erreur", "Failed to add question: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private void navigateToForumPage(Question question) {
+        try {
+            Parent root = forumLoader.load();
+            ForumController forumController = forumLoader.getController();
+
+            Stage stage = (Stage) submitButton.getScene().getWindow();
+            Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
+            stage.setScene(newScene);
+            stage.show();
+
+            Platform.runLater(() -> forumController.loadQuestionsLazy());
+        } catch (IOException e) {
+            LOGGER.error("Failed to navigate to forum page", e);
+        }
+    }
+
+    private void updateUserPrivilege() {
+        UtilisateurService.PrivilegeChange change = utilisateurService.updateUserPrivilege(userId);
+        if (change.isChanged()) {
+            Utilisateur updatedUser = utilisateurService.getOne(userId);
+            if (updatedUser != null) {
+                showPrivilegeAlert(change);
+                try {
+                    Parent root = forumLoader.load();
+                    ForumController forumController = forumLoader.getController();
+                    forumController.updatePrivilegeUI(userId);
+                } catch (IOException e) {
+                    LOGGER.error("Failed to update privilege UI in ForumController", e);
+                    showAlert("Erreur", "Failed to navigate to Forum: " + e.getMessage());
                 }
-
-                Games selectedGameObj = gamesService.getByName(selectedGame);
-                if (selectedGameObj == null) {
-                    Platform.runLater(() -> showAlert("Erreur", "Le jeu sélectionné n'existe pas."));
-                    return;
-                }
-
-                Utilisateur utilisateur = us.getOne(userId);
-                if (utilisateur == null) {
-                    Platform.runLater(() -> showAlert("Erreur", "Utilisateur non trouvé pour ID: " + userId));
-                    return;
-                }
-
-                String mediaPath = lastMediaPath;
-                String mediaType = lastMediaType != null ? lastMediaType : "image";
-                Question question = new Question(title, content, selectedGameObj, utilisateur, 0,
-                        new Timestamp(System.currentTimeMillis()), mediaPath, mediaType);
-
-                questionService.add(question);
-                Platform.runLater(() -> {
-                    showSuccessAlert("Succès", "Question ajoutée avec succès !");
-                    clearForm();
-                    navigateToForumPage(question);
-                });
-            } catch (IOException e) {
-                Platform.runLater(() -> showAlert("Erreur Réseau", "Impossible de vérifier le contenu pour le moment. Veuillez réessayer plus tard. Détails: " + e.getMessage()));
-            } catch (Exception e) {
-                Platform.runLater(() -> showAlert("Erreur", "Failed to add question: " + e.getMessage()));
-                e.printStackTrace();
             }
+        }
+    }
+
+    private void clearForm() {
+        titleField.clear();
+        contentField.clear();
+        gameComboBox.setValue(null);
+        lastMediaPath = null;
+        lastMediaType = null;
+        uploadedImageView.setImage(null);
+    }
+
+    private boolean isValidMediaFile(File file) {
+        String extension = getFileExtension(file);
+        if ("mp4".equals(extension)) {
+            try {
+                Media media = new Media(file.toURI().toString());
+                MediaPlayer testPlayer = new MediaPlayer(media);
+                CompletableFuture<Boolean> validationFuture = new CompletableFuture<>();
+                testPlayer.setOnError(() -> validationFuture.completeExceptionally(new RuntimeException("Invalid media")));
+                testPlayer.setOnReady(() -> validationFuture.complete(true));
+                testPlayer.setOnEndOfMedia(() -> validationFuture.complete(true));
+                boolean result = validationFuture.get();
+                testPlayer.dispose();
+                return result;
+            } catch (Exception e) {
+                LOGGER.warn("Invalid or corrupted video file: {}", file.getAbsolutePath(), e);
+                Platform.runLater(() -> showAlert("Erreur", "Fichier vidéo non valide ou corrompu."));
+                return false;
+            }
+        }
+        return VALID_IMAGE_EXTENSIONS.contains(extension);
+    }
+
+    private void showPrivilegeAlert(UtilisateurService.PrivilegeChange change) {
+        if (!change.isChanged()) return;
+
+        boolean isPromotion = getPrivilegeRank(change.getNewPrivilege()) > getPrivilegeRank(change.getOldPrivilege());
+        String title = isPromotion ? "Félicitations!" : "Mise à jour de privilège";
+        String message = getPrivilegeMessage(change, isPromotion);
+        String iconPath = isPromotion ?
+                (change.getNewPrivilege().equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png") :
+                "/forumUI/icons/alert.png";
+        String stageIconPath = isPromotion ? "/forumUI/icons/sucessalert.png" : "/forumUI/icons/alert.png";
+
+        showStyledAlert(title, message, iconPath, stageIconPath, isPromotion ? "GG!" : "OK", 60, 60);
+    }
+
+    private String getPrivilegeMessage(UtilisateurService.PrivilegeChange change, boolean isPromotion) {
+        return isPromotion ?
+                (switch (change.getNewPrivilege()) {
+                    case "top_contributor" -> "Vous êtes passé de Regular à Top Contributor ! Bravo pour votre contribution !";
+                    case "top_fan" -> "Vous êtes maintenant un Top Fan depuis " + change.getOldPrivilege() + " ! Votre passion est récompensée !";
+                    default -> "Privilege mis à jour !";
+                }) :
+                (switch (change.getOldPrivilege()) {
+                    case "top_contributor" -> "Désolé, vous êtes redescendu de Top Contributor à Regular.";
+                    case "top_fan" -> "Désolé, vous êtes passé de Top Fan à " + change.getNewPrivilege() + ".";
+                    default -> "Privilege mis à jour.";
+                });
+    }
+
+    private int getPrivilegeRank(String privilege) {
+        return switch (privilege) {
+            case "regular" -> 0;
+            case "top_contributor" -> 1;
+            case "top_fan" -> 2;
+            default -> -1;
+        };
+    }
+
+    private void showAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/alert.png", "/forumUI/icons/alert.png", "OK", 80, 80);
+    }
+
+    private void showSuccessAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/sucessalert.png", "/forumUI/icons/sucessalert.png", "OK", 60, 80);
+    }
+
+    private void showStyledAlert(String title, String message, String iconPath, String stageIconPath,
+                                 String buttonText, double iconHeight, double iconWidth) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource(iconPath).toExternalForm()));
+        icon.setFitHeight(iconHeight);
+        icon.setFitWidth(iconWidth);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource(stageIconPath).toString()));
+
+        ButtonType okButton = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(500), alert.getDialogPane());
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        alert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (isShowing) fadeIn.play();
         });
+
+        alert.showAndWait();
     }
 
     private boolean showProfanityWarningAlert(String title, String message) {
@@ -200,81 +416,14 @@ public class AddQuestionController implements Initializable {
         Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
         stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
 
-        return alert.showAndWait()
-                .filter(response -> response == addAnywayButton)
-                .isPresent();
+        return alert.showAndWait().filter(response -> response == addAnywayButton).isPresent();
     }
 
-    private void navigateToForumPage(Question question) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/Forum.fxml"));
-            Parent root = loader.load();
-            ForumController forumController = loader.getController();
-            forumController.refreshQuestions();
-
-            Stage stage = (Stage) submitButton.getScene().getWindow();
-            Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
-            stage.setScene(newScene);
-            stage.show();
-
-            Platform.runLater(() -> forumController.loadQuestionsLazy());
-        } catch (IOException e) {
-            e.printStackTrace();
+    @Override
+    public void close() {
+        if (!isShutdown) {
+            EXECUTOR_SERVICE.shutdown();
+            isShutdown = true;
         }
-    }
-
-    private void clearForm() {
-        titleField.clear();
-        contentField.clear();
-        gameComboBox.setValue(null);
-        lastMediaPath = null;
-        lastMediaType = null;
-        uploadedImageView.setImage(null);
-    }
-
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.NONE);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-
-        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
-        icon.setFitHeight(80);
-        icon.setFitWidth(80);
-        alert.setGraphic(icon);
-
-        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
-        alert.getDialogPane().getStyleClass().add("gaming-alert");
-
-        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
-
-        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-        alert.getButtonTypes().setAll(okButton);
-
-        alert.showAndWait();
-    }
-
-    private void showSuccessAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.NONE);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-
-        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toExternalForm()));
-        icon.setFitHeight(60);
-        icon.setFitWidth(80);
-        alert.setGraphic(icon);
-
-        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
-        alert.getDialogPane().getStyleClass().add("gaming-alert");
-
-        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toString()));
-
-        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-        alert.getButtonTypes().setAll(okButton);
-
-        alert.showAndWait();
     }
 }

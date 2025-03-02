@@ -1,5 +1,6 @@
 package tn.esprit.Controllers.forum;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -15,9 +16,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class AddGameController {
+public class UpdateGameController extends AddGameController {
 
-    private GamesService gamesService = new GamesService();
+    private Games game;
+    private AdminDashboardController dashboardController;
 
     @FXML
     private TextField gameNameField;
@@ -28,21 +30,39 @@ public class AddGameController {
     @FXML
     private Button uploadImageButton;
 
-    private String imagePath;
+    public void setGame(Games game, AdminDashboardController dashboardController) {
+        this.game = game;
+        this.dashboardController = dashboardController;
+        initialize(); // Call initialize to set up the ComboBox
+        if (gameNameField == null || gameTypeComboBox == null || gameImageView == null) {
+            System.err.println("One or more FXML elements are null in UpdateGameController. Check FXML injection.");
+            showAlert("Erreur", "Failed to load game data. Check FXML configuration.");
+            return;
+        }
+        loadGameData();
+    }
 
-    @FXML
-    public void initialize() {
-        // Populate game type options
-        if (gameTypeComboBox != null) { // Add null check
-            gameTypeComboBox.getItems().addAll("FPS", "Hero Shooter", "Third Person Shooter", "Sports", "Other");
-            gameTypeComboBox.setValue("Other"); // Default value
-        } else {
-            System.err.println("gameTypeComboBox is null in AddGameController. Check FXML injection.");
+    private void loadGameData() {
+        gameNameField.setText(game.getGame_name());
+        gameTypeComboBox.setValue(game.getGameType());
+
+        if (game.getImagePath() != null && !game.getImagePath().isEmpty()) {
+            File file = new File(game.getImagePath());
+            if (file.exists()) {
+                Image image = new Image(file.toURI().toString(), 200, 150, true, true);
+                gameImageView.setImage(image);
+            }
         }
     }
 
     @FXML
-    private void handleUploadImage() {
+    private void handleUploadImage(ActionEvent event) {
+        if (uploadImageButton == null || gameImageView == null) {
+            System.err.println("uploadImageButton or gameImageView is null in UpdateGameController. Check FXML injection.");
+            showAlert("Erreur", "Failed to handle image upload. Check FXML configuration.");
+            return;
+        }
+
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Game Image");
         fileChooser.getExtensionFilters().addAll(
@@ -62,7 +82,7 @@ public class AddGameController {
                 Path targetPath = destinationPath.resolve(fileName);
                 Files.copy(selectedFile.toPath(), targetPath);
 
-                imagePath = targetPath.toString();
+                game.setImagePath(targetPath.toString());
                 Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
                 gameImageView.setImage(image);
                 showSuccessAlert("Succès", "Image uploaded successfully!");
@@ -74,7 +94,13 @@ public class AddGameController {
     }
 
     @FXML
-    private void handleAddGame() {
+    private void handleUpdateGame(ActionEvent event) {
+        if (gameNameField == null || gameTypeComboBox == null) {
+            System.err.println("gameNameField or gameTypeComboBox is null in UpdateGameController. Check FXML injection.");
+            showAlert("Erreur", "Failed to update game. Check FXML configuration.");
+            return;
+        }
+
         String gameName = gameNameField.getText().trim();
         String gameType = gameTypeComboBox.getValue();
 
@@ -83,19 +109,14 @@ public class AddGameController {
             return;
         }
 
-        Games newGame = new Games(gameName, imagePath, gameType);
-        gamesService.add(newGame);
-        showSuccessAlert("Succès", "Game added successfully!");
-        clearForm();
-    }
+        game.setGame_name(gameName);
+        game.setGameType(gameType);
+        dashboardController.updateGame(game);
+        showSuccessAlert("Succès", "Game updated successfully!");
 
-    private void clearForm() {
-        gameNameField.clear();
-        if (gameTypeComboBox != null) { // Add null check
-            gameTypeComboBox.setValue("Other");
-        }
-        gameImageView.setImage(null);
-        imagePath = null;
+        // Close the window after successful update
+        Stage stage = (Stage) gameNameField.getScene().getWindow();
+        stage.close();
     }
 
     private void showAlert(String title, String message) {

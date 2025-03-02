@@ -311,3 +311,32 @@
     -fx-text-fill: white;
     -fx-font-size: 12px;
 }
+.crown-icon {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 5, 0, 0, 2);
+}
+
+.comment-author .text-flow {
+    -fx-font-weight: bold;
+}
+.report-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ff4081; /* Neon pink to match the theme */
+    -fx-font-size: 16px;
+    -fx-padding: 5;
+    -fx-border-width: 0;
+}
+
+.report-button:hover {
+    -fx-text-fill: #ff80ab; /* Lighter pink on hover */
+    -fx-cursor: hand;
+}
+
+.report-button:pressed {
+    -fx-text-fill: #d81b60; /* Darker pink when pressed */
+}
+
+/* Ensure the button has some margin from the edge of the card */
+.question-card .report-button,
+.comment-card .report-button {
+    -fx-margin: 5 5 0 0; /* Top-right corner spacing */
+}

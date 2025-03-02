@@ -1,10 +1,14 @@
 package tn.esprit.Services;
 
+import javafx.application.Platform;
+import javafx.event.Event;
+import javafx.scene.Node;
 import org.mindrot.jbcrypt.BCrypt;
 import tn.esprit.Interfaces.IService;
 import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.utils.MyDatabase;
+import tn.esprit.utils.PrivilegeEvent;
 import tn.esprit.utils.SessionManager;
 
 import java.sql.Connection;
@@ -17,7 +21,7 @@ import java.util.List;
 public class UtilisateurService implements IService<Utilisateur> {
 
     private Connection cnx ;
-
+    private Node eventTarget; // To fire events, set this via constructor or setter
     public UtilisateurService(){
         cnx = MyDatabase.getInstance().getCnx();
     }
@@ -440,7 +444,7 @@ public class UtilisateurService implements IService<Utilisateur> {
         return null;
     }
 
-    public class PrivilegeChange {
+    public static class PrivilegeChange {
         private final String oldPrivilege;
         private final String newPrivilege;
 
@@ -454,15 +458,23 @@ public class UtilisateurService implements IService<Utilisateur> {
         public boolean isChanged() { return !oldPrivilege.equals(newPrivilege); }
     }
 
+    public void setEventTarget(Node eventTarget) {
+        this.eventTarget = eventTarget;
+    }
+
+    public Node getEventTarget() {
+        return eventTarget;
+    }
+// ... (other methods unchanged)
+
     public PrivilegeChange updateUserPrivilege(int userId) {
         Utilisateur user = getOne(userId);
         String oldPrivilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
-
         int activityCount = getUserActivityCount(userId);
         int voteCount = getUserVoteCount(userId);
 
         String newPrivilege;
-        if (activityCount >= 5 && voteCount > 10) {
+        if (activityCount >= 5 && voteCount > 6) {
             newPrivilege = "top_fan";
         } else if (activityCount >= 5) {
             newPrivilege = "top_contributor";
@@ -481,9 +493,16 @@ public class UtilisateurService implements IService<Utilisateur> {
                 throw new RuntimeException("Failed to update privilege: " + e.getMessage(), e);
             }
             user.setPrivilege(newPrivilege);
+
+            // Fire PrivilegeEvent if an event target is set
+            if (eventTarget != null) {
+                Platform.runLater(() -> {
+                    PrivilegeEvent event = new PrivilegeEvent(userId, newPrivilege);
+                    Event.fireEvent(eventTarget, event);
+                });
+            }
         }
 
         return new PrivilegeChange(oldPrivilege, newPrivilege);
     }
-
 }
