@@ -1,5 +1,10 @@
 package tn.esprit.Controllers.Evenement;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -8,8 +13,10 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -22,13 +29,13 @@ import tn.esprit.Services.Evenement.CategorieEvService;
 import tn.esprit.Services.Evenement.EvenementService;
 import tn.esprit.utils.SessionManager;
 
-
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 public class DetailsEvenementController {
@@ -41,8 +48,12 @@ public class DetailsEvenementController {
     @FXML
     private Button reserverButton;
     private Evenement currentEvent;
+    @FXML
+    private VBox hbox;
+    @FXML
+    private ImageView qrCodeImageView;
 
-
+private String userRole = SessionManager.getInstance().getRole().name();
     public void initData(Evenement event) {
         if (event != null) {
             currentEvent = event;
@@ -62,19 +73,35 @@ public class DetailsEvenementController {
             eventLieuLabel.setText(event.getLieu_event());
             eventNBPLabel.setText(String.valueOf(event.getMax_places_event()));
             eventCatLabel.setText(ces.getNomCategorieEvent(event.getCategorie_id()));
+            if(userRole.equals("ADMIN")){
+                Button exporterPDF = new Button("Exporter Liste des Utilisateurs en PDF");
+                exporterPDF.setOnAction(e -> exporterPDF());
+                exporterPDF.getStyleClass().add("export-button");
+                exporterPDF.setMaxWidth(Double.MAX_VALUE);
+                reserverButton.setVisible(false);
+                hbox.getChildren().add(exporterPDF);
+            }
 
+            generateQRCode(event);
         }
     }
     @FXML
     private void RetourButtonVersListeEvenement(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/ListEvenement.fxml"));
-        Parent signInRoot = loader.load();
-        Scene signInScene = new Scene(signInRoot);
-
-
-        Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        window.setScene(signInScene);
-        window.show();
+        if(userRole.equals("ADMIN")){
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/ListeEvenementAdmin.fxml"));
+            Parent signInRoot = loader.load();
+            Scene signInScene = new Scene(signInRoot);
+            Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            window.setScene(signInScene);
+            window.show();
+        }else {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/ListEvenement.fxml"));
+            Parent signInRoot = loader.load();
+            Scene signInScene = new Scene(signInRoot);
+            Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            window.setScene(signInScene);
+            window.show();
+        }
     }
     @FXML
     private void reserverPlace(ActionEvent e1) {
@@ -208,5 +235,28 @@ public class DetailsEvenementController {
         contentStream.lineTo(x, y);
         contentStream.stroke();
     }
+    private void generateQRCode(Evenement event) {
+        try {
+            // Construire l'URL avec les paramètres
+            String baseUrl = "https://feresad.github.io/event-qr-code/";
+            String url = baseUrl + "?id=" + event.getId() +
+                    "&nom=" + URLEncoder.encode(event.getNom_event(), "UTF-8") +
+                    "&date=" + URLEncoder.encode(event.getDate_event().toString(), "UTF-8") +
+                    "&lieu=" + URLEncoder.encode(event.getLieu_event(), "UTF-8") +
+                    "&places=" + event.getMax_places_event();
+            System.out.println("URL générée : " + url);
+            // Générer le QR Code avec l'URL
+            QRCodeWriter qrCodeWriter = new QRCodeWriter();
+            BitMatrix bitMatrix = qrCodeWriter.encode(url, BarcodeFormat.QR_CODE, 200, 200);
+            BufferedImage bufferedImage = MatrixToImageWriter.toBufferedImage(bitMatrix);
+            Image qrImage = SwingFXUtils.toFXImage(bufferedImage, null);
+
+            qrCodeImageView.setImage(qrImage);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 }

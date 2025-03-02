@@ -10,11 +10,13 @@
             styleClass="scroll-pane" stylesheets="@/assets/style/style.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="tn.esprit.Controllers.Evenement.DetailsEvenementController">
-
+<BorderPane>
+   <left>
+         <fx:include source="../sidebarAdmin.fxml"/>
+   </left>
+    <center>
     <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
         <children>
-            <!-- Header -->
-            <fx:include source="/forumUI/navbar.fxml"/>
 
             <VBox spacing="20" styleClass="content-container" GridPane.rowIndex="1" fx:id="hbox">
                 <padding>
@@ -97,4 +99,6 @@
             <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
     </GridPane>
+    </center>
+</BorderPane>
 </ScrollPane>

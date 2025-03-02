@@ -28,7 +28,7 @@ public class HomeController {
     boolean isConnected = SessionManager.getInstance().isLoggedIn();
 
     @FXML
-    private void openChatbotDialog() {
+    public void openChatbotDialog() {
         if(isConnected){
         // Créer une nouvelle fenêtre (Stage)
         Stage chatbotStage = new Stage();
