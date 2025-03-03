@@ -33,6 +33,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import tn.esprit.Services.*;
+import tn.esprit.utils.EventBus;
 import tn.esprit.utils.PrivilegeEvent;
 import tn.esprit.utils.SessionManager;
 
@@ -166,6 +167,14 @@ public class QuestionCardController {
 
         updatePrivilegeUI(question.getUser());
 
+        EventBus.getInstance().addHandler(event -> {
+            if (event.getUserId() == question.getUser().getId()) {
+                Utilisateur user = us.getOne(event.getUserId());
+                if (user != null) {
+                    updatePrivilegeUI(user);
+                }
+            }
+        });
         contentVBox.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null && scrollPane == null) {
                 Platform.runLater(this::setupBoundsListener);
@@ -186,7 +195,7 @@ public class QuestionCardController {
                 }
             }
         });
-        us.setEventTarget(contentVBox);
+
 
 
     }
@@ -422,7 +431,7 @@ public class QuestionCardController {
         } else {
             authorFlow.getChildren().add(usernameText);
         }
-
+        commentAuthor.setText(user.getNickname());
         String privilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
         switch (privilege) {
             case "top_contributor":

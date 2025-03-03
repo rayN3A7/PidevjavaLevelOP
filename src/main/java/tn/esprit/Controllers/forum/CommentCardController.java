@@ -22,6 +22,7 @@ import tn.esprit.Services.CommentaireService;
 import tn.esprit.Services.EmojiService;
 import tn.esprit.Services.ReportService;
 import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.EventBus;
 import tn.esprit.utils.PrivilegeEvent;
 import tn.esprit.utils.ProfanityChecker;
 import tn.esprit.utils.SessionManager;
@@ -91,6 +92,15 @@ public class CommentCardController {
         displayReactions();
         displayUserReaction();
         updatePrivilegeUI(commentaire.getUtilisateur());
+        EventBus.getInstance().addHandler(event -> {
+            if (event.getUserId() == commentaire.getUtilisateur().getId()) {
+                Utilisateur user = us.getOne(event.getUserId());
+                if (user != null) {
+                    updatePrivilegeUI(user);
+                }
+            }
+        });
+
         checkForReplies();
         commentAuthor.getParent().addEventHandler(PrivilegeEvent.PRIVILEGE_CHANGED, event -> {
             if (event.getUserId() == commentaire.getUtilisateur().getId()) {
@@ -105,7 +115,6 @@ public class CommentCardController {
                 }
             }
         });
-        us.setEventTarget(commentAuthor.getParent());
     }
 
 
@@ -333,22 +342,23 @@ public class CommentCardController {
 
             String privilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
             System.out.println("Updating privilege UI for user " + user.getNickname() + " to " + privilege);
+            commentAuthor.setText(user.getNickname());
             switch (privilege) {
                 case "top_contributor":
-                    authorFlow.setStyle("-fx-text-fill: silver;");
+                    commentAuthor.setStyle("-fx-text-fill: silver;");
                     crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png"));
-                    animatePrivilegeChange(crownIcon, true);
+                    crownIcon.setVisible(true);
                     break;
                 case "top_fan":
-                    authorFlow.setStyle("-fx-text-fill: gold;");
+                    commentAuthor.setStyle("-fx-text-fill: gold;");
                     crownIcon.setImage(new Image("/forumUI/icons/crown.png"));
-                    animatePrivilegeChange(crownIcon, true);
+                    crownIcon.setVisible(true);
                     break;
                 default:
-                    if (user.getRole() != Role.ADMIN) authorFlow.setStyle("-fx-text-fill: white;");
-                    animatePrivilegeChange(crownIcon, false);
+                    commentAuthor.setStyle("-fx-text-fill: white;");
+                    crownIcon.setVisible(false);
+                    break;
             }
-
             commentAuthor.setGraphic(authorFlow);
             commentAuthor.setText("");
         });
