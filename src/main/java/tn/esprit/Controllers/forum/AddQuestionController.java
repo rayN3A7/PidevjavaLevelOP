@@ -12,8 +12,6 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.VBox;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -25,7 +23,7 @@ import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.GamesService;
 import tn.esprit.Services.QuestionService;
 import tn.esprit.Services.UtilisateurService;
-import tn.esprit.utils.PrivilegeEvent;
+import tn.esprit.utils.EventBus;
 import tn.esprit.utils.ProfanityChecker;
 import tn.esprit.utils.SessionManager;
 
@@ -42,7 +40,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 public class AddQuestionController implements Initializable, AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(AddQuestionController.class);
@@ -66,8 +63,6 @@ public class AddQuestionController implements Initializable, AutoCloseable {
     private String lastMediaPath;
     private String lastMediaType;
     private volatile boolean isShutdown;
-
-    // Cached loaders and resources
     private final FXMLLoader forumLoader;
 
     public AddQuestionController() {
@@ -82,20 +77,7 @@ public class AddQuestionController implements Initializable, AutoCloseable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         loadGamesAsync();
-        setupPrivilegeEventHandler();
-        utilisateurService.setEventTarget(questionCardContainer);
-    }
-
-    private void loadGamesAsync() {
-        CompletableFuture.supplyAsync(gamesService::getAll, EXECUTOR_SERVICE)
-                .thenAcceptAsync(games -> gameComboBox.getItems().setAll(
-                        games.stream().map(Games::getGame_name).toList()
-                ), Platform::runLater)
-                .exceptionally(this::handleAsyncError);
-    }
-
-    private void setupPrivilegeEventHandler() {
-        questionCardContainer.addEventHandler(PrivilegeEvent.PRIVILEGE_CHANGED, event -> {
+        EventBus.getInstance().addHandler(event -> {
             if (event.getUserId() == userId) {
                 Utilisateur updatedUser = utilisateurService.getOne(userId);
                 if (updatedUser != null) {
@@ -107,10 +89,18 @@ public class AddQuestionController implements Initializable, AutoCloseable {
         });
     }
 
+    private void loadGamesAsync() {
+        CompletableFuture.supplyAsync(gamesService::getAll, EXECUTOR_SERVICE)
+                .thenAcceptAsync(games -> gameComboBox.getItems().setAll(
+                        games.stream().map(Games::getGame_name).toList()
+                ), Platform::runLater)
+                .exceptionally(this::handleAsyncError);
+    }
+
     @FXML
     private void handleUploadMedia(ActionEvent event) {
         File selectedFile = selectMediaFile();
-        if (selectedFile == null || !isValidMediaFile(selectedFile)) {
+        if (selectedFile == null || !VALID_IMAGE_EXTENSIONS.contains(getFileExtension(selectedFile))) {
             showAlert("Erreur", "Type de fichier non supporté ou invalide.");
             return;
         }
@@ -131,7 +121,8 @@ public class AddQuestionController implements Initializable, AutoCloseable {
     private void uploadMediaAsync(File selectedFile) {
         CompletableFuture.runAsync(() -> {
             try {
-                Path destinationPath = prepareDestinationPath();
+                Path destinationPath = Paths.get(DESTINATION_DIR);
+                if (!Files.exists(destinationPath)) Files.createDirectories(destinationPath);
                 String fileName = "question_" + System.currentTimeMillis() + "_" + selectedFile.getName();
                 Path targetPath = destinationPath.resolve(fileName);
                 Files.copy(selectedFile.toPath(), targetPath);
@@ -145,14 +136,6 @@ public class AddQuestionController implements Initializable, AutoCloseable {
                 Platform.runLater(() -> showAlert("Erreur", "Failed to upload media: " + e.getMessage()));
             }
         }, EXECUTOR_SERVICE);
-    }
-
-    private Path prepareDestinationPath() throws IOException {
-        Path destinationPath = Paths.get(DESTINATION_DIR);
-        if (!Files.exists(destinationPath)) {
-            Files.createDirectories(destinationPath);
-        }
-        return destinationPath;
     }
 
     private String getFileExtension(File file) {
@@ -203,7 +186,7 @@ public class AddQuestionController implements Initializable, AutoCloseable {
                                     "Avertissement", "Votre texte contient des mots inappropriés. Voulez-vous ajouter quand même?"
                             )));
                             while (!proceed.get() && !Thread.currentThread().isInterrupted()) {
-                                Thread.onSpinWait(); // More efficient than Thread.yield()
+                                Thread.onSpinWait();
                             }
                             if (!proceed.get()) return null;
                         }
@@ -241,7 +224,6 @@ public class AddQuestionController implements Initializable, AutoCloseable {
         showSuccessAlert("Succès", "Question ajoutée avec succès !");
         clearForm();
         navigateToForumPage(question);
-        updateUserPrivilege();
     }
 
     private Void handleAsyncError(Throwable e) {
@@ -270,24 +252,6 @@ public class AddQuestionController implements Initializable, AutoCloseable {
         }
     }
 
-    private void updateUserPrivilege() {
-        UtilisateurService.PrivilegeChange change = utilisateurService.updateUserPrivilege(userId);
-        if (change.isChanged()) {
-            Utilisateur updatedUser = utilisateurService.getOne(userId);
-            if (updatedUser != null) {
-                showPrivilegeAlert(change);
-                try {
-                    Parent root = forumLoader.load();
-                    ForumController forumController = forumLoader.getController();
-                    forumController.updatePrivilegeUI(userId);
-                } catch (IOException e) {
-                    LOGGER.error("Failed to update privilege UI in ForumController", e);
-                    showAlert("Erreur", "Failed to navigate to Forum: " + e.getMessage());
-                }
-            }
-        }
-    }
-
     private void clearForm() {
         titleField.clear();
         contentField.clear();
@@ -295,28 +259,6 @@ public class AddQuestionController implements Initializable, AutoCloseable {
         lastMediaPath = null;
         lastMediaType = null;
         uploadedImageView.setImage(null);
-    }
-
-    private boolean isValidMediaFile(File file) {
-        String extension = getFileExtension(file);
-        if ("mp4".equals(extension)) {
-            try {
-                Media media = new Media(file.toURI().toString());
-                MediaPlayer testPlayer = new MediaPlayer(media);
-                CompletableFuture<Boolean> validationFuture = new CompletableFuture<>();
-                testPlayer.setOnError(() -> validationFuture.completeExceptionally(new RuntimeException("Invalid media")));
-                testPlayer.setOnReady(() -> validationFuture.complete(true));
-                testPlayer.setOnEndOfMedia(() -> validationFuture.complete(true));
-                boolean result = validationFuture.get();
-                testPlayer.dispose();
-                return result;
-            } catch (Exception e) {
-                LOGGER.warn("Invalid or corrupted video file: {}", file.getAbsolutePath(), e);
-                Platform.runLater(() -> showAlert("Erreur", "Fichier vidéo non valide ou corrompu."));
-                return false;
-            }
-        }
-        return VALID_IMAGE_EXTENSIONS.contains(extension);
     }
 
     private void showPrivilegeAlert(UtilisateurService.PrivilegeChange change) {

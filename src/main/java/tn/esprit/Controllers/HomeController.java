@@ -135,7 +135,6 @@ public class HomeController {
             try {
                 Image image = new Image(new File(question.getGame().getImagePath()).toURI().toString(), true);
                 gameImage.setImage(image);
-                // Adjust card size based on image
                 imageHeight = image.getHeight() > 0 ? image.getHeight() : 80;
                 imageWidth = image.getWidth() > 0 ? image.getWidth() : 80;
                 gameImage.setFitHeight(imageHeight);
@@ -161,11 +160,11 @@ public class HomeController {
 
         card.getChildren().addAll(gameImage, textBox);
 
-        // Dynamically adjust card size based on title length and image size
+        // Dynamically adjust card size
         double titleWidth = titleLabel.getBoundsInLocal().getWidth();
         double titleHeight = titleLabel.getBoundsInLocal().getHeight();
-        double cardWidth = Math.max(imageWidth + titleWidth + 30, 200); // +30 for padding
-        double cardHeight = Math.max(imageHeight, titleHeight) + 50; // +50 for padding and author tag
+        double cardWidth = Math.max(imageWidth + titleWidth + 30, 200);
+        double cardHeight = Math.max(imageHeight, titleHeight) + 50;
 
         card.setMinWidth(cardWidth);
         card.setMaxWidth(cardWidth);
@@ -179,7 +178,6 @@ public class HomeController {
             event.consume();
         });
 
-        // Debug mouse events
         card.setOnMousePressed(event -> LOGGER.debug("Mouse pressed on question card ID: {}", question.getQuestion_id()));
         card.setOnMouseReleased(event -> LOGGER.debug("Mouse released on question card ID: {}", question.getQuestion_id()));
 
@@ -188,23 +186,6 @@ public class HomeController {
 
     private void navigateToQuestionDetails(Question question) {
         try {
-            LOGGER.info("Navigating to QuestionDetails for question ID: {}", question.getQuestion_id());
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/QuestionDetails.fxml"));
-            if (loader.getLocation() == null) {
-                LOGGER.error("QuestionDetails.fxml not found at /forumUI/QuestionDetails.fxml");
-                showAlert(Alert.AlertType.ERROR, "Erreur", "QuestionDetails.fxml not found.");
-                return;
-            }
-
-            Parent root = loader.load();
-            QuestionDetailsController controller = loader.getController();
-            if (controller == null) {
-                LOGGER.error("QuestionDetailsController not found.");
-                showAlert(Alert.AlertType.ERROR, "Erreur", "Unable to initialize QuestionDetailsController.");
-                return;
-            }
-
-            controller.loadQuestionDetails(question);
             Stage stage = (Stage) questionCarousel.getScene().getWindow();
             if (stage == null) {
                 LOGGER.error("Stage not found for navigation.");
@@ -212,13 +193,48 @@ public class HomeController {
                 return;
             }
 
-            Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
-            stage.setScene(newScene);
-            stage.show();
-            LOGGER.info("Successfully navigated to QuestionDetails for question ID: {}", question.getQuestion_id());
+            if (!SessionManager.getInstance().isLoggedIn()) {
+                LOGGER.info("User is not logged in. Redirecting to login page for question ID: {}", question.getQuestion_id());
+                // Navigate to login page
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/gestion Utilisateur/login/Login.fxml"));
+                if (loader.getLocation() == null) {
+                    LOGGER.error("Login.fxml not found at /gestion Utilisateur/login/Login.fxml");
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "Login page not found.");
+                    return;
+                }
+
+                Parent root = loader.load();
+                Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
+                stage.setScene(newScene);
+                stage.show();
+                LOGGER.info("Successfully navigated to login page.");
+            } else {
+                LOGGER.info("User is logged in. Navigating to QuestionDetails for question ID: {}", question.getQuestion_id());
+                // Navigate to question details page
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/QuestionDetails.fxml"));
+                if (loader.getLocation() == null) {
+                    LOGGER.error("QuestionDetails.fxml not found at /forumUI/QuestionDetails.fxml");
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "QuestionDetails page not found.");
+                    return;
+                }
+
+                Parent root = loader.load();
+                QuestionDetailsController controller = loader.getController();
+                if (controller == null) {
+                    LOGGER.error("QuestionDetailsController not found.");
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "Unable to initialize QuestionDetailsController.");
+                    return;
+                }
+
+                controller.loadQuestionDetails(question);
+                Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
+                stage.setScene(newScene);
+                stage.show();
+                LOGGER.info("Successfully navigated to QuestionDetails for question ID: {}", question.getQuestion_id());
+            }
         } catch (IOException e) {
-            LOGGER.error("Failed to navigate to QuestionDetails for question ID: {}", question.getQuestion_id(), e);
-            showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible de charger la page des détails de la question : " + e.getMessage());
+            LOGGER.error("Failed to navigate for question ID: {}", question.getQuestion_id(), e);
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible de charger la page : " + e.getMessage());
         } catch (Exception e) {
             LOGGER.error("Unexpected error during navigation for question ID: {}", question.getQuestion_id(), e);
             showAlert(Alert.AlertType.ERROR, "Erreur", "Une erreur inattendue s'est produite : " + e.getMessage());
@@ -299,7 +315,6 @@ public class HomeController {
             }
         });
 
-        // Add scroll support for mouse wheel
         questionCarousel.setOnScroll(event -> {
             double deltaY = event.getDeltaY();
             if (deltaY > 0 && currentIndex > 0) {
@@ -324,7 +339,7 @@ public class HomeController {
 
     @FXML
     private void openChatbotDialog() {
-        if (isConnected) {
+        if (SessionManager.getInstance().isLoggedIn()) {
             Stage chatbotStage = new Stage();
             chatbotStage.setTitle("Chatbot LevelOP");
             chatbotStage.initModality(Modality.APPLICATION_MODAL);
@@ -333,7 +348,7 @@ public class HomeController {
             chatbotLayout.setStyle("-fx-background-color: #1E1E2E; -fx-padding: 20; -fx-spacing: 10;");
 
             TextArea chatArea = new TextArea();
-            chatArea.setStyle("-fx-background-color: #2A2C3E; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 10; -fx-font-size: 14px; -fx-text-fill: #FFFFFF; -fx-wrap-text: true;");
+            chatArea.setStyle("-fx-background-color: #2A2C3E; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 10; -fx-font-size: 14px; -fx-text-fill: #000000; -fx-wrap-text: true;");
             chatArea.setEditable(false);
             chatArea.setWrapText(true);
             chatArea.setPrefHeight(300);

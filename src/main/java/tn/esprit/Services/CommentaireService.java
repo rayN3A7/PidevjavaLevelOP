@@ -32,7 +32,8 @@ public class CommentaireService implements IService<Commentaire> {
         Commentaire parentCommentaire = commentaire.getParent_commentaire_id();
 
         if (utilisateur == null) throw new IllegalArgumentException("Utilisateur cannot be null.");
-        if (question == null && parentCommentaire == null) throw new IllegalArgumentException("Question or Parent Comment must be provided.");
+        if (question == null && parentCommentaire == null)
+            throw new IllegalArgumentException("Question or Parent Comment required.");
 
         String query = "INSERT INTO Commentaire (contenu, Votes, creation_at, utilisateur_id, question_id, parent_commentaire_id) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connexion.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
@@ -47,121 +48,67 @@ public class CommentaireService implements IService<Commentaire> {
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) commentaire.setCommentaire_id(rs.getInt(1));
             }
-
+            us.updateUserPrivilege(utilisateur.getId());
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add comment: " + e.getMessage(), e);
         }
-        UtilisateurService us = new UtilisateurService();
-        us.updateUserPrivilege(commentaire.getUtilisateur().getId());
-    }
-    public void setEventTarget(Node eventTarget) {
-        this.eventTarget = eventTarget;
-        us.setEventTarget(eventTarget); // Propagate to UtilisateurService
     }
 
     public void upvoteComment(int commentaireId, int userId) {
-        String checkVoteQuery = "SELECT vote_type FROM commentaire_votes WHERE commentaire_id = ? AND user_id = ?";
+        Commentaire commentaire = getOne(commentaireId);
+        if (commentaire == null) throw new RuntimeException("Comment not found: " + commentaireId);
+
+        String currentVote = getUserVote(commentaireId, userId);
+        if ("UP".equals(currentVote)) return;
+
         String updateVoteQuery = "INSERT INTO commentaire_votes (commentaire_id, user_id, vote_type) VALUES (?, ?, 'UP') " +
-                "ON DUPLICATE KEY UPDATE vote_type = CASE " +
-                "WHEN vote_type = 'DOWN' THEN 'UP' " +
-                "WHEN vote_type = 'NONE' THEN 'UP' " +
-                "ELSE 'NONE' END";
-        String updateVotesQuery = "UPDATE Commentaire SET Votes = Votes + 1 WHERE Commentaire_id = ?";
+                "ON DUPLICATE KEY UPDATE vote_type = CASE WHEN vote_type = 'DOWN' THEN 'UP' WHEN vote_type = 'NONE' THEN 'UP' ELSE 'NONE' END";
+        String updateVotesQuery = "DOWN".equals(currentVote) ?
+                "UPDATE Commentaire SET Votes = Votes + 1 WHERE Commentaire_id = ?" :
+                "UPDATE Commentaire SET Votes = Votes + 1 WHERE Commentaire_id = ?";
 
         try {
-            Commentaire commentaire = getOne(commentaireId);
-            if (commentaire == null) {
-                throw new RuntimeException("Comment not found for ID: " + commentaireId);
+            try (PreparedStatement ps = connexion.prepareStatement(updateVoteQuery)) {
+                ps.setInt(1, commentaireId);
+                ps.setInt(2, userId);
+                ps.executeUpdate();
             }
-
-            // Check current vote
-            String currentVote = getUserVote(commentaireId, userId);
-            if ("UP".equals(currentVote)) {
-                // User already upvoted, no action needed
-                return;
-            } else if ("DOWN".equals(currentVote)) {
-                // User previously downvoted, switch to upvote and adjust votes
-                updateVoteInDb(commentaireId, userId, "UP");
-                updateVotesQuery = "UPDATE Commentaire SET Votes = Votes + 1 WHERE Commentaire_id = ?"; // +2 to undo downvote (-1) and add upvote (+1)
-            } else {
-                // No vote or NONE, just upvote
-                updateVoteInDb(commentaireId, userId, "UP");
-            }
-
             try (PreparedStatement ps = connexion.prepareStatement(updateVotesQuery)) {
                 ps.setInt(1, commentaireId);
                 ps.executeUpdate();
             }
-
-            // Trigger privilege update for the comment owner after voting
-            UtilisateurService.PrivilegeChange ownerChange = us.updateUserPrivilege(commentaire.getUtilisateur().getId());
-            if (ownerChange.isChanged() && eventTarget != null) {
-                Platform.runLater(() -> {
-                    PrivilegeEvent event = new PrivilegeEvent(commentaire.getUtilisateur().getId(), ownerChange.getNewPrivilege());
-                    Event.fireEvent(eventTarget, event);
-                });
-            }
-
-            // Trigger privilege update for the voter (current user)
-            UtilisateurService.PrivilegeChange voterChange = us.updateUserPrivilege(userId);
-            if (voterChange.isChanged() && eventTarget != null) {
-                Platform.runLater(() -> {
-                    PrivilegeEvent event = new PrivilegeEvent(userId, voterChange.getNewPrivilege());
-                    Event.fireEvent(eventTarget, event);
-                });
-            }
+            us.updateUserPrivilege(commentaire.getUtilisateur().getId()); // Owner
+            us.updateUserPrivilege(userId); // Voter
         } catch (SQLException e) {
             throw new RuntimeException("Failed to upvote comment: " + e.getMessage(), e);
         }
     }
 
     public void downvoteComment(int commentaireId, int userId) {
-        String checkVoteQuery = "SELECT vote_type FROM commentaire_votes WHERE commentaire_id = ? AND user_id = ?";
+        Commentaire commentaire = getOne(commentaireId);
+        if (commentaire == null || commentaire.getVotes() <= 0) return;
+
+        String currentVote = getUserVote(commentaireId, userId);
+        if ("DOWN".equals(currentVote)) return;
+
         String updateVoteQuery = "INSERT INTO commentaire_votes (commentaire_id, user_id, vote_type) VALUES (?, ?, 'DOWN') " +
-                "ON DUPLICATE KEY UPDATE vote_type = CASE " +
-                "WHEN vote_type = 'UP' THEN 'DOWN' " +
-                "WHEN vote_type = 'NONE' THEN 'DOWN' " +
-                "ELSE 'NONE' END";
-        String updateVotesQuery = "UPDATE Commentaire SET Votes = Votes - 1 WHERE Commentaire_id = ? AND Votes > 0";
+                "ON DUPLICATE KEY UPDATE vote_type = CASE WHEN vote_type = 'UP' THEN 'DOWN' WHEN vote_type = 'NONE' THEN 'DOWN' ELSE 'NONE' END";
+        String updateVotesQuery = "UP".equals(currentVote) ?
+                "UPDATE Commentaire SET Votes = Votes - 1 WHERE Commentaire_id = ?" :
+                "UPDATE Commentaire SET Votes = Votes - 1 WHERE Commentaire_id = ? AND Votes > 0";
 
         try {
-            Commentaire commentaire = getOne(commentaireId);
-            if (commentaire == null) {
-                throw new RuntimeException("Comment not found for ID: " + commentaireId);
+            try (PreparedStatement ps = connexion.prepareStatement(updateVoteQuery)) {
+                ps.setInt(1, commentaireId);
+                ps.setInt(2, userId);
+                ps.executeUpdate();
             }
-
-            String currentVote = getUserVote(commentaireId, userId);
-            if ("DOWN".equals(currentVote)) {
-                return;
-            } else if ("UP".equals(currentVote)) {
-                updateVoteInDb(commentaireId, userId, "DOWN");
-                updateVotesQuery = "UPDATE Commentaire SET Votes = Votes - 1 WHERE Commentaire_id = ?"; // -2 to undo upvote (+1) and add downvote (-1)
-            } else {
-                updateVoteInDb(commentaireId, userId, "DOWN");
-            }
-
             try (PreparedStatement ps = connexion.prepareStatement(updateVotesQuery)) {
                 ps.setInt(1, commentaireId);
                 ps.executeUpdate();
             }
-
-            UtilisateurService.PrivilegeChange ownerChange = us.updateUserPrivilege(commentaire.getUtilisateur().getId());
-            if (ownerChange.isChanged() && eventTarget != null) {
-                Platform.runLater(() -> {
-                    PrivilegeEvent event = new PrivilegeEvent(commentaire.getUtilisateur().getId(), ownerChange.getNewPrivilege());
-                    Event.fireEvent(eventTarget, event);
-                });
-            }
-
-            // Trigger privilege update for the voter (current user)
-            UtilisateurService.PrivilegeChange voterChange = us.updateUserPrivilege(userId);
-            if (voterChange.isChanged() && eventTarget != null) {
-                Platform.runLater(() -> {
-                    PrivilegeEvent event = new PrivilegeEvent(userId, voterChange.getNewPrivilege());
-                    Event.fireEvent(eventTarget, event);
-                });
-            }
-
+            us.updateUserPrivilege(commentaire.getUtilisateur().getId()); // Owner
+            us.updateUserPrivilege(userId); // Voter
         } catch (SQLException e) {
             throw new RuntimeException("Failed to downvote comment: " + e.getMessage(), e);
         }

@@ -5,7 +5,6 @@ import javafx.event.EventType;
 
 public class PrivilegeEvent extends Event {
     public static final EventType<PrivilegeEvent> PRIVILEGE_CHANGED = new EventType<>(Event.ANY, "PRIVILEGE_CHANGED");
-
     private final int userId;
     private final String newPrivilege;
 
