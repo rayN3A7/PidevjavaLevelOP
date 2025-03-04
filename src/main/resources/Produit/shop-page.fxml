@@ -22,12 +22,6 @@
             <Button text="ajouter" style="-fx-background-color: #fe0369; -fx-text-fill: white; -fx-font-size: 14px;" />
         </HBox>
 
-        <!-- Admin Buttons -->
-        <HBox fx:id="adminButtonsContainer" spacing="10" alignment="CENTER" visible="false">
-            <Button text="Gérer les produits" style="-fx-background-color: #2a2a2a; -fx-text-fill: white; -fx-font-size: 14px;" onAction="#handleProductManagement" />
-            <Button text="Gerer le Stock" style="-fx-background-color: #2a2a2a; -fx-text-fill: white; -fx-font-size: 14px;" onAction="#handleStockManagement" />
-            <Button text="Gerer les commandes" style="-fx-background-color: #2a2a2a; -fx-text-fill: white; -fx-font-size: 14px;" onAction="#handleOrderManagement" />
-        </HBox>
 
         <!-- Product Grid -->
         <ScrollPane style="-fx-background: transparent; -fx-background-color: transparent;" fitToWidth="true">

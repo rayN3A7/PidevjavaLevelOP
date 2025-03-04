@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -19,10 +20,12 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import tn.esprit.Models.Produit;
 import tn.esprit.Models.Stock;
 import tn.esprit.Services.ProduitService;
 import tn.esprit.Services.StockService;
+import tn.esprit.utils.SessionManager;
 
 public class StockController {
     @FXML private VBox stockContainer;
@@ -37,7 +40,7 @@ public class StockController {
     private ProduitService produitService;
     private List<Stock> stocks;
     private Stock selectedStock;
-
+    String userRole= SessionManager.getInstance().getRole().name();
     @FXML
     public void initialize() {
         stockService = new StockService();
@@ -303,15 +306,33 @@ public class StockController {
     }
 
     @FXML
-    public void navigateToHome() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
-            BorderPane mainView = loader.load();
-            BorderPane currentRoot = (BorderPane) stockContainer.getScene().getRoot();
-            currentRoot.setCenter(mainView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+    public void handleBack() {
+        if(userRole.equals ("ADMIN"))  {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/sidebarAdmin.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+
+                Stage window = (Stage) stockContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
+        } else {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+
+                Stage window = (Stage) stockContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
         }
     }
 

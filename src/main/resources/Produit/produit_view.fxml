@@ -4,13 +4,22 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <StackPane style="-fx-background-color: #091221;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Produit.ProduitController">
 
     <!-- Main Content -->
     <BorderPane stylesheets="@/assets/style/produit.css">
-        <!-- Navigation Bar -->
         <top>
-            <fx:include source="/forumUI/navbar.fxml" />
+            <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 20 30 0 30;">
+                <Button fx:id="backButton" onAction="#handleBack" styleClass="back-button">
+                    <graphic>
+                        <ImageView fitHeight="20" fitWidth="20">
+                            <Image url="@/assets/image/retour.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </HBox>
         </top>
 
         <center>
@@ -98,16 +107,6 @@
                                 <Button onAction="#saveProductChanges" style="-fx-background-color: #fe0369; -fx-text-fill: white;" text="Sauvegarder" />
                                 <Button onAction="#cancelEdit" style="-fx-background-color: transparent; -fx-border-color: #fe0369; -fx-text-fill: white; -fx-border-width: 1;" text="Annuler" />
                             </HBox>
-                            <rowConstraints>
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints />
-                                <RowConstraints />
-                            </rowConstraints>
                         </GridPane>
                     </VBox>
                 </VBox>

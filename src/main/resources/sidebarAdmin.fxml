@@ -29,7 +29,14 @@
     <VBox styleClass="nav-menu" spacing="5">
         <Button text="🏠 Home" styleClass="nav-item,nav-item-active"/>
         <Button text="👥 Utilisateurs" styleClass="nav-item"/>
-        <Button text="🛒 Produit" styleClass="nav-item"/>
+        <MenuButton fx:id="produitMenu" text="🛒 Produit" styleClass="nav-item">
+            <items>
+                <MenuItem text="Les Statistiques du Boutiques" styleClass="nav-item" onAction="#ButtonStats" />
+                <MenuItem text="gerer produits" styleClass="nav-item" onAction="#ButtonGererProd" />
+                <MenuItem text="gerer stock" styleClass="nav-item" onAction="#ButtonGererStock" />
+                <MenuItem text="gerer commandes" styleClass="nav-item" onAction="#ButtonGererCommande"/>
+            </items>
+        </MenuButton>
         <MenuButton fx:id="evenementMenu" text="🎉 Evenement" styleClass="menu-button">
             <items>
                 <MenuItem text="Créer un événement" styleClass="menu-item" onAction="#ButtonAjouterEvenement" />

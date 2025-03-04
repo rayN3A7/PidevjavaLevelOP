@@ -167,4 +167,71 @@ public class EmailService {
             e.getMessage();
         }
     }
+    public static String generateActivationKey() {
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        StringBuilder key = new StringBuilder();
+        Random random = new Random();
+        // Generate 5 groups of 5 characters separated by hyphens
+        for (int group = 0; group < 5; group++) {
+            for (int i = 0; i < 5; i++) {
+                key.append(chars.charAt(random.nextInt(chars.length())));
+            }
+            if (group < 4) key.append('-');
+        }
+        return key.toString();
+    }
+
+    public static void sendPurchaseConfirmationEmail(String recipientEmail, String username, String productName, String platform) {
+        Properties properties = new Properties();
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.starttls.enable", "true");
+        properties.put("mail.smtp.host", "smtp.gmail.com");
+        properties.put("mail.smtp.port", "587");
+
+        Session session = Session.getInstance(properties, new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(EMAIL_SENDER, EMAIL_PASSWORD);
+            }
+        });
+
+        try {
+            InputStream inputStream = EmailService.class.getClassLoader().getResourceAsStream("Produit/emailConf.html");
+            if (inputStream == null) {
+                throw new IOException("Fichier email.html introuvable !");
+            }
+            String template = new BufferedReader(new InputStreamReader(inputStream))
+                    .lines().collect(Collectors.joining("\n"));
+
+            // Generate activation key
+            String activationKey = generateActivationKey();
+            // Generate a simple order number
+            String orderNumber = "ORD-" + System.currentTimeMillis(); // Or use currentCommande.getId() if available
+
+            String logoUrl = "https://i.postimg.cc/zXFTgVmM/level.png";
+            String content = template
+                    .replace("{{logo}}", logoUrl)
+                    .replace("{{username}}", username)
+                    .replace("{{productName}}", productName)
+                    .replace("{{platform}}", platform)
+                    .replace("{{activationKey}}", activationKey)
+                    .replace("{{orderNumber}}", orderNumber);
+
+            MimeMessage message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(EMAIL_SENDER));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+            message.setSubject("Merci pour votre achat sur LevelOP"); // Already in French
+
+            MimeMultipart multipart = new MimeMultipart("related");
+            MimeBodyPart htmlPart = new MimeBodyPart();
+            htmlPart.setContent(content, "text/html; charset=utf-8");
+            multipart.addBodyPart(htmlPart);
+
+            message.setContent(multipart);
+            Transport.send(message);
+            System.out.println("Email de confirmation d'achat envoyé avec succès avec la clé : " + activationKey);
+        } catch (MessagingException | IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

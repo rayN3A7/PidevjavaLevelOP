@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -17,6 +18,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import tn.esprit.Models.Commande;
 import tn.esprit.Models.Produit;
 import tn.esprit.Services.CommandeService;
@@ -35,7 +37,7 @@ public class CommandeController {
     private List<Commande> commandes;
     private Commande selectedCommande;
     private final int DEFAULT_USER_ID = SessionManager.getInstance().getUserId();
-
+    String userRole= SessionManager.getInstance().getRole().name();
     @FXML
     public void initialize() {
         commandeService = new CommandeService();
@@ -240,43 +242,36 @@ public class CommandeController {
     }
 
     @FXML
-    private void navigateToHome() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
-            BorderPane mainView = loader.load();
-            BorderPane currentRoot = (BorderPane) commandeContainer.getScene().getRoot();
-            currentRoot.setCenter(mainView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+    private void handleBack() {
+        if(userRole.equals ("ADMIN"))  {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/sidebarAdmin.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+
+                Stage window = (Stage) commandeContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
+        } else {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+
+                Stage window = (Stage) commandeContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
         }
     }
 
-    @FXML
-    private void navigateToShop() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/shop-page.fxml"));
-            Parent shopView = loader.load();
-            BorderPane currentRoot = (BorderPane) commandeContainer.getScene().getRoot();
-            currentRoot.setCenter(shopView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers le magasin");
-        }
-    }
-
-    @FXML
-    private void navigateToProducts() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/produit_view.fxml"));
-            Parent productsView = loader.load();
-            BorderPane currentRoot = (BorderPane) commandeContainer.getScene().getRoot();
-            currentRoot.setCenter(productsView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers les produits");
-        }
-    }
     @FXML
     private void cancelEdit(){
         editForm.setVisible(false);

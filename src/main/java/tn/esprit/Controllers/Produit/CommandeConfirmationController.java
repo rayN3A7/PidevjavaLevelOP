@@ -1,21 +1,22 @@
 package tn.esprit.Controllers.Produit;
 
 import java.net.URI;
-
-import com.stripe.Stripe;
-import com.stripe.model.checkout.Session;
-import com.stripe.param.checkout.SessionCreateParams;
-
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import tn.esprit.Models.Commande;
 import tn.esprit.Models.Produit;
 import tn.esprit.Models.Stock;
 import tn.esprit.Services.CommandeService;
+import tn.esprit.Services.EmailService;
 import tn.esprit.Services.StockService;
+import tn.esprit.Services.UtilisateurService;
 import tn.esprit.utils.SessionManager;
 
 public class CommandeConfirmationController {
@@ -26,6 +27,7 @@ public class CommandeConfirmationController {
     private Stock stock;
     private CommandeService commandeService;
     private StockService stockService;
+    private UtilisateurService utilisateurService; // Add UtilisateurService
     private Stage dialogStage;
     private boolean validateClicked = false;
     private final int DEFAULT_USER_ID = SessionManager.getInstance().getUserId();
@@ -35,6 +37,7 @@ public class CommandeConfirmationController {
     public void initialize() {
         commandeService = new CommandeService();
         stockService = new StockService();
+        utilisateurService = new UtilisateurService(); // Initialize UtilisateurService
     }
 
     public void setDialogStage(Stage dialogStage) {
@@ -68,7 +71,7 @@ public class CommandeConfirmationController {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la création de la commande: " + e.getMessage());
+            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la création de la commande : " + e.getMessage());
         }
     }
 
@@ -80,49 +83,59 @@ public class CommandeConfirmationController {
     private void handleValidate() {
         if (stock == null || stock.getQuantity() <= 0) {
             updateCommandeStatus("annulé");
-            showAlert(AlertType.ERROR, "Erreur", "Désolé, ce produit est en rupture de stock!");
+            showAlert(AlertType.ERROR, "Erreur", "Désolé, ce produit est en rupture de stock !");
             return;
         }
 
         try {
-            // Update order status to "terminé" before payment
-            updateCommandeStatus("terminé");
+            updateCommandeStatus("en cours de paiement");
 
-            // Update stock quantity
-            stock.setQuantity(stock.getQuantity() - 1);
-            stockService.update(stock);
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/payment-form.fxml"));
+            Parent paymentDialog = loader.load();
 
-            // Create a Stripe Checkout Session
-            Stripe.apiKey = "sk_test_51QvMH5PNauIHPjoTTov10mAdNwhbSH0ycAHTkArf2taZUSP5rtsMNxgyehsKnq4dfoazZz1nXkGNrQQn4uzSxZBt00pANi7uFX";
+            Stage paymentStage = new Stage();
+            paymentStage.setTitle("Paiement");
+            paymentStage.initModality(Modality.WINDOW_MODAL);
+            paymentStage.initOwner(dialogStage);
+            paymentStage.setScene(new Scene(paymentDialog));
 
-            SessionCreateParams params = SessionCreateParams.builder()
-                    .setMode(SessionCreateParams.Mode.PAYMENT)
-                    .setSuccessUrl("http://localhost:8080/payment/success?session_id={CHECKOUT_SESSION_ID}")
-                    .setCancelUrl("http://localhost:8080/payment/cancel")
-                    .addLineItem(SessionCreateParams.LineItem.builder()
-                            .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
-                                    .setCurrency("usd")
-                                    .setUnitAmount((long) (stock.getPrixProduit() * 100))
-                                    .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                            .setName(produit.getNomProduit())
-                                            .build())
-                                    .build())
-                            .setQuantity(1L)
-                            .build())
-                    .build();
+            PaymentFormController controller = loader.getController();
+            controller.setDialogStage(paymentStage);
+            controller.setData(produit, stock);
+            controller.setConfirmationController(this);
 
-            Session session = Session.create(params);
+            paymentStage.showAndWait();
 
-            // Open payment page in browser
-            java.awt.Desktop.getDesktop().browse(new URI(session.getUrl()));
+            if (controller.isPaymentSuccessful()) {
+                updateCommandeStatus("terminé");
+                stock.setQuantity(stock.getQuantity() - 1);
+                stockService.update(stock);
+                validateClicked = true;
 
-            validateClicked = true;
-            dialogStage.close();
+                // Fetch email and nickname using UtilisateurService
+                String userEmail = utilisateurService.getEmail(DEFAULT_USER_ID);
+                if (userEmail == null) {
+                    throw new Exception("Email not found for user ID: " + DEFAULT_USER_ID);
+                }
+                String nickname = utilisateurService.getNickname(DEFAULT_USER_ID);
+                if (nickname == null) {
+                    throw new Exception("Nickname not found for user ID: " + DEFAULT_USER_ID);
+                }
 
+                // Send purchase confirmation email
+                String platform = "PC"; // Replace with dynamic platform if available
+                EmailService.sendPurchaseConfirmationEmail(userEmail, nickname, produit.getNomProduit(), platform);
+                showAlert(AlertType.INFORMATION, "Succès", "Paiement effectué ! Clé d'activation envoyée à " + userEmail);
+
+                dialogStage.close();
+            } else {
+                updateCommandeStatus("annulé");
+                showAlert(AlertType.ERROR, "Erreur", "Paiement annulé ou échoué.");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             updateCommandeStatus("annulé");
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors du paiement: " + e.getMessage());
+            showAlert(AlertType.ERROR, "Erreur", "Erreur lors du paiement : " + e.getMessage());
         }
     }
 

@@ -73,6 +73,49 @@ public class SidebarAdminController {
         }
     }
     @FXML
+    private void ButtonGererProd(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/produit_view.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+
+        Stage window = (Stage) evenementMenu.getScene().getWindow();
+        window.setScene(scene);
+        window.show();
+    }
+
+    @FXML
+    private void ButtonGererStock(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/stock_view.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+
+        Stage window = (Stage) evenementMenu.getScene().getWindow();
+        window.setScene(scene);
+        window.show();
+    }
+
+    @FXML
+    private void ButtonStats(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/CommandeStatistique.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+
+        Stage window = (Stage) evenementMenu.getScene().getWindow();
+        window.setScene(scene);
+        window.show();
+    }
+
+    @FXML
+    private void ButtonGererCommande(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/commande_view.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+
+        Stage window = (Stage) evenementMenu.getScene().getWindow();
+        window.setScene(scene);
+        window.show();
+    }
+    @FXML
     private void logout(ActionEvent event){
         SessionManager.getInstance().logout();
         try {

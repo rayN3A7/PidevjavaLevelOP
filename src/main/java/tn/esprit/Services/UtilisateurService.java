@@ -331,6 +331,19 @@ public class UtilisateurService implements IService<Utilisateur> {
         }
     }
 
+    public String getNickname(int id) {
+        String query = "SELECT nickname FROM utilisateur WHERE id = ?";
+        try (PreparedStatement ps = cnx.prepareStatement(query)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("nickname");
+            }
+        } catch (SQLException e) {
+            System.out.println("Erreur lors de la récupération du nickname : " + e.getMessage());
+        }
+        return null;
+    }
 
     public void updateUserRole(int userId) {
 

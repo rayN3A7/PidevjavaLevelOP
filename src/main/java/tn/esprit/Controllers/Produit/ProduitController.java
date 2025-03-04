@@ -7,21 +7,20 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
 import tn.esprit.Models.Produit;
 import tn.esprit.Models.Stock;
 import tn.esprit.Services.ProduitService;
 import tn.esprit.Services.StockService;
+import tn.esprit.utils.SessionManager;
 
 public class ProduitController {
 
@@ -40,7 +39,7 @@ public class ProduitController {
     private StockService stockService;
     private List<Produit> produits;
     private Produit selectedProduit;
-
+    String userRole= SessionManager.getInstance().getRole().name();
     @FXML
     public void initialize() {
         produitService = new ProduitService();
@@ -322,41 +321,33 @@ public class ProduitController {
     }
 
     @FXML
-    private void navigateToHome() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
-            BorderPane mainView = loader.load();
-            BorderPane currentRoot = (BorderPane) productContainer.getScene().getRoot();
-            currentRoot.setCenter(mainView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
-        }
-    }
+    private void handleBack() {
+        if(userRole.equals ("ADMIN")) {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/sidebarAdmin.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
 
-    @FXML
-    private void navigateToShop() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/shop-page.fxml"));
-            ScrollPane shopView = loader.load();
-            BorderPane currentRoot = (BorderPane) productContainer.getScene().getRoot();
-            currentRoot.setCenter(shopView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers le magasin");
-        }
-    }
+                Stage window = (Stage) productContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
+        } else {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
 
-    @FXML
-    private void navigateToOrders() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/commandes-view.fxml"));
-            Parent ordersView = loader.load();
-            BorderPane currentRoot = (BorderPane) productContainer.getScene().getRoot();
-            currentRoot.setCenter(ordersView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers les commandes");
+                Stage window = (Stage) productContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
         }
     }
 }

@@ -4,15 +4,22 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <StackPane style="-fx-background-color: #091221;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Produit.StockController">
 
     <!-- Main Content -->
     <BorderPane stylesheets="@/assets/style/produit.css">
-        <!-- Navigation Bar -->
         <top>
-            <!-- Navigation Bar (stays fixed) -->
-            <fx:include source="/forumUI/navbar.fxml" />
-
+            <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 20 30 0 30;">
+                <Button fx:id="backButton" onAction="#handleBack" styleClass="back-button">
+                    <graphic>
+                        <ImageView fitHeight="20" fitWidth="20">
+                            <Image url="@/assets/image/retour.png"/>
+                        </ImageView>
+                    </graphic>
+                </Button>
+            </HBox>
         </top>
         <center>
             <ScrollPane fitToWidth="true" styleClass="main-scroll-pane">

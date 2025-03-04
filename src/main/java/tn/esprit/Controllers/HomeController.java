@@ -338,7 +338,7 @@ public class HomeController {
     }
 
     @FXML
-    private void openChatbotDialog() {
+    public void openChatbotDialog() {
         if (SessionManager.getInstance().isLoggedIn()) {
             Stage chatbotStage = new Stage();
             chatbotStage.setTitle("Chatbot LevelOP");
