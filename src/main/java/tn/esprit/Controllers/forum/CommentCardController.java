@@ -22,6 +22,7 @@ import tn.esprit.Services.CommentaireService;
 import tn.esprit.Services.EmojiService;
 import tn.esprit.Services.ReportService;
 import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.EventBus;
 import tn.esprit.utils.PrivilegeEvent;
 import tn.esprit.utils.ProfanityChecker;
 import tn.esprit.utils.SessionManager;
@@ -91,6 +92,15 @@ public class CommentCardController {
         displayReactions();
         displayUserReaction();
         updatePrivilegeUI(commentaire.getUtilisateur());
+        EventBus.getInstance().addHandler(event -> {
+            if (event.getUserId() == commentaire.getUtilisateur().getId()) {
+                Utilisateur user = us.getOne(event.getUserId());
+                if (user != null) {
+                    updatePrivilegeUI(user);
+                }
+            }
+        });
+
         checkForReplies();
         commentAuthor.getParent().addEventHandler(PrivilegeEvent.PRIVILEGE_CHANGED, event -> {
             if (event.getUserId() == commentaire.getUtilisateur().getId()) {
@@ -105,7 +115,6 @@ public class CommentCardController {
                 }
             }
         });
-        us.setEventTarget(commentAuthor.getParent());
     }
 
 
@@ -150,7 +159,7 @@ public class CommentCardController {
         reasonComboBox.setStyle("-fx-background-color: #444; -fx-text-fill: white;");
 
         TextArea evidenceField = new TextArea(evidence);
-        evidenceField.setEditable(false); // Evidence is pre-filled and not editable
+        evidenceField.setEditable(false);
         evidenceField.setWrapText(true);
         evidenceField.setPrefHeight(100);
         evidenceField.setStyle("-fx-control-inner-background: #555; -fx-text-fill: white;");
@@ -183,7 +192,6 @@ public class CommentCardController {
         reportStage.show();
     }
 
-    // Add success alert method
     private void showSuccessAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -236,8 +244,8 @@ public class CommentCardController {
                     editCommentField.setVisible(false);
                     editButtonsBox.setVisible(false);
                     editButtonsBox.setManaged(false);
-                    checkPrivilegeChange(userId); // Check for logged-in user
-                    checkPrivilegeChange(commentaire.getUtilisateur().getId()); // Check for comment owner
+                    checkPrivilegeChange(userId);
+                    checkPrivilegeChange(commentaire.getUtilisateur().getId());
                 });
             } catch (IOException e) {
                 Platform.runLater(() -> showAlert("Erreur", "Erreur réseau: " + e.getMessage()));
@@ -265,7 +273,6 @@ public class CommentCardController {
                     votesLabel.setVisible(true);
                     downvoteButton.setDisable(updatedVotes == 0);
 
-                    // Privilege updates are now handled via PrivilegeEvent in CommentaireService
                 });
 
             } catch (Exception e) {
@@ -292,7 +299,6 @@ public class CommentCardController {
                     votesLabel.setVisible(true);
                     downvoteButton.setDisable(updatedVotes == 0);
 
-                    // Privilege updates are now handled via PrivilegeEvent in CommentaireService
                 });
 
             } catch (Exception e) {
@@ -304,14 +310,14 @@ public class CommentCardController {
     private void checkPrivilegeChange(int affectedUserId) {
         UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(affectedUserId);
         if (change.isChanged()) {
-            Utilisateur updatedUser = us.getOne(affectedUserId); // Fetch latest data
+            Utilisateur updatedUser = us.getOne(affectedUserId);
             if (updatedUser != null) {
                 if (commentaire.getUtilisateur().getId() == affectedUserId) {
-                    updatePrivilegeUI(updatedUser); // Update this card if the affected user is the comment owner
+                    updatePrivilegeUI(updatedUser);
                 }
-                questionDetailsController.updatePrivilegeUI(affectedUserId); // Update other instances
+                questionDetailsController.updatePrivilegeUI(affectedUserId);
                 if (affectedUserId == userId) {
-                    showPrivilegeAlert(change); // Immediate alert for logged-in user
+                    showPrivilegeAlert(change);
                 }
             }
         }
@@ -333,22 +339,23 @@ public class CommentCardController {
 
             String privilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
             System.out.println("Updating privilege UI for user " + user.getNickname() + " to " + privilege);
+            commentAuthor.setText(user.getNickname());
             switch (privilege) {
                 case "top_contributor":
-                    authorFlow.setStyle("-fx-text-fill: silver;");
+                    commentAuthor.setStyle("-fx-text-fill: silver;");
                     crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png"));
-                    animatePrivilegeChange(crownIcon, true);
+                    crownIcon.setVisible(true);
                     break;
                 case "top_fan":
-                    authorFlow.setStyle("-fx-text-fill: gold;");
+                    commentAuthor.setStyle("-fx-text-fill: gold;");
                     crownIcon.setImage(new Image("/forumUI/icons/crown.png"));
-                    animatePrivilegeChange(crownIcon, true);
+                    crownIcon.setVisible(true);
                     break;
                 default:
-                    if (user.getRole() != Role.ADMIN) authorFlow.setStyle("-fx-text-fill: white;");
-                    animatePrivilegeChange(crownIcon, false);
+                    commentAuthor.setStyle("-fx-text-fill: white;");
+                    crownIcon.setVisible(false);
+                    break;
             }
-
             commentAuthor.setGraphic(authorFlow);
             commentAuthor.setText("");
         });
@@ -463,7 +470,7 @@ public class CommentCardController {
                     toggleRepliesButton.setVisible(true);
                     toggleRepliesButton.setManaged(true);
                     checkPrivilegeChange(userId); // Check for logged-in user
-                    checkPrivilegeChange(commentaire.getUtilisateur().getId()); // Check for parent comment owner
+                    checkPrivilegeChange(commentaire.getUtilisateur().getId());
                 });
             } catch (IOException e) {
                 Platform.runLater(() -> showAlert("Erreur", "Erreur réseau: " + e.getMessage()));
@@ -541,8 +548,8 @@ public class CommentCardController {
                         return controller != null && controller.getCommentaire().getCommentaire_id() == reply.getCommentaire_id();
                     });
                     checkForReplies();
-                    checkPrivilegeChange(userId); // Check for logged-in user
-                    checkPrivilegeChange(reply.getUtilisateur().getId()); // Check for reply owner
+                    checkPrivilegeChange(userId);
+                    checkPrivilegeChange(reply.getUtilisateur().getId());
                 });
             } catch (SecurityException e) {
                 Platform.runLater(() -> showAlert("Erreur", e.getMessage()));

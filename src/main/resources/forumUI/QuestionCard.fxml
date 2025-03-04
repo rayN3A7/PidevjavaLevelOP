@@ -52,6 +52,8 @@
                 <ImageView fx:id="selectedEmojiImage" styleClass="selected-emoji-image" fitWidth="20" fitHeight="20" preserveRatio="true"/>
                 <Button text="Update" fx:id="updateButton" styleClass="update-delete-button"/>
                 <Button text="Delete" fx:id="deleteButton" styleClass="update-delete-button"/>
+                <Button fx:id="shareButton" text="Share" styleClass="action-button-no-gradient" />
+
             </HBox>
         </VBox>
 

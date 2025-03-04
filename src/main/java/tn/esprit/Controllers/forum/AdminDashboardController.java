@@ -24,13 +24,12 @@ import java.util.List;
 public class AdminDashboardController {
 
     @FXML private FlowPane gamesContainer;
-    @FXML private BorderPane mainLayout; // Add reference to the root BorderPane
+    @FXML private BorderPane mainLayout;
     private GamesService gamesService = new GamesService();
     private AdminSidebarController sidebarController;
 
     @FXML
     public void initialize() {
-        // Check if the user is an admin
         if (SessionManager.getInstance().getRole() == Role.ADMIN) {
             loadAdminSidebar();
         }

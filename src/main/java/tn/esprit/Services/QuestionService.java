@@ -33,22 +33,13 @@ public class QuestionService implements IService<Question> {
         Utilisateur user = question.getUser();
         Games game = question.getGame();
 
-        if (user == null || user.getId() <= 0) {
-            throw new IllegalArgumentException("User cannot be null or have invalid ID when adding a question. User: " + user);
-        }
-        if (game == null || game.getGame_id() <= 0) {
-            throw new IllegalArgumentException("Game cannot be null or have invalid ID when adding a question. Game: " + game);
-        }
-        if (question.getTitle() == null || question.getTitle().trim().isEmpty()) {
-            throw new IllegalArgumentException("Title cannot be null or empty when adding a question.");
-        }
-        if (question.getContent() == null || question.getContent().trim().isEmpty()) {
-            throw new IllegalArgumentException("Content cannot be null or empty when adding a question.");
-        }
+        if (user == null || user.getId() <= 0) throw new IllegalArgumentException("Invalid user.");
+        if (game == null || game.getGame_id() <= 0) throw new IllegalArgumentException("Invalid game.");
+        if (question.getTitle() == null || question.getTitle().trim().isEmpty()) throw new IllegalArgumentException("Title required.");
+        if (question.getContent() == null || question.getContent().trim().isEmpty()) throw new IllegalArgumentException("Content required.");
 
         try {
             connexion.setAutoCommit(false);
-
             String query = "INSERT INTO Questions (title, content, game_id, Utilisateur_id, Votes, media_path, media_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement st = connexion.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
                 st.setString(1, question.getTitle());
@@ -59,159 +50,86 @@ public class QuestionService implements IService<Question> {
                 st.setString(6, question.getMediaPath());
                 st.setString(7, question.getMediaType());
                 int affectedRows = st.executeUpdate();
-                if (affectedRows == 0) {
-                    throw new RuntimeException("Failed to insert question, no rows affected.");
-                }
-
+                if (affectedRows == 0) throw new RuntimeException("Failed to insert question.");
                 try (ResultSet generatedKeys = st.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        int questionId = generatedKeys.getInt(1);
-                        question.setQuestion_id(questionId);
-                    } else {
-                        throw new RuntimeException("Failed to insert question, no ID generated.");
-                    }
+                    if (generatedKeys.next()) question.setQuestion_id(generatedKeys.getInt(1));
                 }
             }
             connexion.commit();
-
-            // Trigger privilege update for the user who created the question
-            us.updateUserPrivilege(user.getId());
-
+            us.updateUserPrivilege(user.getId()); // Triggers event via EventBus
         } catch (SQLException e) {
-            if (connexion != null) {
-                try {
-                    connexion.rollback();
-                } catch (SQLException ex) {
-                    System.err.println("Error during rollback: " + ex.getMessage());
-                }
+            try {
+                if (connexion != null) connexion.rollback();
+            } catch (SQLException ex) {
+                System.err.println("Rollback error: " + ex.getMessage());
             }
             throw new RuntimeException("Failed to add question: " + e.getMessage(), e);
         } finally {
-            if (connexion != null) {
-                try {
-                    connexion.setAutoCommit(true);
-                } catch (SQLException ex) {
-                    System.err.println("Error restoring auto-commit mode: " + ex.getMessage());
-                }
+            try {
+                if (connexion != null) connexion.setAutoCommit(true);
+            } catch (SQLException ex) {
+                System.err.println("Auto-commit restore error: " + ex.getMessage());
             }
         }
     }
-    public void setEventTarget(Node eventTarget) {
-        this.eventTarget = eventTarget;
-        us.setEventTarget(eventTarget); // Propagate to UtilisateurService
-    }
+
     public void upvoteQuestion(int questionId) {
-        String checkVoteQuery = "SELECT vote_type FROM question_votes WHERE question_id = ? AND user_id = ?";
+        int userId = SessionManager.getInstance().getUserId();
+        Question question = getOne(questionId);
+        if (question == null) throw new RuntimeException("Question not found: " + questionId);
+
+        String currentVote = getUserVote(questionId, userId);
+        if ("UP".equals(currentVote)) return;
+
         String updateVoteQuery = "INSERT INTO question_votes (question_id, user_id, vote_type) VALUES (?, ?, 'UP') " +
-                "ON DUPLICATE KEY UPDATE vote_type = CASE " +
-                "WHEN vote_type = 'DOWN' THEN 'UP' " +
-                "WHEN vote_type = 'NONE' THEN 'UP' " +
-                "ELSE 'NONE' END";
-        String updateVotesQuery = "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ?";
+                "ON DUPLICATE KEY UPDATE vote_type = CASE WHEN vote_type = 'DOWN' THEN 'UP' WHEN vote_type = 'NONE' THEN 'UP' ELSE 'NONE' END";
+        String updateVotesQuery = "DOWN".equals(currentVote) ?
+                "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ?" :
+                "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ?";
 
         try {
-            int userId = SessionManager.getInstance().getUserId();
-            Question question = getOne(questionId);
-            if (question == null) {
-                throw new RuntimeException("Question not found for ID: " + questionId);
+            try (PreparedStatement ps = connexion.prepareStatement(updateVoteQuery)) {
+                ps.setInt(1, questionId);
+                ps.setInt(2, userId);
+                ps.executeUpdate();
             }
-
-            // Check current vote
-            String currentVote = getUserVote(questionId, userId);
-            if ("UP".equals(currentVote)) {
-                // User already upvoted, no action needed
-                return;
-            } else if ("DOWN".equals(currentVote)) {
-                // User previously downvoted, switch to upvote and adjust votes
-                updateVoteInDb(questionId, userId, "UP");
-                updateVotesQuery = "UPDATE Questions SET Votes = Votes + 1 WHERE question_id = ?"; // +2 to undo downvote (-1) and add upvote (+1)
-            } else {
-                // No vote or NONE, just upvote
-                updateVoteInDb(questionId, userId, "UP");
-            }
-
             try (PreparedStatement ps = connexion.prepareStatement(updateVotesQuery)) {
                 ps.setInt(1, questionId);
                 ps.executeUpdate();
             }
-
-            // Trigger privilege update for the question owner after voting
-            UtilisateurService.PrivilegeChange ownerChange = us.updateUserPrivilege(question.getUser().getId());
-            if (ownerChange.isChanged() && eventTarget != null) {
-                Platform.runLater(() -> {
-                    PrivilegeEvent event = new PrivilegeEvent(question.getUser().getId(), ownerChange.getNewPrivilege());
-                    Event.fireEvent(eventTarget, event);
-                });
-            }
-
-            // Trigger privilege update for the voter (current user)
-            int voterId = SessionManager.getInstance().getUserId();
-            UtilisateurService.PrivilegeChange voterChange = us.updateUserPrivilege(voterId);
-            if (voterChange.isChanged() && eventTarget != null) {
-                Platform.runLater(() -> {
-                    PrivilegeEvent event = new PrivilegeEvent(voterId, voterChange.getNewPrivilege());
-                    Event.fireEvent(eventTarget, event);
-                });
-            }
+            us.updateUserPrivilege(question.getUser().getId()); // Owner
+            us.updateUserPrivilege(userId); // Voter
         } catch (SQLException e) {
             throw new RuntimeException("Failed to upvote question: " + e.getMessage(), e);
         }
     }
+
     public void downvoteQuestion(int questionId) {
-        String checkVoteQuery = "SELECT vote_type FROM question_votes WHERE question_id = ? AND user_id = ?";
+        int userId = SessionManager.getInstance().getUserId();
+        Question question = getOne(questionId);
+        if (question == null || question.getVotes() <= 0) return;
+
+        String currentVote = getUserVote(questionId, userId);
+        if ("DOWN".equals(currentVote)) return;
+
         String updateVoteQuery = "INSERT INTO question_votes (question_id, user_id, vote_type) VALUES (?, ?, 'DOWN') " +
-                "ON DUPLICATE KEY UPDATE vote_type = CASE " +
-                "WHEN vote_type = 'UP' THEN 'DOWN' " +
-                "WHEN vote_type = 'NONE' THEN 'DOWN' " +
-                "ELSE 'NONE' END";
-        String updateVotesQuery = "UPDATE Questions SET Votes = Votes - 1 WHERE question_id = ? AND Votes > 0";
+                "ON DUPLICATE KEY UPDATE vote_type = CASE WHEN vote_type = 'UP' THEN 'DOWN' WHEN vote_type = 'NONE' THEN 'DOWN' ELSE 'NONE' END";
+        String updateVotesQuery = "UP".equals(currentVote) ?
+                "UPDATE Questions SET Votes = Votes - 1 WHERE question_id = ?" :
+                "UPDATE Questions SET Votes = Votes - 1 WHERE question_id = ? AND Votes > 0";
 
         try {
-            int userId = SessionManager.getInstance().getUserId();
-            Question question = getOne(questionId);
-            if (question == null) {
-                throw new RuntimeException("Question not found for ID: " + questionId);
+            try (PreparedStatement ps = connexion.prepareStatement(updateVoteQuery)) {
+                ps.setInt(1, questionId);
+                ps.setInt(2, userId);
+                ps.executeUpdate();
             }
-
-            // Check current vote
-            String currentVote = getUserVote(questionId, userId);
-            if ("DOWN".equals(currentVote)) {
-                // User already downvoted, no action needed
-                return;
-            } else if ("UP".equals(currentVote)) {
-                // User previously upvoted, switch to downvote and adjust votes
-                updateVoteInDb(questionId, userId, "DOWN");
-                updateVotesQuery = "UPDATE Questions SET Votes = Votes - 1 WHERE question_id = ?"; // -2 to undo upvote (+1) and add downvote (-1)
-            } else {
-                // No vote or NONE, just downvote
-                updateVoteInDb(questionId, userId, "DOWN");
-            }
-
             try (PreparedStatement ps = connexion.prepareStatement(updateVotesQuery)) {
                 ps.setInt(1, questionId);
                 ps.executeUpdate();
             }
-
-            // Trigger privilege update for the question owner after voting
-            UtilisateurService.PrivilegeChange ownerChange = us.updateUserPrivilege(question.getUser().getId());
-            if (ownerChange.isChanged() && eventTarget != null) {
-                Platform.runLater(() -> {
-                    PrivilegeEvent event = new PrivilegeEvent(question.getUser().getId(), ownerChange.getNewPrivilege());
-                    Event.fireEvent(eventTarget, event);
-                });
-            }
-
-            // Trigger privilege update for the voter (current user)
-            int voterId = SessionManager.getInstance().getUserId();
-            UtilisateurService.PrivilegeChange voterChange = us.updateUserPrivilege(voterId);
-            if (voterChange.isChanged() && eventTarget != null) {
-                Platform.runLater(() -> {
-                    PrivilegeEvent event = new PrivilegeEvent(voterId, voterChange.getNewPrivilege());
-                    Event.fireEvent(eventTarget, event);
-                });
-            }
-
-
+            us.updateUserPrivilege(question.getUser().getId()); // Owner
+            us.updateUserPrivilege(userId); // Voter
         } catch (SQLException e) {
             throw new RuntimeException("Failed to downvote question: " + e.getMessage(), e);
         }

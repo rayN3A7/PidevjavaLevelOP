@@ -21,6 +21,7 @@ import tn.esprit.Models.*;
 import tn.esprit.Services.CommentaireService;
 import tn.esprit.Services.GamesService;
 import tn.esprit.Services.UtilisateurService;
+import tn.esprit.utils.EventBus;
 import tn.esprit.utils.PrivilegeEvent;
 import tn.esprit.utils.ProfanityChecker;
 import tn.esprit.utils.SessionManager;
@@ -79,7 +80,16 @@ public class QuestionDetailsController implements AutoCloseable {
         loadGameImageAsync();
         loadCommentsAsync();
         setupPrivilegeEventHandler();
-        utilisateurService.setEventTarget(commentContainer);
+        EventBus.getInstance().addHandler(event -> {
+            Utilisateur user = utilisateurService.getOne(event.getUserId());
+            if (user != null) {
+                updatePrivilegeUI(event.getUserId());
+                if (event.getUserId() == userId) {
+                    UtilisateurService.PrivilegeChange change = new UtilisateurService.PrivilegeChange(user.getPrivilege(), event.getNewPrivilege());
+                    showPrivilegeAlert(change);
+                }
+            }
+        });
     }
 
     private void loadGameImageAsync() {
@@ -408,21 +418,17 @@ public class QuestionDetailsController implements AutoCloseable {
 
     public void updatePrivilegeUI(int affectedUserId) {
         Platform.runLater(() -> {
-            LOGGER.debug("Updating privilege UI for user ID: {}", affectedUserId);
-            commentContainer.getChildren().stream()
-                    .filter(node -> node instanceof StackPane)
-                    .forEach(node -> {
-                        CommentCardController controller = (CommentCardController) node.getUserData();
-                        if (controller != null && controller.getCommentaire().getUtilisateur().getId() == affectedUserId) {
-                            Utilisateur user = utilisateurService.getOne(affectedUserId);
-                            if (user != null) {
-                                LOGGER.debug("Updating comment card for user: {}", user.getNickname());
-                                controller.updatePrivilegeUI(user);
-                            } else {
-                                LOGGER.warn("Failed to fetch user data for ID: {}", affectedUserId);
-                            }
+            for (Node node : commentContainer.getChildren()) {
+                if (node instanceof VBox) {
+                    CommentCardController controller = (CommentCardController) node.getUserData();
+                    if (controller != null && controller.getCommentaire().getUtilisateur().getId() == affectedUserId) {
+                        Utilisateur user = utilisateurService.getOne(affectedUserId);
+                        if (user != null) {
+                            controller.updatePrivilegeUI(user);
                         }
-                    });
+                    }
+                }
+            }
         });
     }
 

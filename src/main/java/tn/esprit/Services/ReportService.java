@@ -110,7 +110,6 @@ public class ReportService {
         }
     }
 
-    // Récupérer les signalements par reportedUserId
     public List<Report> getReportsByReportedUserId(int reportedUserId) {
         List<Report> reports = new ArrayList<>();
         String sql = "SELECT * FROM reports WHERE reportedUserId = ?";
@@ -137,7 +136,6 @@ public class ReportService {
         return reports;
     }
 
-    // Compter le nombre de signalements pour un utilisateur spécifique
     public int countReportsByReportedUserId(int reportedUserId) {
         String sql = "SELECT COUNT(*) FROM reports WHERE reportedUserId = ?";
         int count = 0;
