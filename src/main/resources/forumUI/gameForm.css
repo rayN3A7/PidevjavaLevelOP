@@ -1,0 +1,38 @@
+/* Styling for buttons with a gaming theme */
+.game-button {
+    -fx-background-color: linear-gradient(to right, #ff007f, #091221);
+    -fx-text-fill: #ffffff;
+    -fx-background-radius: 8;
+    -fx-padding: 10 20;
+    -fx-effect: dropshadow(gaussian, #00d4ff, 5, 0.5, 0, 0);
+}
+
+.game-button:hover {
+    -fx-background-color: linear-gradient(to right, #ff3399, #00e6ff);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, #ff007f, 10, 0.7, 0, 0);
+}
+
+.game-button:pressed {
+    -fx-background-color: linear-gradient(to right, #cc0066, #00b3cc);
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+
+/* Enhance ComboBox dropdown appearance */
+ComboBox .list-cell {
+    -fx-background-color: #2a2a4e;
+    -fx-text-fill: #ffffff;
+}
+
+ComboBox .list-cell:hover {
+    -fx-background-color: #3a3a6e;
+}
+
+/* Style the ComboBox popup */
+ComboBox .list-view {
+    -fx-background-color: #2a2a4e;
+    -fx-border-color: #ff007f;
+    -fx-border-width: 1;
+}

@@ -14,7 +14,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import tn.esprit.utils.ProfanityChecker;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -74,6 +76,12 @@ public class UpdateQuestionController implements Initializable {
             return;
         }
 
+        try {
+            if (ProfanityChecker.containsProfanity(title) || ProfanityChecker.containsProfanity(content)) {
+                boolean proceed = showProfanityWarningAlert("Avertissement",
+                        "Votre texte contient des mots inappropriés. Vous risquez d'être banni ou signalé. Voulez-vous ajouter quand même?");
+                if (!proceed) return;
+            }
 
             Games selectedGameObj = gamesService.getByName(selectedGame);
             if (selectedGameObj == null) {
@@ -86,11 +94,37 @@ public class UpdateQuestionController implements Initializable {
             currentQuestion.setGame(selectedGameObj);
 
             questionService.update(currentQuestion);
-
             showAlert("Succès", "Question mise à jour avec succès !");
             navigateToForumPage();
+        } catch (IOException e) {
+            showProfanityWarningAlert("Erreur", "Erreur lors de la vérification du contenu: " + e.getMessage());
         }
+    }
+    private boolean showProfanityWarningAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
 
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
+        icon.setFitHeight(60);
+        icon.setFitWidth(60);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType addAnywayButton = new ButtonType("Ajouter quand même", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton, addAnywayButton);
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
+
+        return alert.showAndWait()
+                .filter(response -> response == addAnywayButton)
+                .isPresent();
+    }
 
     private void navigateToForumPage() {
         try {

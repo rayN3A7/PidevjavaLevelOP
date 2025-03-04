@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import java.net.URL?>
+
+<BorderPane fx:id="mainLayout" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.forum.AdminDashboardController" styleClass="dashboard">
+    <!-- Navbar at the very top -->
+    <top>
+        <fx:include source="/forumUI/navbar.fxml" fx:id="navbar" />
+    </top>
+    <!-- Sub-header for Admin Dashboard controls -->
+    <center>
+        <BorderPane styleClass="dashboard-content">
+            <top>
+                <HBox styleClass="dashboard-header" alignment="CENTER_LEFT" spacing="20">
+                    <padding>
+                        <Insets top="10" right="10" bottom="10" left="10"/>
+                    </padding>
+                    <Label text="Admin Games Dashboard" styleClass="dashboard-title" />
+                    <Button text="Add New Game" onAction="#showAddGameForm" styleClass="dashboard-button" />
+                </HBox>
+            </top>
+            <center>
+                <ScrollPane styleClass="games-scroll" fitToWidth="true" fitToHeight="true">
+                    <content>
+                        <FlowPane fx:id="gamesContainer" styleClass="games-flow" alignment="CENTER" hgap="20" vgap="20">
+                            <padding>
+                                <Insets top="20" right="20" bottom="20" left="20"/>
+                            </padding>
+                            <children>
+                                <Label text="Games List" styleClass="games-list-label" />
+                            </children>
+                        </FlowPane>
+                    </content>
+                </ScrollPane>
+            </center>
+        </BorderPane>
+    </center>
+    <stylesheets>
+        <URL value="@admin.css" />
+    </stylesheets>
+</BorderPane>

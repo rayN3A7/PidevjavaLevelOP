@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.collections.FXCollections?>
+<VBox styleClass="sidebar" spacing="10" stylesheets="@assets/style/stylesheet.css"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="tn.esprit.Controllers.SidebarAdminController">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <Label alignment="CENTER" styleClass="sidebar-title">
+        <graphic>
+            <ImageView fitHeight="60" fitWidth="150">
+                <Image url="@assets/image/logo.png"/>
+            </ImageView>
+        </graphic>
+    </Label>
+
+    <VBox styleClass="nav-menu" spacing="5">
+        <Button text="🏠 Home" styleClass="nav-item,nav-item-active"/>
+        <Button text="👥 Utilisateurs" styleClass="nav-item"/>
+        <Button text="🛒 Produit" styleClass="nav-item"/>
+        <MenuButton fx:id="evenementMenu" text="🎉 Evenement" styleClass="menu-button">
+            <items>
+                <MenuItem text="Créer un événement" styleClass="menu-item" onAction="#ButtonAjouterEvenement" />
+                <MenuItem text="Liste des événements" styleClass="nav-item" onAction="#ButtonEvenement" />
+                <MenuItem text="Ajouter un Catégorie" styleClass="nav-item" onAction="#ButtonAjouterCategorie"/>
+                <MenuItem text="Liste des Categories" styleClass="nav-item" onAction="#ButtonListeCategorie"/>
+            </items>
+        </MenuButton>
+        <Button text="🧑‍🏫 Evenement" styleClass="nav-item"/>
+        <Button text="💬 Forum" styleClass="nav-item"/>
+        <Button fx:id="logoutButton" text="🔓 Logout" styleClass="nav-item" onAction="#logout">
+        </Button>
+    </VBox>
+    <Button fx:id="chatbotButton" onAction="#openChatbot" styleClass="chatbot-btn">
+        <graphic>
+            <ImageView fitHeight="30" fitWidth="30">
+                <image>
+                    <Image url="@assets/image/chatbot-icon.png" />
+                </image>
+            </ImageView>
+        </graphic>
+    </Button>
+</VBox>

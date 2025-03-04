@@ -74,20 +74,22 @@ public class NavbarController implements Initializable {
     private void navigateTo(String page) {
         try {
             System.out.println("Navigating to: " + page);
+            QuestionCardController.stopAllVideos(); // Stop all videos before navigating
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/" + page + ".fxml"));
             Parent root = loader.load();
 
-            if (page.equals("Forum") && forumController != null) {
+            // If navigating to Forum, refresh questions
+            if (page.equals("forumUI/Forum") && forumController != null) {
                 forumController.refreshQuestions();
             }
 
             Stage stage = (Stage) forumButton.getScene().getWindow();
-            stage.setScene(new Scene(root));
+            Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
+            stage.setScene(newScene);
             stage.show();
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Error loading " + page + ".fxml");
         }
     }
 }

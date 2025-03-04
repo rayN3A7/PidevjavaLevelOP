@@ -31,17 +31,6 @@
                     <HBox spacing="10" alignment="CENTER_RIGHT">
                         <TextField fx:id="searchField" promptText="Rechercher une catégorie..."
                                    styleClass="search-field" onKeyReleased="#Search"/>
-                        <Button fx:id="addCategoryButton" onAction="#ButtonAjouterCategorie"
-                                styleClass="add-button">
-                            <graphic>
-                                <HBox spacing="10" alignment="CENTER">
-                                    <ImageView fitHeight="16" fitWidth="16">
-                                        <Image url="@/assets/image/ajouter.png"/>
-                                    </ImageView>
-                                    <Label text="Nouvelle Catégorie" styleClass="button-text"/>
-                                </HBox>
-                            </graphic>
-                        </Button>
                         <Button fx:id="EvenementButton" onAction="#ListeEvenement"
                                 styleClass="list-button">
                             <graphic>
@@ -55,23 +44,8 @@
                         </Button>
                     </HBox>
                 </HBox>
-
-                <!-- Table Header -->
-                <GridPane styleClass="table-header">
-                    <columnConstraints>
-                        <ColumnConstraints percentWidth="10"/>
-                        <ColumnConstraints percentWidth="30"/>
-                        <ColumnConstraints percentWidth="40"/>
-                        <ColumnConstraints percentWidth="20"/>
-                    </columnConstraints>
-                    <Label text="ID" styleClass="header-cell" GridPane.columnIndex="0"/>
-                    <Label text="Nom" styleClass="header-cell" GridPane.columnIndex="1"/>
-                    <Label text="Description" styleClass="header-cell" GridPane.columnIndex="2"/>
-                    <Label text="Actions" styleClass="header-cell" GridPane.columnIndex="3"/>
-                </GridPane>
-
                 <!-- List Content -->
-                <FlowPane fx:id="eventContainer" alignment="CENTER" hgap="20" vgap="20" />
+                <FlowPane fx:id="eventContainer" alignment="CENTER" hgap="20" vgap="20" styleClass="list-content"/>
             </VBox>
 
             <!-- Footer -->

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+
+<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0"
+            styleClass="scroll-pane" stylesheets="@/assets/style/style.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.Controllers.Evenement.DetailsCategorieController">
+<BorderPane>
+    <left>
+        <fx:include source="../sidebarAdmin.fxml"/>
+    </left>
+    <center>
+    <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
+        <children>
+
+            <VBox spacing="20" styleClass="content-container" GridPane.rowIndex="1">
+                <padding>
+                    <Insets top="20" right="30" bottom="20" left="30"/>
+                </padding>
+                <children>
+                    <!-- Title Section with Back Button -->
+                    <HBox alignment="CENTER_LEFT" spacing="15">
+                        <Button fx:id="backButton" onAction="#RetourButtonVersListeCategorie" styleClass="back-button">
+                            <graphic>
+                                <ImageView fitHeight="20" fitWidth="20">
+                                    <Image url="@/assets/image/retour.png"/>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                        <Label text="Détails du Catégorie" styleClass="page-title"/>
+                    </HBox>
+
+                    <!-- Main Content -->
+                    <HBox spacing="30">
+                        <VBox spacing="15" HBox.hgrow="ALWAYS" styleClass="details-section">
+                            <VBox styleClass="info-group">
+                                <Label text="Nom de la Categorie" styleClass="info-label"/>
+                                <Label fx:id="eventNameLabel" styleClass="info-value"/>
+                            </VBox>
+
+                            <HBox spacing="30">
+                                <VBox styleClass="info-group" HBox.hgrow="ALWAYS">
+                                    <Label text="Description" styleClass="info-label"/>
+                                    <TextArea fx:id="DescLabel" styleClass="info-value"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </children>
+            </VBox>
+
+            <!-- Footer -->
+            <HBox alignment="CENTER" styleClass="footer" GridPane.rowIndex="2">
+                <padding>
+                    <Insets/>
+                </padding>
+                <Label styleClass="footer-text" text="© 2025 LEVEL UP - Tous droits réservés"/>
+            </HBox>
+        </children>
+
+        <columnConstraints>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints vgrow="NEVER"/>
+            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints vgrow="NEVER"/>
+        </rowConstraints>
+    </GridPane>
+    </center>
+</BorderPane>
+</ScrollPane>

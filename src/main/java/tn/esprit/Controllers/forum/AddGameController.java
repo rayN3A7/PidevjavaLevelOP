@@ -1,16 +1,13 @@
 package tn.esprit.Controllers.forum;
 
-import javafx.scene.control.Button;
-import tn.esprit.Models.Games;
-import tn.esprit.Services.GamesService;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import tn.esprit.Models.Games;
+import tn.esprit.Services.GamesService;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,12 +33,16 @@ public class AddGameController {
     @FXML
     public void initialize() {
         // Populate game type options
-        gameTypeComboBox.getItems().addAll("FPS", "Hero Shooter", "Third Person Shooter", "Sports", "Other");
-        gameTypeComboBox.setValue("Other"); // Default value
+        if (gameTypeComboBox != null) { // Add null check
+            gameTypeComboBox.getItems().addAll("FPS", "Hero Shooter", "Third Person Shooter", "Sports", "Other");
+            gameTypeComboBox.setValue("Other"); // Default value
+        } else {
+            System.err.println("gameTypeComboBox is null in AddGameController. Check FXML injection.");
+        }
     }
 
     @FXML
-    private void handleUploadImage(ActionEvent event) {
+    private void handleUploadImage() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Game Image");
         fileChooser.getExtensionFilters().addAll(
@@ -64,7 +65,7 @@ public class AddGameController {
                 imagePath = targetPath.toString();
                 Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
                 gameImageView.setImage(image);
-                showAlert("Succès", "Image uploaded successfully!");
+                showSuccessAlert("Succès", "Image uploaded successfully!");
             } catch (IOException e) {
                 showAlert("Erreur", "Failed to upload image: " + e.getMessage());
                 e.printStackTrace();
@@ -73,7 +74,7 @@ public class AddGameController {
     }
 
     @FXML
-    private void handleAddGame(ActionEvent event) {
+    private void handleAddGame() {
         String gameName = gameNameField.getText().trim();
         String gameType = gameTypeComboBox.getValue();
 
@@ -84,22 +85,62 @@ public class AddGameController {
 
         Games newGame = new Games(gameName, imagePath, gameType);
         gamesService.add(newGame);
-        showAlert("Succès", "Game added successfully!");
+        showSuccessAlert("Succès", "Game added successfully!");
         clearForm();
     }
 
     private void clearForm() {
         gameNameField.clear();
-        gameTypeComboBox.setValue("Other");
+        if (gameTypeComboBox != null) { // Add null check
+            gameTypeComboBox.setValue("Other");
+        }
         gameImageView.setImage(null);
         imagePath = null;
     }
 
     private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
+        icon.setFitHeight(80);
+        icon.setFitWidth(80);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
+        alert.showAndWait();
+    }
+
+    private void showSuccessAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toExternalForm()));
+        icon.setFitHeight(60);
+        icon.setFitWidth(80);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/sucessalert.png").toString()));
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
         alert.showAndWait();
     }
 }

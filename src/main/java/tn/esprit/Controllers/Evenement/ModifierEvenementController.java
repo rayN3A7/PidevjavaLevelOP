@@ -142,7 +142,7 @@ public class ModifierEvenementController {
     }
     @FXML
     private void ButtonListeEvenement(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/ListEvenement.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/ListeEvenementAdmin.fxml"));
         Parent signInRoot = loader.load();
         Scene signInScene = new Scene(signInRoot);
 
