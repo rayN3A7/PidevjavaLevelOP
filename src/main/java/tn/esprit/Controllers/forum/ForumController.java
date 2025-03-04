@@ -34,6 +34,7 @@ import java.util.ResourceBundle;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class ForumController implements Initializable {
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
@@ -115,12 +116,35 @@ public class ForumController implements Initializable {
     private void filterQuestionsRealTime(String searchText) {
         String query = searchText.trim().toLowerCase();
         Platform.runLater(() -> {
+            Map<Question, Parent> filteredCards = questionCardMap.entrySet().stream()
+                    .filter(entry -> {
+                        Question question = entry.getKey();
+                        String gameName = question.getGame() != null && question.getGame().getGame_name() != null
+                                ? question.getGame().getGame_name().toLowerCase()
+                                : "";
+                        String gameType = question.getGame() != null && question.getGame().getGameType() != null
+                                ? question.getGame().getGameType().toLowerCase()
+                                : "";
+                        String title = question.getTitle() != null ? question.getTitle().toLowerCase() : "";
+                        String content = question.getContent() != null ? question.getContent().toLowerCase() : "";
+                        String authorNickname = question.getUser() != null && question.getUser().getNickname() != null
+                                ? question.getUser().getNickname().toLowerCase()
+                                : "";
+                        return query.isEmpty() ||
+                                gameName.contains(query) ||
+                                gameType.contains(query) ||
+                                title.contains(query) ||
+                                content.contains(query) ||
+                                authorNickname.contains(query);
+                    })
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
             questionCardMap.forEach((question, card) -> {
-                String gameName = question.getGame().getGame_name() != null ? question.getGame().getGame_name().toLowerCase() : "";
-                boolean matches = query.isEmpty() || gameName.contains(query);
+                boolean matches = filteredCards.containsKey(question);
                 card.setVisible(matches);
                 card.setManaged(matches);
             });
+
             questionCardContainer.requestLayout();
         });
     }
@@ -269,7 +293,7 @@ public class ForumController implements Initializable {
                             if (user != null) Platform.runLater(() -> controller.updatePrivilegeUI(user));
                         }
                     });
-            loadQuestionsLazy(); // Ensure full consistency
+            loadQuestionsLazy();
         }, EXECUTOR_SERVICE);
     }
 

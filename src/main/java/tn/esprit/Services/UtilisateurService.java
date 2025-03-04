@@ -5,6 +5,7 @@ import javafx.event.Event;
 import javafx.scene.Node;
 import org.mindrot.jbcrypt.BCrypt;
 import tn.esprit.Interfaces.IService;
+import tn.esprit.Models.Report;
 import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.utils.EventBus;
@@ -22,10 +23,11 @@ import java.util.List;
 public class UtilisateurService implements IService<Utilisateur> {
 
     private Connection cnx;
-    private Node eventTarget; // To fire events, set this via constructor or setter
-
+    private Node eventTarget;
+    private final ReportService reportService;
     public UtilisateurService() {
         cnx = MyDatabase.getInstance().getCnx();
+        reportService = new ReportService(); // Initialize ReportService
     }
 
     @Override
@@ -485,7 +487,20 @@ public class UtilisateurService implements IService<Utilisateur> {
             }
             user.setPrivilege(newPrivilege);
 
-            // Fire event via EventBus
+            if ("top_contributor".equals(newPrivilege) || "top_fan".equals(newPrivilege)) {
+                List<Report> reports = reportService.getReportsByReportedUserId(userId);
+                if (!reports.isEmpty()) {
+                    int reportsToDelete = "top_contributor".equals(newPrivilege) ? 1 : 3;
+                    int deletedCount = Math.min(reportsToDelete, reports.size());
+                    for (int i = 0; i < deletedCount; i++) {
+                        Report reportToDelete = reports.get(i);
+                        reportService.deleteReport(reportToDelete.getReportId());
+                        System.out.println("Deleted a report for user " + userId + " (ID: " + reportToDelete.getReportId() + ") due to privilege change to " + newPrivilege + ".");
+                    }
+                    System.out.println("Total reports deleted: " + deletedCount + " for user " + userId);
+                }
+            }
+
             EventBus.getInstance().fireEvent(new PrivilegeEvent(userId, newPrivilege));
         }
 
@@ -493,5 +508,5 @@ public class UtilisateurService implements IService<Utilisateur> {
     }
 }
 
-// ... (other methods unchanged)
+
 

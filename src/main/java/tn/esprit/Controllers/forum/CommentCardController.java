@@ -159,7 +159,7 @@ public class CommentCardController {
         reasonComboBox.setStyle("-fx-background-color: #444; -fx-text-fill: white;");
 
         TextArea evidenceField = new TextArea(evidence);
-        evidenceField.setEditable(false); // Evidence is pre-filled and not editable
+        evidenceField.setEditable(false);
         evidenceField.setWrapText(true);
         evidenceField.setPrefHeight(100);
         evidenceField.setStyle("-fx-control-inner-background: #555; -fx-text-fill: white;");
@@ -192,7 +192,6 @@ public class CommentCardController {
         reportStage.show();
     }
 
-    // Add success alert method
     private void showSuccessAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
@@ -245,8 +244,8 @@ public class CommentCardController {
                     editCommentField.setVisible(false);
                     editButtonsBox.setVisible(false);
                     editButtonsBox.setManaged(false);
-                    checkPrivilegeChange(userId); // Check for logged-in user
-                    checkPrivilegeChange(commentaire.getUtilisateur().getId()); // Check for comment owner
+                    checkPrivilegeChange(userId);
+                    checkPrivilegeChange(commentaire.getUtilisateur().getId());
                 });
             } catch (IOException e) {
                 Platform.runLater(() -> showAlert("Erreur", "Erreur réseau: " + e.getMessage()));
@@ -274,7 +273,6 @@ public class CommentCardController {
                     votesLabel.setVisible(true);
                     downvoteButton.setDisable(updatedVotes == 0);
 
-                    // Privilege updates are now handled via PrivilegeEvent in CommentaireService
                 });
 
             } catch (Exception e) {
@@ -301,7 +299,6 @@ public class CommentCardController {
                     votesLabel.setVisible(true);
                     downvoteButton.setDisable(updatedVotes == 0);
 
-                    // Privilege updates are now handled via PrivilegeEvent in CommentaireService
                 });
 
             } catch (Exception e) {
@@ -313,14 +310,14 @@ public class CommentCardController {
     private void checkPrivilegeChange(int affectedUserId) {
         UtilisateurService.PrivilegeChange change = us.updateUserPrivilege(affectedUserId);
         if (change.isChanged()) {
-            Utilisateur updatedUser = us.getOne(affectedUserId); // Fetch latest data
+            Utilisateur updatedUser = us.getOne(affectedUserId);
             if (updatedUser != null) {
                 if (commentaire.getUtilisateur().getId() == affectedUserId) {
-                    updatePrivilegeUI(updatedUser); // Update this card if the affected user is the comment owner
+                    updatePrivilegeUI(updatedUser);
                 }
-                questionDetailsController.updatePrivilegeUI(affectedUserId); // Update other instances
+                questionDetailsController.updatePrivilegeUI(affectedUserId);
                 if (affectedUserId == userId) {
-                    showPrivilegeAlert(change); // Immediate alert for logged-in user
+                    showPrivilegeAlert(change);
                 }
             }
         }
@@ -473,7 +470,7 @@ public class CommentCardController {
                     toggleRepliesButton.setVisible(true);
                     toggleRepliesButton.setManaged(true);
                     checkPrivilegeChange(userId); // Check for logged-in user
-                    checkPrivilegeChange(commentaire.getUtilisateur().getId()); // Check for parent comment owner
+                    checkPrivilegeChange(commentaire.getUtilisateur().getId());
                 });
             } catch (IOException e) {
                 Platform.runLater(() -> showAlert("Erreur", "Erreur réseau: " + e.getMessage()));
@@ -551,8 +548,8 @@ public class CommentCardController {
                         return controller != null && controller.getCommentaire().getCommentaire_id() == reply.getCommentaire_id();
                     });
                     checkForReplies();
-                    checkPrivilegeChange(userId); // Check for logged-in user
-                    checkPrivilegeChange(reply.getUtilisateur().getId()); // Check for reply owner
+                    checkPrivilegeChange(userId);
+                    checkPrivilegeChange(reply.getUtilisateur().getId());
                 });
             } catch (SecurityException e) {
                 Platform.runLater(() -> showAlert("Erreur", e.getMessage()));
