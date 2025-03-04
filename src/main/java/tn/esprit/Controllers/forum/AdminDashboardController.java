@@ -30,9 +30,7 @@ public class AdminDashboardController {
 
     @FXML
     public void initialize() {
-        if (SessionManager.getInstance().getRole() == Role.ADMIN) {
-            loadAdminSidebar();
-        }
+      //  if (SessionManager.getInstance().getRole() == Role.ADMIN) {loadAdminSidebar();}
         loadGames();
     }
 

@@ -32,23 +32,23 @@
         <MenuButton fx:id="produitMenu" text="🛒 Produit" styleClass="nav-item">
             <items>
                 <MenuItem text="Les Statistiques du Boutiques" styleClass="nav-item" onAction="#ButtonStats" />
-                <MenuItem text="gerer produits" styleClass="nav-item" onAction="#ButtonGererProd" />
-                <MenuItem text="gerer stock" styleClass="nav-item" onAction="#ButtonGererStock" />
-                <MenuItem text="gerer commandes" styleClass="nav-item" onAction="#ButtonGererCommande"/>
+                <MenuItem text="Gérer Produits" styleClass="nav-item" onAction="#ButtonGererProd" />
+                <MenuItem text="Gérer Stock" styleClass="nav-item" onAction="#ButtonGererStock" />
+                <MenuItem text="Gérer Commandes" styleClass="nav-item" onAction="#ButtonGererCommande"/>
             </items>
         </MenuButton>
-        <MenuButton fx:id="evenementMenu" text="🎉 Evenement" styleClass="menu-button">
+        <MenuButton fx:id="evenementMenu" text="🎉 Événement" styleClass="menu-button">
             <items>
                 <MenuItem text="Créer un événement" styleClass="menu-item" onAction="#ButtonAjouterEvenement" />
                 <MenuItem text="Liste des événements" styleClass="nav-item" onAction="#ButtonEvenement" />
-                <MenuItem text="Ajouter un Catégorie" styleClass="nav-item" onAction="#ButtonAjouterCategorie"/>
-                <MenuItem text="Liste des Categories" styleClass="nav-item" onAction="#ButtonListeCategorie"/>
+                <MenuItem text="Ajouter une Catégorie" styleClass="nav-item" onAction="#ButtonAjouterCategorie"/>
+                <MenuItem text="Liste des Catégories" styleClass="nav-item" onAction="#ButtonListeCategorie"/>
             </items>
         </MenuButton>
-        <Button text="🧑‍🏫 Evenement" styleClass="nav-item"/>
-        <Button text="💬 Forum" styleClass="nav-item"/>
-        <Button fx:id="logoutButton" text="🔓 Logout" styleClass="nav-item" onAction="#logout">
-        </Button>
+        <Button text="🧑‍🏫 Événement" styleClass="nav-item"/>
+        <Button text="📋 Forum Admin" styleClass="nav-item" onAction="#navigateToForumAdmin"/>
+        <Button text="🎮 Admin Dashboard" styleClass="nav-item" onAction="#navigateToAdminDashboard"/>
+        <Button fx:id="logoutButton" text="🔓 Déconnexion" styleClass="nav-item" onAction="#logout"/>
     </VBox>
     <Button fx:id="chatbotButton" onAction="#openChatbot" styleClass="chatbot-btn">
         <graphic>

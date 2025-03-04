@@ -57,7 +57,7 @@ public class ForumController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        if (SessionManager.getInstance().getRole() == Role.ADMIN) loadAdminSidebarAsync();
+       // if (SessionManager.getInstance().getRole() == Role.ADMIN) loadAdminSidebarAsync();
         loadQuestionsLazy();
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterQuestionsRealTime(newVal));
         setupFloatingAnimation();
