@@ -52,36 +52,9 @@
                 <children>
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <Label styleClass="section-title" text="Événements en cours" />
-                        <Button text="VOIR TOUS" styleClass="voir-tous-button"/>
+                        <Button text="VOIR TOUS" styleClass="voir-tous-button" onAction="#ButtonListeEvenements"/>
                     </HBox>
-                    <HBox spacing="20" style="-fx-padding: 20;" alignment="CENTER">
-                        <children>
-                            <VBox styleClass="event-card">
-                                <ImageView fitHeight="200" fitWidth="250">
-                                    <image>
-                                        <Image url="@assets/image/event1.png" />
-                                    </image>
-                                </ImageView>
-                                <Label styleClass="event-title" text="Tournoi Valorant" />
-                            </VBox>
-                            <VBox styleClass="event-card">
-                                <ImageView fitHeight="200" fitWidth="250">
-                                    <image>
-                                        <Image url="@assets/image/event2.jpg" />
-                                    </image>
-                                </ImageView>
-                                <Label styleClass="event-title" text="Apex Legends Clash" />
-                            </VBox>
-                            <VBox styleClass="event-card">
-                                <ImageView fitHeight="200" fitWidth="250">
-                                    <image>
-                                        <Image url="@assets/image/event3.png" />
-                                    </image>
-                                </ImageView>
-                                <Label styleClass="event-title" text="CS:GO Championship" />
-                            </VBox>
-                        </children>
-                    </HBox>
+                    <HBox fx:id="eventContainer" spacing="20" style="-fx-padding: 20;" alignment="CENTER"/>
                 </children>
             </VBox>
 

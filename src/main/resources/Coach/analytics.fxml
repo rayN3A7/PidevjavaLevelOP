@@ -8,13 +8,13 @@
 <BorderPane fx:id="mainLayout" prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: #1E1E2F;"
             xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="tn.esprit.Controllers.Coach.AnalyticsController">
+
+
+    <top>
+    </top>
     <left>
         <fx:include source="../sidebarAdmin.fxml"/>
     </left>
-    <!-- Top Section: Filters -->
-    <top>
-    </top>
-
     <!-- Center Section: Charts and Data -->
     <center>
         <ScrollPane fitToWidth="true" style="-fx-background: #1E1E2F; -fx-background-color: #1E1E2F;">

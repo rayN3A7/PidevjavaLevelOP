@@ -26,8 +26,7 @@
     </Label>
 
     <VBox styleClass="nav-menu" spacing="5">
-        <Button text="🏠 Home" styleClass="nav-item,nav-item-active"/>
-        <Button text="👥 Utilisateurs" styleClass="nav-item"/>
+        <Button text="🏠 Home" styleClass="nav-item,nav-item-active" onAction="#ButtonHome"/>
         <MenuButton fx:id="utilisateurMenu" text="👥 Utilisateurs" styleClass="nav-item">
             <items>
                 <MenuItem text="Liste utilisateurs" styleClass="nav-item" onAction="#BtnUser" />

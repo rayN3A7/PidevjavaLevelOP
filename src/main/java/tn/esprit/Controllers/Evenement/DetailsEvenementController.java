@@ -187,8 +187,7 @@ private String userRole = SessionManager.getInstance().getRole().name();
                 contentStream.addRect(50, y - rowHeight, colWidth * 3, rowHeight);
                 contentStream.fill();
                 contentStream.setNonStrokingColor(0, 0, 0);
-
-                // Dessiner l'en-tête du tableau
+                //Affichage mtaa l'entete
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 16);
                 drawTableCell(contentStream, 50, y, colWidth, rowHeight, "Nom");
                 drawTableCell(contentStream, 210, y, colWidth, rowHeight, "Prénom");
@@ -205,7 +204,7 @@ private String userRole = SessionManager.getInstance().getRole().name();
                     y -= rowHeight;
                 }
 
-                // Ajout d'un pied de page
+                // Pied de page
                 contentStream.setFont(PDType1Font.HELVETICA_BOLD, 16);
                 contentStream.beginText();
                 contentStream.newLineAtOffset(50, 30);
@@ -220,7 +219,6 @@ private String userRole = SessionManager.getInstance().getRole().name();
         }
     }
 
-    // Méthode utilitaire pour dessiner une cellule de tableau
     private void drawTableCell(PDPageContentStream contentStream, float x, float y, float width, float height, String text) throws IOException {
         contentStream.beginText();
         contentStream.newLineAtOffset(x + 5, y + 5);
@@ -237,14 +235,12 @@ private String userRole = SessionManager.getInstance().getRole().name();
     }
     private void generateQRCode(Evenement event) {
         try {
-            // Construire l'URL avec les paramètres
             String baseUrl = "https://feresad.github.io/event-qr-code/";
             String url = baseUrl + "?id=" + event.getId() +
                     "&nom=" + URLEncoder.encode(event.getNom_event(), "UTF-8") +
                     "&date=" + URLEncoder.encode(event.getDate_event().toString(), "UTF-8") +
                     "&lieu=" + URLEncoder.encode(event.getLieu_event(), "UTF-8") +
                     "&places=" + event.getMax_places_event();
-            System.out.println("URL générée : " + url);
             // Générer le QR Code avec l'URL
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
             BitMatrix bitMatrix = qrCodeWriter.encode(url, BarcodeFormat.QR_CODE, 200, 200);

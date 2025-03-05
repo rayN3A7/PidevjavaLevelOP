@@ -6,9 +6,11 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -28,13 +30,16 @@ import javafx.util.Duration;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tn.esprit.Controllers.Evenement.DetailsEvenementController;
 import tn.esprit.Controllers.Produit.ProductDetailsController;
 import tn.esprit.Controllers.forum.QuestionDetailsController;
 import tn.esprit.Models.Commande;
+import tn.esprit.Models.Evenement.Evenement;
 import tn.esprit.Models.Produit;
 import tn.esprit.Models.Question;
 import tn.esprit.Models.Stock;
 import tn.esprit.Services.CommandeService;
+import tn.esprit.Services.Evenement.EvenementService;
 import tn.esprit.Services.ProduitService;
 import tn.esprit.Services.QuestionService;
 import tn.esprit.Services.StockService;
@@ -43,6 +48,9 @@ import tn.esprit.utils.SessionManager;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -69,8 +77,11 @@ public class HomeController {
     @FXML private Label titleLabel;
     @FXML private Label title2Label;
     @FXML private HBox productContainer; // Added for dynamic product cards
-
+    @FXML private HBox eventContainer;
+    String path;
+    String userRole = SessionManager.getInstance().getRole().name();
     private final ProduitService produitService = new ProduitService();
+    private final EvenementService es = new EvenementService();
     private final CommandeService commandeService = new CommandeService();
     private final StockService stockService = new StockService(); // Add StockService
 
@@ -83,7 +94,8 @@ public class HomeController {
         addPulsatingGlow(titleLabel, "#FFFFFF");
         addPulsatingGlow(title2Label, "#FF4081");
         addDragSupport();
-        loadTopProducts(); // Load products dynamically
+        loadTopProducts();
+        loadEvents();
     }
     private void loadTopProducts() {
         try {
@@ -492,7 +504,100 @@ public class HomeController {
         glowTimeline.setCycleCount(Timeline.INDEFINITE);
         glowTimeline.play();
     }
+    private void loadEvents() {
+        List<Evenement> evenements = es.getEvenementsProches();
 
+        eventContainer.getChildren().clear();
+
+        for (Evenement event : evenements) {
+            VBox eventCard = createEventCard(event);
+            eventContainer.getChildren().add(eventCard);
+        }
+    }
+
+    private VBox createEventCard(Evenement event) {
+        VBox card = new VBox();
+        card.getStyleClass().add("event-card");
+
+        ImageView imageView = new ImageView();
+        imageView.setImage(new Image(getClass().getResourceAsStream("/assets/image/event2.jpg")));
+        imageView.setFitHeight(200);
+        imageView.setFitWidth(250);
+
+        Label title = new Label(event.getNom_event());
+        title.getStyleClass().add("event-title");
+
+        Timestamp timestamp = event.getDate_event();
+        LocalDateTime localDateTime = timestamp.toLocalDateTime();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String formattedDate = localDateTime.format(formatter);
+
+        Label date = new Label(formattedDate);
+        date.getStyleClass().add("event-date");
+        date.setStyle("-fx-text-fill: white;");
+
+        card.getChildren().addAll(imageView, title, date);
+        card.setOnMouseClicked(eventClick -> {
+            try {
+                String pathuser = "/Evenement/DetailsEvenement.fxml";
+                String pathadmin = "/Evenement/DetailsEvenementAdmin.fxml";
+                if(userRole.equals("ADMIN")){
+                    path = pathadmin;
+                }else {
+                    path = pathuser;
+                }
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
+                if (loader.getLocation() == null) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "DetailsEvenement.fxml not found.");
+                    return;
+                }
+
+                Parent root = loader.load();
+                DetailsEvenementController controller = loader.getController();
+                if (controller == null) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "Unable to initialize DetailsEvenementController.");
+                    return;
+                }
+
+                controller.initData(event);
+
+                Stage stage = (Stage) card.getScene().getWindow();
+                if (stage == null) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "Unable to find the application stage.");
+                    return;
+                }
+
+                Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
+                stage.setScene(newScene);
+                stage.show();
+            } catch (IOException e) {
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible de charger la page des détails de l'événement : " + e.getMessage());
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Une erreur inattendue s'est produite : " + e.getMessage());
+            }
+        });
+
+        return card;
+    }
+    @FXML
+    private void ButtonListeEvenements(ActionEvent event)throws Exception{
+        String pathuser = "/Evenement/ListEvenement.fxml";
+        String pathadmin = "/Evenement/ListeEvenementAdmin.fxml";
+        if(userRole.equals("ADMIN")){
+            path= pathadmin;
+        }else{
+            path = pathuser;
+        }
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
+        Parent signInRoot = loader.load();
+        Scene signInScene = new Scene(signInRoot);
+
+
+        Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        window.setScene(signInScene);
+        window.show();
+    }
     @FXML
     public void openChatbotDialog() {
         if (SessionManager.getInstance().isLoggedIn()) {
@@ -557,6 +662,7 @@ public class HomeController {
             timeline.play();
         }
     }
+
     private void showAlert(Alert.AlertType alertType, String title, String content) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);

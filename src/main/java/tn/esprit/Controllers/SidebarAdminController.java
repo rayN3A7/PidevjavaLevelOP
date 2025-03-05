@@ -181,4 +181,15 @@ public class SidebarAdminController {
         window.setScene(signInScene);
         window.show();
     }
+    @FXML
+    private void ButtonHome(ActionEvent event)throws Exception{
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Home.fxml"));
+        Parent signInRoot = loader.load();
+        Scene signInScene = new Scene(signInRoot);
+
+
+        Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        window.setScene(signInScene);
+        window.show();
+    }
 }

@@ -245,4 +245,26 @@ public class EvenementService implements IService<Evenement> {
         }
         return resultats;
     }
+    public List<Evenement> getEvenementsProches() {
+        List<Evenement> evenementsProches = new ArrayList<>();
+        String qry = "SELECT * FROM evenement WHERE date_event >= NOW() ORDER BY date_event ASC LIMIT 5";
+        try {
+            PreparedStatement pre = cnx.prepareStatement(qry);
+            ResultSet rs = pre.executeQuery();
+            while (rs.next()) {
+                Evenement e = new Evenement();
+                e.setId(rs.getInt("id"));
+                e.setNom_event(rs.getString("nom_event"));
+                e.setMax_places_event(rs.getInt("max_places_event"));
+                e.setLieu_event(rs.getString("lieu_event"));
+                e.setCategorie_id(rs.getInt("categorie_id"));
+                e.setDate_event(rs.getTimestamp("date_event"));
+                evenementsProches.add(e);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return evenementsProches;
+    }
+
 }
