@@ -141,4 +141,14 @@ public class SidebarAdminController {
         window.setScene(scene);
         window.show();
     }
+    @FXML
+    private void ButtonEntraineur(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/analytics.fxml"));
+        Parent signInRoot = loader.load();
+        Scene signInScene = new Scene(signInRoot);
+
+        Stage window = (Stage) evenementMenu.getScene().getWindow();
+        window.setScene(signInScene);
+        window.show();
+    }
 }

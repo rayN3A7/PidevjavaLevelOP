@@ -113,8 +113,22 @@ public class EmailService {
                     "</body>" +
                     "</html>";
         }
-        return "";
+    else if (emailType.equals("custom")) {
+        return "<html>" +
+                "<body style='background-color: #1B1B1B; color: #ffffff; font-family: Arial, sans-serif; text-align: center; padding: 20px;'>" +
+                "<div style='max-width: 500px; margin: auto; background-color: #2A2A2A; padding: 20px; border-radius: 10px;'>" +
+                "<img src='" + logoUrl + "' alt='Logo LevelOP' style='max-width: 150px; margin-bottom: 10px;'>" +
+                "<h2 style='color: #ffffff;'>Notification</h2>" +
+                "<p style='font-size: 16px; white-space: pre-wrap;'>" + additionalInfo + "</p>" +
+                "<hr style='border: 1px solid #444;'>" +
+                "<p style='font-size: 12px; color: #777;'>Cordialement,<br> L'équipe LevelOP</p>" +
+                "</div>" +
+                "</body>" +
+                "</html>";
     }
+        return "";
+}
+
     public static void sendEmailWithTemplate(String recipientEmail, String subject, Evenement event, CategorieEvService ces) {
         Properties properties = new Properties();
         properties.put("mail.smtp.auth", "true");

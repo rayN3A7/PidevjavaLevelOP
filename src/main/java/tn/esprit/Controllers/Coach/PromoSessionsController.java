@@ -3,7 +3,6 @@ package tn.esprit.Controllers.Coach;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -12,54 +11,61 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import tn.esprit.Models.Session_game;
 import tn.esprit.Services.ServiceSession;
-import tn.esprit.utils.SessionManager;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-public class SearchSessionController {
+public class PromoSessionsController {
 
     @FXML
-    private FlowPane sessionsContainer;
+    private FlowPane promoSessionsVBox; // Changé de VBox à FlowPane
 
-    private final String userRole = SessionManager.getInstance().getRole().name();
     private final ServiceSession serviceSession = new ServiceSession();
     private static final String IMAGE_BASE_URL = "http://localhost/img/games/";
     private static final String DEFAULT_IMAGE_PATH = "/images/default-game.jpg";
 
     @FXML
     public void initialize() {
-        showSessions();
+        showPromoSessions();
     }
 
-    @FXML
-    private void showSessions() {
+    private void showPromoSessions() {
         try {
-            List<Session_game> sessions = serviceSession.getAll();
-            sessionsContainer.getChildren().clear();
-            sessionsContainer.setHgap(15);
-            sessionsContainer.setVgap(15);
+            List<Session_game> promoSessions = serviceSession.getSessionsInPromo();
+            promoSessionsVBox.getChildren().clear();
 
-            for (Session_game session : sessions) {
+            if (promoSessions == null || promoSessions.isEmpty()) {
+                Label noSessionsLabel = new Label("Aucune session en promotion trouvée.");
+                noSessionsLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 16px;");
+                promoSessionsVBox.getChildren().add(noSessionsLabel);
+                return;
+            }
+
+            for (Session_game session : promoSessions) {
                 VBox sessionCard = createSessionCard(session);
-                sessionsContainer.getChildren().add(sessionCard);
+                promoSessionsVBox.getChildren().add(sessionCard);
             }
         } catch (Exception e) {
-            System.err.println("Erreur lors de l'affichage des sessions : " + e.getMessage());
             e.printStackTrace();
+            Label errorLabel = new Label("Erreur lors du chargement des sessions en promotion.");
+            errorLabel.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 16px;");
+            promoSessionsVBox.getChildren().add(errorLabel);
         }
     }
 
     private VBox createSessionCard(Session_game session) {
-        VBox sessionCard = new VBox(12);
-        sessionCard.setPrefWidth(300);
-        sessionCard.setStyle("-fx-background-color: #162942; -fx-padding: 20; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5);");
+        VBox sessionCard = new VBox(10);
+        sessionCard.setStyle("-fx-background-color: #162942; " +
+                "-fx-padding: 20; " +
+                "-fx-background-radius: 12; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5); " +
+                "-fx-pref-width: 250; " + // Largeur fixe pour uniformité dans FlowPane
+                "-fx-max-width: 250;");   // Limite la largeur pour éviter l'étirement
 
         ImageView gameImage = new ImageView();
         gameImage.setFitWidth(250);
@@ -69,29 +75,25 @@ public class SearchSessionController {
         loadSessionImage(gameImage, session);
 
         Label gameLabel = new Label(session.getGame());
-        gameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 10 0 5 0;");
+        gameLabel.setStyle("-fx-text-fill: white; " +
+                "-fx-font-size: 20px; " +
+                "-fx-font-weight: bold; " +
+                "-fx-padding: 10 0 5 0;");
 
-        VBox infoBox = new VBox(8);
-        Label priceLabel = createInfoLabel("Prix: " + session.getprix() + " DT");
-        Label durationLabel = createInfoLabel("Durée: " + session.getduree_session());
-        infoBox.getChildren().addAll(priceLabel, durationLabel);
-        infoBox.setStyle("-fx-padding: 5 0;");
+        Label priceLabel = new Label("Prix: " + session.getprix() + " DT");
+        priceLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
 
-        HBox buttonsBox = new HBox(15);
-        buttonsBox.setAlignment(Pos.CENTER);
-        buttonsBox.setStyle("-fx-padding: 10 0 0 0;");
+        Label durationLabel = new Label("Durée: " + session.getduree_session());
+        durationLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
 
-        Button checkButton = createActionButton("Découvrir", "#0585e6");
-        setupButtonActions(checkButton, session.getId());
-        buttonsBox.getChildren().add(checkButton);
+        Button checkAvailabilityButton = createCheckAvailabilityButton(session.getId());
 
-        sessionCard.getChildren().addAll(gameImage, gameLabel, infoBox, buttonsBox);
+        sessionCard.getChildren().addAll(gameImage, gameLabel, priceLabel, durationLabel, checkAvailabilityButton);
         return sessionCard;
     }
 
     private void loadSessionImage(ImageView imageView, Session_game session) {
         if (session.getImageName() != null && !session.getImageName().isEmpty()) {
-            // Encode l'URL pour gérer les espaces et caractères spéciaux
             String encodedImageName = URLEncoder.encode(session.getImageName(), StandardCharsets.UTF_8).replace("+", "%20");
             String imageUrl = IMAGE_BASE_URL + encodedImageName;
             try {
@@ -132,71 +134,43 @@ public class SearchSessionController {
             return image;
         } catch (Exception e) {
             System.err.println("Échec du chargement de l'image par défaut : " + e.getMessage());
-            // Fallback vers une URL placeholder
             return new Image("https://via.placeholder.com/250x150.png?text=Image+Introuvable");
         }
     }
 
-    private Label createInfoLabel(String text) {
-        Label label = new Label(text);
-        label.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
-        return label;
-    }
+    private Button createCheckAvailabilityButton(int sessionId) {
+        Button button = new Button("Voir disponibilité");
+        button.setStyle("-fx-background-color: #0585e6; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-size: 14px; " +
+                "-fx-padding: 10 20; " +
+                "-fx-background-radius: 20;");
 
-    private Button createActionButton(String text, String color) {
-        Button button = new Button(text);
-        button.setStyle("-fx-background-color: " + color + "; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 10 20; -fx-background-radius: 20;");
+        button.setOnAction(event -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/verifier_reservation.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+                Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
         return button;
     }
 
-    private void setupButtonActions(Button checkButton, int sessionId) {
-        checkButton.setOnAction(event -> navigateToFXML(event, "/Coach/verifier_reservation.fxml", controller -> {
-            if (controller instanceof ReservationController) {
-                ((ReservationController) controller).initData(sessionId);
-            }
-        }));
-    }
-
     @FXML
-    private void Coach(ActionEvent event) {
-        if ("COACH".equals(userRole)) {
-            navigateToFXML(event, "/Coach/SessionManagement.fxml", null);
-        }
-    }
-
-    @FXML
-    private void goToCoachSearch(ActionEvent event) {
-        navigateToFXML(event, "/Coach/coach_search.fxml", null);
-    }
-
-    @FXML
-    private void goToGameSearch(ActionEvent event) {
-        navigateToFXML(event, "/Coach/game_search_session.fxml", null);
-    }
-
-    @FXML
-    private void goToPromoSessions(ActionEvent event) {
-        navigateToFXML(event, "/Coach/promo_sessions.fxml", null);
-    }
-
-
-
-    private void navigateToFXML(ActionEvent event, String fxmlPath, java.util.function.Consumer<Object> controllerCallback) {
+    private void backToSearch(ActionEvent event) throws Exception {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            if (loader.getLocation() == null) {
-                throw new IllegalArgumentException("Fichier FXML introuvable à " + fxmlPath);
-            }
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/search_session.fxml"));
             Parent root = loader.load();
-            if (controllerCallback != null) {
-                controllerCallback.accept(loader.getController());
-            }
             Scene scene = new Scene(root);
             Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
             stage.setScene(scene);
             stage.show();
         } catch (Exception e) {
-            System.err.println("Erreur lors du chargement de " + fxmlPath + " : " + e.getMessage());
             e.printStackTrace();
         }
     }

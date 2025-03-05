@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import tn.esprit.Models.Reservation;
 import tn.esprit.Models.Session_game;
 import tn.esprit.Models.Utilisateur;
+import tn.esprit.Services.EmailService;
 import tn.esprit.Services.ServiceReservation;
 import tn.esprit.Services.UtilisateurService;
 import tn.esprit.utils.SessionManager;
@@ -40,10 +41,9 @@ public class ReservedSessionsController {
     }
 
     private void loadReservedSessions() {
-        // Obtenir l'ID du coach connecté
+
         int coachId = SessionManager.getInstance().getUserId();
 
-        // Obtenir toutes les réservations
         List<Reservation> reservations = serviceReservation.getReservationsByCoachId(coachId);
 
         reservationsContainer.getChildren().clear();
@@ -52,14 +52,13 @@ public class ReservedSessionsController {
             Session_game session = reservation.getSession();
             Utilisateur client = utilisateurService.getOne(reservation.getClient_id());
 
-            // Créer une carte pour chaque réservation
             VBox reservationCard = new VBox(10);
             reservationCard.setStyle("-fx-background-color: #162942; " +
                     "-fx-padding: 20; " +
                     "-fx-background-radius: 10; " +
                     "-fx-margin: 10;");
 
-            // Informations de la session
+
             Label gameLabel = new Label("Jeu: " + session.getGame());
             gameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
 
@@ -69,7 +68,6 @@ public class ReservedSessionsController {
             Label durationLabel = new Label("Durée: " + session.getduree_session());
             durationLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
 
-            // Informations du client
             Label clientLabel = new Label("Client: " + client.getNom() + " " + client.getPrenom());
             clientLabel.setStyle("-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;");
 
@@ -88,7 +86,7 @@ public class ReservedSessionsController {
                     dateLabel
             );
 
-            // Add Send Meet Link button
+
             Button sendMeetLinkButton = new Button("Envoyer lien Meet");
             sendMeetLinkButton.setStyle("-fx-background-color: #0585e6; " +
                     "-fx-text-fill: white; " +
@@ -101,7 +99,7 @@ public class ReservedSessionsController {
                 sendGoogleMeetLink(clientEmail, session);
             });
 
-            // Add the button to your card
+
             reservationCard.getChildren().add(sendMeetLinkButton);
 
             reservationsContainer.getChildren().add(reservationCard);
@@ -129,30 +127,33 @@ public class ReservedSessionsController {
 
             // Préparer le contenu de l'email
             String subject = "Lien Google Meet pour votre session de coaching";
-            String body = String.format("Bonjour,\n\nVoici votre lien pour la session de coaching %s :\n%s\n\nÀ bientôt !",
-                    session.getGame(), meetLink);
+            String additionalInfo = String.format(
+                    "Bonjour,\n\nVoici votre lien pour la session de coaching %s :\n%s\n\nÀ bientôt !",
+                    session.getGame(), meetLink
+            );
 
-            // Encoder les paramètres pour l'URL
-            subject = java.net.URLEncoder.encode(subject, "UTF-8");
-            body = java.net.URLEncoder.encode(body, "UTF-8");
+            // Utiliser EmailService pour envoyer l'email automatiquement
+            EmailService.sendEmail(
+                    clientEmail,
+                    subject,
+                    "custom", // Utilisation du type "custom" existant
+                    additionalInfo
+            );
 
-            // Créer l'URL mailto
-            String mailtoUrl = String.format("mailto:%s?subject=%s&body=%s",
-                    clientEmail, subject, body);
-
-            // Ouvrir le client email par défaut
-            java.awt.Desktop.getDesktop().mail(new java.net.URI(mailtoUrl));
-
-            showAlert("Succès", "Le client email a été ouvert avec le lien Meet", Alert.AlertType.INFORMATION);
+            showAlert("Succès",
+                    "Le lien Google Meet a été envoyé automatiquement au client par email.",
+                    Alert.AlertType.INFORMATION);
 
         } catch (Exception e) {
-            showAlert("Erreur", "Erreur lors de l'envoi: " + e.getMessage(), Alert.AlertType.ERROR);
+            showAlert("Erreur",
+                    "Erreur lors de l'envoi du lien Meet : " + e.getMessage(),
+                    Alert.AlertType.ERROR);
             e.printStackTrace();
         }
     }
 
     private String generateRandomMeetId() {
-        // Generate a simple random meet ID (you might want to make this more sophisticated)
+
         String chars = "abcdefghijklmnopqrstuvwxyz0123456789";
         StringBuilder meetId = new StringBuilder();
         for (int i = 0; i < 10; i++) {
@@ -175,7 +176,7 @@ public class ReservedSessionsController {
             Workbook workbook = new XSSFWorkbook();
             Sheet sheet = workbook.createSheet("Sessions Réservées");
 
-            //  style
+
             CellStyle headerStyle = workbook.createCellStyle();
             Font headerFont = workbook.createFont();
             headerFont.setBold(true);
@@ -183,7 +184,6 @@ public class ReservedSessionsController {
             headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
             headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-            // en-tête
             Row headerRow = sheet.createRow(0);
             String[] columns = {"Client", "Email", "Jeu", "Date Réservation", "Prix", "Durée"};
             for (int i = 0; i < columns.length; i++) {
@@ -193,11 +193,9 @@ public class ReservedSessionsController {
                 sheet.autoSizeColumn(i);
             }
 
-            // Récupérer les résrvation
             int coachId = SessionManager.getInstance().getUserId();
             List<Reservation> reservations = serviceReservation.getReservationsByCoachId(coachId);
 
-            // Remplir les donné
             int rowNum = 1;
             for (Reservation reservation : reservations) {
                 Row row = sheet.createRow(rowNum++);

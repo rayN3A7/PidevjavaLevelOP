@@ -45,7 +45,11 @@
                 <MenuItem text="Liste des Catégories" styleClass="nav-item" onAction="#ButtonListeCategorie"/>
             </items>
         </MenuButton>
-        <Button text="🧑‍🏫 Événement" styleClass="nav-item"/>
+       <MenuButton fx:id="EntraineurMenu" text="🎉 Entraineur" styleClass="menu-button">
+        <items>
+            <MenuItem text="Statistique Session" styleClass="menu-item" onAction="#ButtonEntraineur" />
+        </items>
+    </MenuButton>
         <Button text="📋 Forum Admin" styleClass="nav-item" onAction="#navigateToForumAdmin"/>
         <Button text="🎮 Admin Dashboard" styleClass="nav-item" onAction="#navigateToAdminDashboard"/>
         <Button fx:id="logoutButton" text="🔓 Déconnexion" styleClass="nav-item" onAction="#logout"/>
