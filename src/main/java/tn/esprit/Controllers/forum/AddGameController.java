@@ -28,7 +28,7 @@ public class AddGameController {
     @FXML
     private Button uploadImageButton;
 
-    private String imageFileName; // Changed to store only the file name
+    private String imageFileName;
 
     @FXML
     public void initialize() {
@@ -83,7 +83,6 @@ public class AddGameController {
             return;
         }
 
-        // Use imageFileName (just the file name) instead of the full path
         Games newGame = new Games(gameName, imageFileName, gameType);
         gamesService.add(newGame);
         showSuccessAlert("Succès", "Game added successfully!");

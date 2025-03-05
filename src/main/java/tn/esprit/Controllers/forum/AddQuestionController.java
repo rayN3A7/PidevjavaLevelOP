@@ -44,7 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class AddQuestionController implements Initializable, AutoCloseable {
     private static final Logger LOGGER = LoggerFactory.getLogger(AddQuestionController.class);
     private static final String DESTINATION_DIR = "C:\\xampp\\htdocs\\img";
-    private static final List<String> VALID_IMAGE_EXTENSIONS = List.of("png", "jpg", "jpeg", "gif");
+    private static final List<String> VALID_MEDIA_EXTENSIONS = List.of("png", "jpg", "jpeg", "gif", "mp4"); // Ajout de mp4
     private static final int THREAD_POOL_SIZE = 2;
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
@@ -100,7 +100,7 @@ public class AddQuestionController implements Initializable, AutoCloseable {
     @FXML
     private void handleUploadMedia(ActionEvent event) {
         File selectedFile = selectMediaFile();
-        if (selectedFile == null || !VALID_IMAGE_EXTENSIONS.contains(getFileExtension(selectedFile))) {
+        if (selectedFile == null || !VALID_MEDIA_EXTENSIONS.contains(getFileExtension(selectedFile))) {
             showAlert("Erreur", "Type de fichier non supporté ou invalide.");
             return;
         }
@@ -145,16 +145,16 @@ public class AddQuestionController implements Initializable, AutoCloseable {
     private void processUploadedMedia(File selectedFile, String fileExtension, String fileName) {
         if ("mp4".equals(fileExtension)) {
             lastMediaType = "video";
-            uploadedImageView.setImage(null);
-            showSuccessAlert("Succès", "Video uploaded successfully: " + fileName);
+            uploadedImageView.setImage(null); // Pas de prévisualisation pour vidéo
+            showSuccessAlert("Succès", "Vidéo téléchargée avec succès : " + fileName);
         } else {
             lastMediaType = "image";
             Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
             if (!image.isError()) {
                 uploadedImageView.setImage(image);
-                showSuccessAlert("Succès", "Image uploaded successfully: " + fileName);
+                showSuccessAlert("Succès", "Image téléchargée avec succès : " + fileName);
             } else {
-                showAlert("Erreur", "Failed to load image preview: " + image.getException().getMessage());
+                showAlert("Erreur", "Échec du chargement de la prévisualisation de l'image : " + image.getException().getMessage());
             }
         }
     }

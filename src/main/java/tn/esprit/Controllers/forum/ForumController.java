@@ -60,7 +60,6 @@ public class ForumController implements Initializable {
        // if (SessionManager.getInstance().getRole() == Role.ADMIN) loadAdminSidebarAsync();
         loadQuestionsLazy();
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterQuestionsRealTime(newVal));
-        setupFloatingAnimation();
         EventBus.getInstance().addHandler(event -> {
             CompletableFuture.supplyAsync(() -> us.getOne(event.getUserId()), EXECUTOR_SERVICE)
                     .thenAcceptAsync(user -> {
@@ -74,33 +73,7 @@ public class ForumController implements Initializable {
                     }, Platform::runLater);
         });
     }
-    private void setupFloatingAnimation() {
-        applyFloatingAnimation(addQuestionButton);
-        applyFloatingAnimation(navigateToQuestionFormButton);
-    }
 
-    private void applyFloatingAnimation(Button button) {
-        TranslateTransition floatTransition = new TranslateTransition(Duration.seconds(2), button);
-        floatTransition.setFromY(0);
-        floatTransition.setToY(-10); // Move up by 10 pixels
-        floatTransition.setCycleCount(TranslateTransition.INDEFINITE);
-        floatTransition.setAutoReverse(true); // Reverse for smooth up-and-down float
-        floatTransition.setRate(1.0); // Steady pace
-        floatTransition.play();
-    }
-    private void loadAdminSidebarAsync() {
-        CompletableFuture.supplyAsync(() -> {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/sidebarAdmin.fxml"));
-                return loader.load();
-            } catch (IOException e) {
-                System.err.println("Error loading admin sidebar: " + e.getMessage());
-                return null;
-            }
-        }, EXECUTOR_SERVICE).thenAcceptAsync(sidebar -> {
-            if (sidebar != null) mainLayout.setLeft((Node) sidebar);
-        }, Platform::runLater);
-    }
 
     public void loadQuestionsLazy() {
         CompletableFuture.supplyAsync(questionService::getAll, EXECUTOR_SERVICE)

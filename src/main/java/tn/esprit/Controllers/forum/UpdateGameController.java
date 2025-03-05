@@ -30,13 +30,11 @@ public class UpdateGameController extends AddGameController {
     @FXML
     private Button uploadImageButton;
 
-    // Define the base directory where images are stored
     private static final String IMAGE_BASE_DIR = "C:\\xampp\\htdocs\\img\\games\\";
 
     public void setGame(Games game, AdminDashboardController dashboardController) {
         this.game = game;
         this.dashboardController = dashboardController;
-        initialize(); // Call initialize to set up the ComboBox
         if (gameNameField == null || gameTypeComboBox == null || gameImageView == null) {
             System.err.println("One or more FXML elements are null in UpdateGameController. Check FXML injection.");
             showAlert("Erreur", "Failed to load game data. Check FXML configuration.");
@@ -85,12 +83,10 @@ public class UpdateGameController extends AddGameController {
                     Files.createDirectories(destinationPath);
                 }
 
-                // Generate a unique file name
                 String fileName = "game_" + System.currentTimeMillis() + "_" + selectedFile.getName();
                 Path targetPath = destinationPath.resolve(fileName);
                 Files.copy(selectedFile.toPath(), targetPath);
 
-                // Optionally delete the old image file if it exists
                 if (game.getImagePath() != null && !game.getImagePath().isEmpty()) {
                     File oldImageFile = new File(IMAGE_BASE_DIR + game.getImagePath());
                     if (oldImageFile.exists()) {
@@ -99,10 +95,8 @@ public class UpdateGameController extends AddGameController {
                     }
                 }
 
-                // Store only the file name in the game object
                 game.setImagePath(fileName);
 
-                // Display the new image in the ImageView
                 Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
                 gameImageView.setImage(image);
                 showSuccessAlert("Succès", "Image updated successfully!");
@@ -134,7 +128,6 @@ public class UpdateGameController extends AddGameController {
         dashboardController.updateGame(game);
         showSuccessAlert("Succès", "Game updated successfully!");
 
-        // Close the window after successful update
         Stage stage = (Stage) gameNameField.getScene().getWindow();
         stage.close();
     }

@@ -123,53 +123,69 @@ public class HomeController {
 
     private HBox createQuestionCard(Question question) {
         HBox card = new HBox(15);
-        card.getStyleClass().add("question-card");
+        card.getStyleClass().add("modern-question-card"); // Updated style class for modern design
 
-        // Game Image
+        // Game Image (Circular with Border)
+        StackPane imageContainer = new StackPane();
+        imageContainer.getStyleClass().add("image-container");
         ImageView gameImage = new ImageView();
-        gameImage.setFitHeight(80);
-        gameImage.setFitWidth(80);
-        double imageHeight = 80;
-        double imageWidth = 80;
+        gameImage.setFitHeight(60);
+        gameImage.setFitWidth(60);
+        double imageHeight = 60;
+        double imageWidth = 60;
+        String imageBaseDir = "C:\\xampp\\htdocs\\img\\games\\";
         if (question.getGame() != null && question.getGame().getImagePath() != null) {
             try {
-                Image image = new Image(new File(question.getGame().getImagePath()).toURI().toString(), true);
-                gameImage.setImage(image);
-                imageHeight = image.getHeight() > 0 ? image.getHeight() : 80;
-                imageWidth = image.getWidth() > 0 ? image.getWidth() : 80;
-                gameImage.setFitHeight(imageHeight);
-                gameImage.setFitWidth(imageWidth);
+                String fullImagePath = imageBaseDir + question.getGame().getImagePath();
+                File imageFile = new File(fullImagePath);
+                if (imageFile.exists()) {
+                    Image image = new Image(imageFile.toURI().toString(), true);
+                    if (!image.isError()) {
+                        gameImage.setImage(image);
+                        imageHeight = image.getHeight() > 0 ? image.getHeight() : 60;
+                        imageWidth = image.getWidth() > 0 ? image.getWidth() : 60;
+                        gameImage.setFitHeight(imageHeight);
+                        gameImage.setFitWidth(imageWidth);
+                        LOGGER.info("Successfully loaded game image for question ID: {} at path: {}", question.getQuestion_id(), fullImagePath);
+                    } else {
+                        LOGGER.error("Image loading error for question ID: {}. Error: {}", question.getQuestion_id(), image.getException().getMessage());
+                    }
+                } else {
+                    LOGGER.error("Game image file does not exist for question ID: {}. Path: {}", question.getQuestion_id(), fullImagePath);
+                }
             } catch (Exception e) {
-                LOGGER.error("Failed to load game image for question ID: {}", question.getQuestion_id(), e);
+                LOGGER.error("Failed to load game image for question ID: {}. Path: {}. Error: {}", question.getQuestion_id(), question.getGame().getImagePath(), e.getMessage());
             }
+        } else {
+            LOGGER.warn("No game image available for question ID: {}. Game: {}, ImagePath: {}",
+                    question.getQuestion_id(),
+                    question.getGame() != null ? question.getGame().getGame_name() : "null",
+                    question.getGame() != null ? question.getGame().getImagePath() : "null");
         }
         gameImage.setMouseTransparent(true);
+        imageContainer.getChildren().add(gameImage);
 
         // Title and Author
         VBox textBox = new VBox(5);
+        textBox.getStyleClass().add("text-container");
         Label titleLabel = new Label(question.getTitle());
-        titleLabel.getStyleClass().add("question-title");
+        titleLabel.getStyleClass().add("modern-question-title");
         titleLabel.setMouseTransparent(true);
 
         Label authorLabel = new Label("@" + (question.getUser() != null ? question.getUser().getNickname() : "Unknown"));
-        authorLabel.getStyleClass().add("author-tag");
+        authorLabel.getStyleClass().add("modern-author-tag");
         authorLabel.setMouseTransparent(true);
 
         textBox.getChildren().addAll(titleLabel, authorLabel);
         textBox.setMouseTransparent(true);
 
-        card.getChildren().addAll(gameImage, textBox);
+        card.getChildren().addAll(imageContainer, textBox);
 
-        // Dynamically adjust card size
-        double titleWidth = titleLabel.getBoundsInLocal().getWidth();
-        double titleHeight = titleLabel.getBoundsInLocal().getHeight();
-        double cardWidth = Math.max(imageWidth + titleWidth + 30, 200);
-        double cardHeight = Math.max(imageHeight, titleHeight) + 50;
-
-        card.setMinWidth(cardWidth);
-        card.setMaxWidth(cardWidth);
-        card.setMinHeight(cardHeight);
-        card.setMaxHeight(cardHeight);
+        // Fixed card size for consistency
+        card.setMinWidth(300);
+        card.setMaxWidth(300);
+        card.setMinHeight(100);
+        card.setMaxHeight(100);
 
         // Make the card clickable
         card.setOnMouseClicked(event -> {
@@ -195,7 +211,6 @@ public class HomeController {
 
             if (!SessionManager.getInstance().isLoggedIn()) {
                 LOGGER.info("User is not logged in. Redirecting to login page for question ID: {}", question.getQuestion_id());
-                // Navigate to login page
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/gestion Utilisateur/login/Login.fxml"));
                 if (loader.getLocation() == null) {
                     LOGGER.error("Login.fxml not found at /gestion Utilisateur/login/Login.fxml");
@@ -210,7 +225,6 @@ public class HomeController {
                 LOGGER.info("Successfully navigated to login page.");
             } else {
                 LOGGER.info("User is logged in. Navigating to QuestionDetails for question ID: {}", question.getQuestion_id());
-                // Navigate to question details page
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/QuestionDetails.fxml"));
                 if (loader.getLocation() == null) {
                     LOGGER.error("QuestionDetails.fxml not found at /forumUI/QuestionDetails.fxml");

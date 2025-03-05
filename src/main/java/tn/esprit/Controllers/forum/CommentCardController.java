@@ -787,7 +787,7 @@ public class CommentCardController {
                 displayReactions();
                 displayUserReaction();
                 checkPrivilegeChange(userId); // Check for logged-in user
-                checkPrivilegeChange(commentaire.getUtilisateur().getId()); // Check for comment owner
+                checkPrivilegeChange(commentaire.getUtilisateur().getId());
             });
         });
     }
