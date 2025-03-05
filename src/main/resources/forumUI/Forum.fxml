@@ -24,8 +24,13 @@
                     <TextField fx:id="searchField" promptText="Recherche de questions par jeu..." styleClass="search-field"/>
                     <Button fx:id="addQuestionButton" text="Ajouter" onAction="#navigateToAddQuestion" styleClass="create-post-button"/>
                 </HBox>
+                <VBox fx:id="trendingPostsContainer" spacing="8" alignment="CENTER_LEFT" styleClass="trending-section"
+                      style="-fx-background-color: rgba(9, 18, 33, 0.9); -fx-padding: 15px; -fx-border-radius: 10px; -fx-border-color: #ff007f; -fx-border-width: 2px; -fx-max-width: 600px; -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 10, 0.5, 0, 0);">
+                    <Label text="Trending on r/gaming" styleClass="trending-title"/>
+                </VBox>
                 <VBox fx:id="questionCardContainer" spacing="20" alignment="CENTER"
                       style="-fx-background-color: transparent; -fx-padding: 10px;"/>
+
             </VBox>
         </ScrollPane>
     </center>

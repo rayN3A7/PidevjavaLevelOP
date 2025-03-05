@@ -14,6 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
@@ -26,7 +27,11 @@ import tn.esprit.utils.EventBus;
 import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -40,8 +45,8 @@ public class ForumController implements Initializable {
     private static final String ALERT_CSS = "/forumUI/alert.css";
     private static final String ALERT_ICON = "/forumUI/icons/alert.png";
     private static final String SUCCESS_ICON = "/forumUI/icons/sucessalert.png";
-    private static final int QUESTIONS_PER_PAGE = 4;
-
+    private static final int QUESTIONS_PER_PAGE = 1;
+    @FXML private VBox trendingPostsContainer;
     @FXML private VBox questionCardContainer;
     @FXML private Button addQuestionButton;
     @FXML private TextField searchField;
@@ -54,10 +59,11 @@ public class ForumController implements Initializable {
     private final Map<Question, Parent> questionCardMap = new HashMap<>();
     private ObservableList<Question> allQuestions = FXCollections.observableArrayList();
     private int currentQuestionCount = 0;
-
+    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         loadInitialQuestions();
+        loadTrendingPosts();
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterQuestionsRealTime(newVal));
         setupFloatingAnimation();
         EventBus.getInstance().addHandler(event -> {
@@ -115,7 +121,87 @@ public class ForumController implements Initializable {
                     return null;
                 });
     }
+    private void loadTrendingPosts() {
+        CompletableFuture.supplyAsync(() -> fetchTrendingPosts(), EXECUTOR_SERVICE)
+                .thenAcceptAsync(posts -> {
+                    if (trendingPostsContainer != null) {
+                        trendingPostsContainer.getChildren().clear();
+                        HBox titleBox = new HBox(5);
+                        titleBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                        ImageView redditIcon = new ImageView(new Image(getClass().getResourceAsStream("/forumUI/icons/reddit.png")));
+                        redditIcon.setFitWidth(20);
+                        redditIcon.setFitHeight(20);
+                        Label titleLabel = new Label("Trending on r/gaming");
+                        titleLabel.getStyleClass().add("trending-title");
+                        titleBox.getChildren().addAll(redditIcon, titleLabel);
+                        trendingPostsContainer.getChildren().add(titleBox);
 
+                        posts.forEach(post -> {
+                            Label postLabel = new Label("- " + post.getKey());
+                            postLabel.setWrapText(true);
+                            postLabel.setMaxWidth(550);
+                            postLabel.setOnMouseClicked(e -> {
+                                try {
+                                    java.awt.Desktop.getDesktop().browse(new URI(post.getValue()));
+                                } catch (Exception ex) {
+                                    System.err.println("Failed to open URL: " + ex.getMessage());
+                                    showAlert("Erreur", "Impossible d'ouvrir le lien: " + ex.getMessage());
+                                }
+                            });
+                            trendingPostsContainer.getChildren().add(postLabel);
+                        });
+                    }
+                }, Platform::runLater)
+                .exceptionally(throwable -> {
+                    System.err.println("Error loading Reddit posts: " + throwable.getMessage());
+                    Platform.runLater(() -> {
+                        if (trendingPostsContainer != null) {
+                            trendingPostsContainer.getChildren().add(new Label("Failed to load trending posts"));
+                        }
+                    });
+                    return null;
+                });
+    }
+
+    private List<Map.Entry<String, String>> fetchTrendingPosts() {
+        try {
+            String url = "https://www.reddit.com/r/gaming.json?limit=3";
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("User-Agent", "JavaFX-Forum-App")
+                    .GET()
+                    .build();
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                String json = response.body();
+                List<Map.Entry<String, String>> posts = new ArrayList<>();
+                int titleIndex = json.indexOf("\"title\":");
+                int urlIndex = json.indexOf("\"url\":", titleIndex);
+                for (int i = 0; i < 3 && titleIndex != -1 && urlIndex != -1; i++) {
+                    int titleStart = json.indexOf("\"", titleIndex + 8) + 1;
+                    int titleEnd = json.indexOf("\"", titleStart);
+                    int urlStart = json.indexOf("\"", urlIndex + 6) + 1;
+                    int urlEnd = json.indexOf("\"", urlStart);
+                    if (titleStart > 8 && titleEnd > titleStart && urlStart > 6 && urlEnd > urlStart) {
+                        String title = json.substring(titleStart, titleEnd);
+                        String postUrl = json.substring(urlStart, urlEnd);
+                        posts.add(Map.entry(title, postUrl));
+                        titleIndex = json.indexOf("\"title\":", titleEnd);
+                        urlIndex = json.indexOf("\"url\":", titleIndex);
+                    } else {
+                        break;
+                    }
+                }
+                return posts.isEmpty() ? List.of(Map.entry("No posts found", "#")) : posts;
+            } else {
+                System.err.println("Reddit API error: " + response.statusCode());
+                return List.of(Map.entry("API error", "#"));
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to fetch Reddit posts: " + e.getMessage());
+            return List.of(Map.entry("Failed to load posts", "#"));
+        }
+    }
     @FXML
     private void loadMoreQuestions() {
         System.out.println("Loading more questions. Current count: " + currentQuestionCount + ", Total: " + allQuestions.size());

@@ -98,7 +98,7 @@
 /* Product Details Container */
 .product-details-container {
     -fx-padding: 40px 80px;
-    -fx-background-color: #1e1e1e;
+        -fx-background-color: linear-gradient(to bottom, #0a0f1e, #770d77);
 }
 
 /* Product Image */
