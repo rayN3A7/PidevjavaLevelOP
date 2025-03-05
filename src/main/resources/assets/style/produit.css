@@ -347,6 +347,20 @@
 .back-button:hover {
     -fx-background-color: #333333;
 }
+.stock-status {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+}
+
+.stock-status.in-stock {
+    -fx-text-fill: #90EE90;
+    -fx-effect: dropshadow(gaussian, #90EE90, 5, 0.3, 0, 0);
+}
+
+.stock-status.out-of-stock {
+    -fx-text-fill: #FFB6C1;
+    -fx-effect: dropshadow(gaussian, #FFB6C1, 5, 0.3, 0, 0);
+}
 
 .product-content {
     -fx-background-color: transparent;

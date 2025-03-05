@@ -38,6 +38,7 @@ public class CommandeController {
     private Commande selectedCommande;
     private final int DEFAULT_USER_ID = SessionManager.getInstance().getUserId();
     String userRole= SessionManager.getInstance().getRole().name();
+
     @FXML
     public void initialize() {
         commandeService = new CommandeService();
@@ -68,29 +69,25 @@ public class CommandeController {
         gridPane.setHgap(10);
         gridPane.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-        // Updated column constraints for better layout
         ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(40); // Product name column
+        col1.setPercentWidth(40);
         ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(30); // Status column
+        col2.setPercentWidth(30);
         ColumnConstraints col3 = new ColumnConstraints();
-        col3.setPercentWidth(30); // Actions column
+        col3.setPercentWidth(30);
 
         gridPane.getColumnConstraints().addAll(col1, col2, col3);
 
-        // Get product name and create label
         Produit produit = produitService.getOne(commande.getProduitId());
         Label produitLabel = new Label(produit != null ? produit.getNomProduit() : "N/A");
         produitLabel.getStyleClass().addAll("info-value", "cell");
         produitLabel.setMaxWidth(Double.MAX_VALUE);
         produitLabel.setWrapText(true);
 
-        // Status label
         Label statusLabel = new Label(commande.getStatus());
         statusLabel.getStyleClass().addAll("info-value", "cell");
         statusLabel.setMaxWidth(Double.MAX_VALUE);
 
-        // Action buttons
         Button editButton = new Button("Modifier");
         editButton.getStyleClass().add("buy-now-button");
         editButton.setOnAction(event -> updateCommande(commande));
@@ -103,7 +100,6 @@ public class CommandeController {
         actionsBox.getStyleClass().add("action-buttons");
         actionsBox.setAlignment(javafx.geometry.Pos.CENTER);
 
-        // Add components to grid
         gridPane.add(produitLabel, 0, 0);
         gridPane.add(statusLabel, 1, 0);
         gridPane.add(actionsBox, 2, 0);
@@ -132,7 +128,6 @@ public class CommandeController {
     @FXML
     public void updateCommande(Commande commande) {
         this.selectedCommande = commande;
-        // ID and user fields removed
 
         Produit produit = produitService.getOne(commande.getProduitId());
         txtProduit.setText(produit != null ? produit.getNomProduit() : "");
@@ -157,13 +152,11 @@ public class CommandeController {
             }
 
             if (selectedCommande != null) {
-                // Update existing command
                 selectedCommande.setProduitId(produit.getId());
                 selectedCommande.setStatus(txtStatus.getText().trim());
                 commandeService.update(selectedCommande);
                 showAlert(AlertType.INFORMATION, "Succès", "La commande a été mise à jour avec succès.");
             } else {
-                // Add new command
                 Commande newCommande = new Commande();
                 newCommande.setProduitId(produit.getId());
                 newCommande.setStatus(txtStatus.getText().trim());
@@ -182,6 +175,7 @@ public class CommandeController {
             e.printStackTrace();
         }
     }
+
     @FXML
     private void ButtonAjouterCommande() {
         selectedCommande = null;
@@ -189,12 +183,10 @@ public class CommandeController {
         editForm.setVisible(true);
     }
 
-
     private Produit findProductByName(String name) {
         List<Produit> products = produitService.getAll();
-        String normalizedInput = name.trim().toLowerCase(); // Trim + lowercase user input
+        String normalizedInput = name.trim().toLowerCase();
         for (Produit produit : products) {
-            // Trim + lowercase database product name
             String normalizedProductName = produit.getNomProduit().trim().toLowerCase();
             if (normalizedProductName.equals(normalizedInput)) {
                 return produit;
@@ -212,7 +204,6 @@ public class CommandeController {
         return !txtProduit.getText().trim().isEmpty() &&
                 !txtStatus.getText().trim().isEmpty();
     }
-
 
     private void deleteCommande(Commande commande) {
         Alert confirmation = new Alert(AlertType.CONFIRMATION);

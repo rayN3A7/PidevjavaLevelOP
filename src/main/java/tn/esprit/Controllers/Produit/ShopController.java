@@ -35,7 +35,7 @@ public class ShopController {
     }
 
     private void displayProducts(List<Produit> produits) {
-        productGrid.getChildren().clear(); // Clear existing products
+        productGrid.getChildren().clear();
         int column = 0;
         int row = 1;
 

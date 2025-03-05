@@ -17,6 +17,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -27,16 +28,26 @@ import javafx.util.Duration;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tn.esprit.Controllers.Produit.ProductDetailsController;
 import tn.esprit.Controllers.forum.QuestionDetailsController;
+import tn.esprit.Models.Commande;
+import tn.esprit.Models.Produit;
 import tn.esprit.Models.Question;
+import tn.esprit.Models.Stock;
+import tn.esprit.Services.CommandeService;
+import tn.esprit.Services.ProduitService;
 import tn.esprit.Services.QuestionService;
+import tn.esprit.Services.StockService;
 import tn.esprit.utils.SessionManager;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class HomeController {
     private static final Logger LOGGER = LoggerFactory.getLogger(HomeController.class);
@@ -57,6 +68,11 @@ public class HomeController {
     @FXML private Button nextButton;
     @FXML private Label titleLabel;
     @FXML private Label title2Label;
+    @FXML private HBox productContainer; // Added for dynamic product cards
+
+    private final ProduitService produitService = new ProduitService();
+    private final CommandeService commandeService = new CommandeService();
+    private final StockService stockService = new StockService(); // Add StockService
 
     @FXML
     public void initialize() {
@@ -67,8 +83,132 @@ public class HomeController {
         addPulsatingGlow(titleLabel, "#FFFFFF");
         addPulsatingGlow(title2Label, "#FF4081");
         addDragSupport();
+        loadTopProducts(); // Load products dynamically
     }
+    private void loadTopProducts() {
+        try {
+            // Get all products
+            List<Produit> allProducts = produitService.getAll();
 
+            // Calculate sales counts for each product based on completed orders
+            Map<Integer, Integer> productSales = new HashMap<>();
+            List<Commande> commandes = commandeService.getAll();
+            for (Commande commande : commandes) {
+                if ("terminé".equals(commande.getStatus())) { // Only count completed orders
+                    int produitId = commande.getProduitId();
+                    productSales.put(produitId, productSales.getOrDefault(produitId, 0) + 1);
+                }
+            }
+            // Sort products by sales count (descending) and limit to top 4 (matching the screenshot)
+            List<Produit> topProducts = allProducts.stream()
+                    .sorted((p1, p2) -> Integer.compare(
+                            productSales.getOrDefault(p2.getId(), 0),
+                            productSales.getOrDefault(p1.getId(), 0)))
+                    .limit(4)
+                    .collect(Collectors.toList());
+
+            if (productContainer != null) {
+                productContainer.getChildren().clear();
+                for (Produit product : topProducts) {
+                    // Fetch the corresponding stock for this product to get image and price
+                    Stock stock = stockService.getByProduitId(product.getId());
+                    if (stock != null) {
+                        VBox productCard = createProductCard(product, stock, productSales.getOrDefault(product.getId(), 0));
+                        productContainer.getChildren().add(productCard);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error loading top products", e);
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to load top products");
+        }
+    }
+    private VBox createProductCard(Produit product, Stock stock, int salesCount) {
+        VBox card = new VBox(15); // Spacing to match the event card layout
+        card.getStyleClass().add("event-card"); // Use the event-card style from CSS
+        card.setMaxWidth(160); // Reduced width to match the screenshot
+        card.setMaxHeight(280); // Reduced height to match the screenshot
+
+        ImageView imageView = new ImageView();
+        imageView.setFitHeight(200); // Match FXML static example height
+        imageView.setFitWidth(140);  // Match FXML static example width
+        imageView.setPreserveRatio(true); // Maintain aspect ratio for sharper images
+        try {
+            // Prepend the directory where images are stored (assuming the same path as in your static FXML)
+            String imagePath = "file:///C:/xampp/htdocs/img/" + stock.getImage();
+            Image image = new Image(imagePath);
+            imageView.setImage(image);
+        } catch (Exception e) {
+            LOGGER.error("Error loading product image", e);
+        }
+
+        Label nameLabel = new Label(product.getNomProduit());
+        nameLabel.getStyleClass().add("event-title"); // Use the event-title style from CSS for consistency
+        nameLabel.setStyle("-fx-wrap-text: true; -fx-text-alignment: CENTER; -fx-alignment: CENTER;"); // Ensure text wraps and is centered
+
+        // Fixed to show price in TND with proper formatting
+        Label priceLabel = new Label(String.format("%.2f TND", (double) stock.getPrixProduit()));
+        priceLabel.getStyleClass().add("event-info"); // Use the event-info style from CSS for consistency
+        priceLabel.setStyle("-fx-alignment: CENTER; -fx-text-alignment: CENTER;"); // Center the price
+
+        card.setAlignment(Pos.CENTER); // Center-align all content in the card
+        card.getChildren().addAll(imageView, nameLabel, priceLabel);
+
+        // Make the card clickable to navigate to product details
+        card.setOnMouseClicked(event -> {
+            navigateToProductDetails(product, stock);
+            event.consume();
+        });
+
+        return card; // No inline style needed, as CSS will handle it via .event-card
+    }
+    private void navigateToProductDetails(Produit product, Stock stock) {
+        try {
+            // Load the main.fxml (which contains the navbar)
+            FXMLLoader mainLoader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
+            Parent mainRoot = mainLoader.load();
+
+            // Load the product details FXML
+            FXMLLoader detailsLoader = new FXMLLoader(getClass().getResource("/Produit/product-details.fxml"));
+            Parent detailsContent = detailsLoader.load();
+
+            // Get the main controller
+            ProductDetailsController controller = detailsLoader.getController();
+            controller.setProductData(product, stock); // Pass product data
+
+            // Insert product details into the center of main.fxml
+            BorderPane mainLayout = (BorderPane) mainRoot;
+            mainLayout.setCenter(detailsContent);
+
+            // Get the current stage and set the updated scene
+            Stage stage = (Stage) productContainer.getScene().getWindow();
+            stage.setScene(new Scene(mainRoot));
+            stage.show();
+
+            LOGGER.info("Navigated to product details with navbar for product: {}", product.getNomProduit());
+        } catch (IOException e) {
+            LOGGER.error("Error loading product details page: " + e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible de charger la page des détails du produit.");
+        }
+    }
+    @FXML
+    private void goToShop() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            Stage stage = (Stage) productContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            LOGGER.error("Error loading shop page: " + e.getMessage(), e);
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Navigation Error");
+            alert.setContentText("Could not load the shop page. Please try again.");
+            alert.showAndWait();
+        }
+    }
     private void loadTopQuestions() {
         LOGGER.info("Loading top questions...");
         topQuestions = questionService.getAll();
@@ -417,7 +557,6 @@ public class HomeController {
             timeline.play();
         }
     }
-
     private void showAlert(Alert.AlertType alertType, String title, String content) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);

@@ -40,6 +40,7 @@ public class ProduitController {
     private List<Produit> produits;
     private Produit selectedProduit;
     String userRole= SessionManager.getInstance().getRole().name();
+
     @FXML
     public void initialize() {
         produitService = new ProduitService();
@@ -51,7 +52,6 @@ public class ProduitController {
             System.err.println("Warning: editForm is null. Check if fx:id is properly set in FXML.");
         }
 
-        // Add listener to search field
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
             searchProducts(newValue);
         });
@@ -68,17 +68,15 @@ public class ProduitController {
     }
 
     private HBox createProductRow(Produit produit, Stock stock) {
-        HBox row = new HBox(0); // Remove spacing as we'll control it with the GridPane
+        HBox row = new HBox(0);
         row.getStyleClass().add("platform-info");
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         row.setPadding(new Insets(10));
 
-        // Create a GridPane for precise column alignment
         GridPane gridPane = new GridPane();
         gridPane.setHgap(10);
         gridPane.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-        // Set column constraints without ID column
         ColumnConstraints col1 = new ColumnConstraints();
         col1.setPercentWidth(25);
         ColumnConstraints col2 = new ColumnConstraints();
@@ -92,7 +90,6 @@ public class ProduitController {
 
         gridPane.getColumnConstraints().addAll(col1, col2, col3, col4, col5);
 
-        // Create and style the labels without ID
         Label nameLabel = new Label(produit.getNomProduit());
         nameLabel.getStyleClass().addAll("info-value", "cell");
         nameLabel.setMaxWidth(Double.MAX_VALUE);
@@ -112,7 +109,6 @@ public class ProduitController {
         platformLabel.setMaxWidth(Double.MAX_VALUE);
         platformLabel.setWrapText(true);
 
-        // Create action buttons
         Button editButton = new Button("Modifier");
         editButton.getStyleClass().add("buy-now-button");
         editButton.setOnAction(event -> updateProduit(produit, stock));
@@ -125,16 +121,14 @@ public class ProduitController {
         actionsBox.getStyleClass().add("action-buttons");
         actionsBox.setAlignment(javafx.geometry.Pos.CENTER);
 
-        // Add components to the GridPane without ID column
         gridPane.add(nameLabel, 0, 0);
         gridPane.add(descLabel, 1, 0);
         gridPane.add(priceLabel, 2, 0);
         gridPane.add(platformLabel, 3, 0);
         gridPane.add(actionsBox, 4, 0);
 
-        // Make the GridPane fill the entire width
         gridPane.setMaxWidth(Double.MAX_VALUE);
-        HBox.setHgrow(gridPane, javafx.scene.layout.Priority.ALWAYS);
+        HBox.setHgrow(gridPane, Priority.ALWAYS);
 
         row.getChildren().add(gridPane);
         return row;
@@ -186,7 +180,6 @@ public class ProduitController {
     @FXML
     public void saveProductChanges() {
         try {
-            // Get values from form fields
             String nomProduit = txtNomProduit.getText().trim();
             String description = txtDescription.getText().trim();
             String platform = txtPlatform.getText().trim();
@@ -194,13 +187,11 @@ public class ProduitController {
             String type = txtType.getText().trim();
             String activationRegion = txtActivationRegion.getText().trim();
 
-            // Validate required fields
             if (nomProduit.isEmpty() || description.isEmpty() || platform.isEmpty()) {
                 showAlert(AlertType.ERROR, "Erreur", "Veuillez remplir tous les champs obligatoires (nom, description, plateforme).");
                 return;
             }
 
-            // Parse numeric fields
             int score;
             try {
                 score = Integer.parseInt(txtScore.getText().trim());
@@ -214,7 +205,6 @@ public class ProduitController {
             }
 
             if (selectedProduit != null) {
-                // Update existing product
                 selectedProduit.setNomProduit(nomProduit);
                 selectedProduit.setDescription(description);
                 selectedProduit.setPlatform(platform);
@@ -226,9 +216,8 @@ public class ProduitController {
                 produitService.update(selectedProduit);
                 showAlert(AlertType.INFORMATION, "Succès", "Le produit a été mis à jour avec succès.");
             } else {
-                // Create new product
                 Produit newProduit = new Produit(
-                        0, // ID will be set by database
+                        0,
                         nomProduit,
                         description,
                         platform,
@@ -249,9 +238,7 @@ public class ProduitController {
                 }
             }
 
-            // Refresh the product list
             loadProducts();
-            // Clear form and hide it
             clearFields();
             editForm.setVisible(false);
             selectedProduit = null;
@@ -284,13 +271,11 @@ public class ProduitController {
 
         if (confirmation.showAndWait().get() == javafx.scene.control.ButtonType.OK) {
             try {
-                // Delete associated stock entry first
                 Stock stock = stockService.getByProduitId(produit.getId());
                 if (stock != null) {
                     stockService.delete(stock);
                 }
 
-                // Then delete the product
                 produitService.delete(produit);
                 loadProducts();
                 showAlert(AlertType.INFORMATION, "Succès", "Le produit a été supprimé avec succès.");

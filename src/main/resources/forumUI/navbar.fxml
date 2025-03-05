@@ -52,6 +52,6 @@
         </HBox>
 
 
-        <Button fx:id="loginButton" text="Login" styleClass="login-button"/>
+
     </HBox>
 </AnchorPane>

@@ -2,6 +2,9 @@ package tn.esprit.Controllers.Produit;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import javafx.fxml.FXML;
@@ -21,8 +24,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import tn.esprit.Models.Games;
 import tn.esprit.Models.Produit;
 import tn.esprit.Models.Stock;
+import tn.esprit.Services.GamesService;
 import tn.esprit.Services.ProduitService;
 import tn.esprit.Services.StockService;
 import tn.esprit.utils.SessionManager;
@@ -34,17 +39,24 @@ public class StockController {
     @FXML private TextField txtQuantity;
     @FXML private TextField txtPrice;
     @FXML private TextField txtImage;
+    @FXML private TextField txtGame;
     @FXML private VBox editForm;
 
     private StockService stockService;
     private ProduitService produitService;
+    private GamesService gamesService;
     private List<Stock> stocks;
     private Stock selectedStock;
-    String userRole= SessionManager.getInstance().getRole().name();
+    String userRole = SessionManager.getInstance().getRole().name();
+
+    private static final String DESTINATION_DIR = "C:\\xampp\\htdocs\\img";
+    private static final List<String> VALID_IMAGE_EXTENSIONS = List.of("png", "jpg", "jpeg");
+
     @FXML
     public void initialize() {
         stockService = new StockService();
         produitService = new ProduitService();
+        gamesService = new GamesService();
         loadStocks();
         if (editForm != null) {
             editForm.setVisible(false);
@@ -71,25 +83,32 @@ public class StockController {
         gridPane.setHgap(10);
         gridPane.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-        // Updated column constraints without ID column
         ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(25);
+        col1.setPercentWidth(20);
         ColumnConstraints col2 = new ColumnConstraints();
         col2.setPercentWidth(15);
         ColumnConstraints col3 = new ColumnConstraints();
         col3.setPercentWidth(15);
         ColumnConstraints col4 = new ColumnConstraints();
-        col4.setPercentWidth(25);
+        col4.setPercentWidth(15);
         ColumnConstraints col5 = new ColumnConstraints();
         col5.setPercentWidth(20);
+        ColumnConstraints col6 = new ColumnConstraints();
+        col6.setPercentWidth(15);
 
-        gridPane.getColumnConstraints().addAll(col1, col2, col3, col4, col5);
+        gridPane.getColumnConstraints().addAll(col1, col2, col3, col4, col5, col6);
 
         Produit produit = produitService.getOne(stock.getProduitId());
         Label produitLabel = new Label(produit != null ? produit.getNomProduit() : "N/A");
         produitLabel.getStyleClass().addAll("info-value", "cell");
         produitLabel.setMaxWidth(Double.MAX_VALUE);
         produitLabel.setWrapText(true);
+
+        Games game = gamesService.getOne(stock.getGamesId());
+        Label gameLabel = new Label(game != null ? game.getGame_name() : "N/A");
+        gameLabel.getStyleClass().addAll("info-value", "cell");
+        gameLabel.setMaxWidth(Double.MAX_VALUE);
+        gameLabel.setWrapText(true);
 
         Label quantityLabel = new Label(String.valueOf(stock.getQuantity()));
         quantityLabel.getStyleClass().addAll("info-value", "cell");
@@ -104,11 +123,11 @@ public class StockController {
         imageLabel.setMaxWidth(Double.MAX_VALUE);
         imageLabel.setWrapText(true);
 
-        Button editButton = new Button("Modifier");
+        Button editButton = new Button("Mod...");
         editButton.getStyleClass().add("buy-now-button");
         editButton.setOnAction(event -> updateStock(stock));
 
-        Button deleteButton = new Button("Supprimer");
+        Button deleteButton = new Button("Suppr...");
         deleteButton.getStyleClass().add("back-button");
         deleteButton.setOnAction(event -> deleteStock(stock));
 
@@ -117,10 +136,11 @@ public class StockController {
         actionsBox.setAlignment(javafx.geometry.Pos.CENTER);
 
         gridPane.add(produitLabel, 0, 0);
-        gridPane.add(quantityLabel, 1, 0);
-        gridPane.add(priceLabel, 2, 0);
-        gridPane.add(imageLabel, 3, 0);
-        gridPane.add(actionsBox, 4, 0);
+        gridPane.add(gameLabel, 1, 0);
+        gridPane.add(quantityLabel, 2, 0);
+        gridPane.add(priceLabel, 3, 0);
+        gridPane.add(imageLabel, 4, 0);
+        gridPane.add(actionsBox, 5, 0);
 
         gridPane.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(gridPane, javafx.scene.layout.Priority.ALWAYS);
@@ -136,8 +156,10 @@ public class StockController {
 
         for (Stock stock : stocks) {
             Produit produit = produitService.getOne(stock.getProduitId());
+            Games game = gamesService.getOne(stock.getGamesId());
             if (String.valueOf(stock.getId()).contains(searchText) ||
                     (produit != null && produit.getNomProduit().toLowerCase().contains(searchText)) ||
+                    (game != null && game.getGame_name().toLowerCase().contains(searchText)) ||
                     String.valueOf(stock.getQuantity()).contains(searchText) ||
                     String.valueOf(stock.getPrixProduit()).contains(searchText)) {
                 stockContainer.getChildren().add(createStockRow(stock));
@@ -153,6 +175,8 @@ public class StockController {
         txtQuantity.setText(String.valueOf(stock.getQuantity()));
         txtPrice.setText(String.valueOf(stock.getPrixProduit()));
         txtImage.setText(stock.getImage());
+        Games game = gamesService.getOne(stock.getGamesId());
+        txtGame.setText(game != null ? game.getGame_name() : "");
 
         editForm.setVisible(true);
     }
@@ -165,7 +189,6 @@ public class StockController {
                 return;
             }
 
-            // Get and validate product name
             String productName = txtProduit.getText().trim();
             Produit produit = findProductByName(productName);
             if (produit == null) {
@@ -173,7 +196,13 @@ public class StockController {
                 return;
             }
 
-            // Validate numeric fields
+            String gameName = txtGame.getText().trim();
+            Games game = findGameByName(gameName);
+            if (game == null) {
+                showAlert(AlertType.ERROR, "Erreur", "Jeu '" + gameName + "' n'existe pas.");
+                return;
+            }
+
             int quantity;
             int price;
             try {
@@ -190,8 +219,8 @@ public class StockController {
             }
 
             if (selectedStock != null) {
-                // Update existing stock
                 selectedStock.setProduitId(produit.getId());
+                selectedStock.setGamesId(game.getGame_id());
                 selectedStock.setQuantity(quantity);
                 selectedStock.setPrixProduit(price);
                 selectedStock.setImage(txtImage.getText().trim());
@@ -199,11 +228,10 @@ public class StockController {
                 stockService.update(selectedStock);
                 showAlert(AlertType.INFORMATION, "Succès", "Le stock a été mis à jour avec succès.");
             } else {
-                // Create new stock
                 Stock newStock = new Stock(
                         0,
                         produit.getId(),
-                        0,
+                        game.getGame_id(),
                         quantity,
                         price,
                         txtImage.getText().trim()
@@ -236,6 +264,18 @@ public class StockController {
         return null;
     }
 
+    private Games findGameByName(String name) {
+        List<Games> games = gamesService.getAll();
+        String normalizedInput = name.trim().toLowerCase();
+        for (Games game : games) {
+            String normalizedGameName = game.getGame_name().trim().toLowerCase();
+            if (normalizedGameName.equals(normalizedInput)) {
+                return game;
+            }
+        }
+        return null;
+    }
+
     @FXML
     public void cancelEdit() {
         editForm.setVisible(false);
@@ -256,10 +296,23 @@ public class StockController {
         fileChooser.getExtensionFilters().add(
                 new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
         );
-        File file = fileChooser.showOpenDialog(null);
-        if (file != null) {
-            String destinationPath = "../../main/resources/assets/image/" + file.getName();
-            txtImage.setText(destinationPath);
+        File selectedFile = fileChooser.showOpenDialog(null);
+        if (selectedFile != null) {
+            try {
+                Path destinationPath = Paths.get(DESTINATION_DIR);
+                if (!Files.exists(destinationPath)) {
+                    Files.createDirectories(destinationPath);
+                }
+                String fileName = selectedFile.getName();
+                Path targetPath = destinationPath.resolve(fileName);
+                Files.copy(selectedFile.toPath(), targetPath);
+
+                txtImage.setText(fileName);
+                showAlert(AlertType.INFORMATION, "Succès", "Image uploadée avec succès sous le nom : " + fileName);
+            } catch (IOException e) {
+                showAlert(AlertType.ERROR, "Erreur", "Échec de l'upload de l'image : " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
@@ -283,18 +336,19 @@ public class StockController {
     }
 
     private void clearFields() {
-        // No need to clear ID field
         txtProduit.clear();
         txtQuantity.clear();
         txtPrice.clear();
         txtImage.clear();
+        txtGame.clear();
     }
 
     private boolean validateForm() {
         return !txtProduit.getText().trim().isEmpty() &&
                 !txtQuantity.getText().trim().isEmpty() &&
                 !txtPrice.getText().trim().isEmpty() &&
-                !txtImage.getText().trim().isEmpty();
+                !txtImage.getText().trim().isEmpty() &&
+                !txtGame.getText().trim().isEmpty();
     }
 
     private void showAlert(AlertType alertType, String title, String content) {
@@ -307,7 +361,7 @@ public class StockController {
 
     @FXML
     public void handleBack() {
-        if(userRole.equals ("ADMIN"))  {
+        if (userRole.equals("ADMIN")) {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/sidebarAdmin.fxml"));
                 Parent root = loader.load();
@@ -333,32 +387,6 @@ public class StockController {
                 e.printStackTrace();
                 showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
             }
-        }
-    }
-
-    @FXML
-    public void navigateToShop() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/shop-page.fxml"));
-            Parent shopView = loader.load();
-            BorderPane currentRoot = (BorderPane) stockContainer.getScene().getRoot();
-            currentRoot.setCenter(shopView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers le magasin");
-        }
-    }
-
-    @FXML
-    public void navigateToOrders() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/commandes_view.fxml"));
-            Parent ordersView = loader.load();
-            BorderPane currentRoot = (BorderPane) stockContainer.getScene().getRoot();
-            currentRoot.setCenter(ordersView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers les commandes");
         }
     }
 }
