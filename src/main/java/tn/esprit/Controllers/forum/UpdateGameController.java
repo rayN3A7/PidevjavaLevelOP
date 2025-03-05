@@ -30,10 +30,11 @@ public class UpdateGameController extends AddGameController {
     @FXML
     private Button uploadImageButton;
 
+    private static final String IMAGE_BASE_DIR = "C:\\xampp\\htdocs\\img\\games\\";
+
     public void setGame(Games game, AdminDashboardController dashboardController) {
         this.game = game;
         this.dashboardController = dashboardController;
-        initialize(); // Call initialize to set up the ComboBox
         if (gameNameField == null || gameTypeComboBox == null || gameImageView == null) {
             System.err.println("One or more FXML elements are null in UpdateGameController. Check FXML injection.");
             showAlert("Erreur", "Failed to load game data. Check FXML configuration.");
@@ -47,10 +48,15 @@ public class UpdateGameController extends AddGameController {
         gameTypeComboBox.setValue(game.getGameType());
 
         if (game.getImagePath() != null && !game.getImagePath().isEmpty()) {
-            File file = new File(game.getImagePath());
+            // Construct the full path to load the existing image
+            String fullImagePath = IMAGE_BASE_DIR + game.getImagePath();
+            File file = new File(fullImagePath);
             if (file.exists()) {
                 Image image = new Image(file.toURI().toString(), 200, 150, true, true);
                 gameImageView.setImage(image);
+            } else {
+                System.err.println("Existing game image not found at: " + fullImagePath);
+                gameImageView.setImage(null);
             }
         }
     }
@@ -72,8 +78,7 @@ public class UpdateGameController extends AddGameController {
         File selectedFile = fileChooser.showOpenDialog(uploadImageButton.getScene().getWindow());
         if (selectedFile != null) {
             try {
-                String destinationDir = "C:\\xampp\\htdocs\\img\\games";
-                Path destinationPath = Paths.get(destinationDir);
+                Path destinationPath = Paths.get(IMAGE_BASE_DIR);
                 if (!Files.exists(destinationPath)) {
                     Files.createDirectories(destinationPath);
                 }
@@ -82,10 +87,19 @@ public class UpdateGameController extends AddGameController {
                 Path targetPath = destinationPath.resolve(fileName);
                 Files.copy(selectedFile.toPath(), targetPath);
 
-                game.setImagePath(targetPath.toString());
+                if (game.getImagePath() != null && !game.getImagePath().isEmpty()) {
+                    File oldImageFile = new File(IMAGE_BASE_DIR + game.getImagePath());
+                    if (oldImageFile.exists()) {
+                        oldImageFile.delete();
+                        System.out.println("Deleted old image: " + oldImageFile.getPath());
+                    }
+                }
+
+                game.setImagePath(fileName);
+
                 Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
                 gameImageView.setImage(image);
-                showSuccessAlert("Succès", "Image uploaded successfully!");
+                showSuccessAlert("Succès", "Image updated successfully!");
             } catch (IOException e) {
                 showAlert("Erreur", "Failed to upload image: " + e.getMessage());
                 e.printStackTrace();
@@ -114,7 +128,6 @@ public class UpdateGameController extends AddGameController {
         dashboardController.updateGame(game);
         showSuccessAlert("Succès", "Game updated successfully!");
 
-        // Close the window after successful update
         Stage stage = (Stage) gameNameField.getScene().getWindow();
         stage.close();
     }

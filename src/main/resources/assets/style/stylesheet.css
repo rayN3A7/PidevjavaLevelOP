@@ -148,29 +148,25 @@
     -fx-text-fill: #FFFFFF;
     -fx-background-radius: 8;
 }
+/* Modernisation du MenuButton */
 .menu-button {
-    -fx-text-fill: #A0A8CC;
-    -fx-alignment: CENTER_LEFT;
-    -fx-min-width: 200;
-    -fx-padding: 12 15;
+    -fx-background-color: linear-gradient(to right, #FE0369, #FF4A8D);
+    -fx-text-fill: #FFFFFF;
     -fx-font-size: 15px;
-    -fx-font-family: "Inter", sans-serif;
+    -fx-font-weight: 600;
+    -fx-padding: 10 18;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
     -fx-cursor: hand;
-    -fx-background-color: transparent;
-    -fx-border-radius: 8;
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 5, 0, 0, 2);
-    -fx-graphic-text-gap: 10;
+    -fx-effect: dropshadow(gaussian, rgba(254, 3, 105, 0.3), 5, 0, 0, 2);
+    -fx-transition: all 0.3s ease;
+    -fx-font-family: "Inter", sans-serif;
 }
 
-/* Hover pour MenuButton */
 .menu-button:hover {
+    -fx-background-color: linear-gradient(to right, #FF4A8D, #FE0369);
     -fx-text-fill: #FFFFFF;
-}
-
-/* Style actif pour MenuButton */
-.menu-button:armed, .menu-button:focused {
-    -fx-text-fill: #FFFFFF;
-    -fx-background-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(254, 3, 105, 0.6), 12, 0.2, 0, 4);
+    -fx-scale-y: 1.02;
+    -fx-scale-x: 1.02;
 }

@@ -27,6 +27,9 @@ public class GameCardController {
     private AdminDashboardController dashboardController;
     private GamesService gamesService = new GamesService();
 
+    // Define the base directory where images are stored
+    private static final String IMAGE_BASE_DIR = "C:\\xampp\\htdocs\\img\\games\\";
+
     public void setGameData(Games game, AdminDashboardController dashboardController) {
         this.game = game;
         this.dashboardController = dashboardController;
@@ -41,13 +44,15 @@ public class GameCardController {
 
         if (gameImage != null) {
             if (game.getImagePath() != null && !game.getImagePath().isEmpty()) {
-                File file = new File(game.getImagePath());
+                // Construct the full path by combining the base directory and file name
+                String fullImagePath = IMAGE_BASE_DIR + game.getImagePath();
+                File file = new File(fullImagePath);
                 if (file.exists()) {
                     Image image = new Image(file.toURI().toString(), 250, 150, true, true);
                     gameImage.setImage(image);
                 } else {
-                    System.err.println("Game image file not found: " + game.getImagePath());
-                    gameImage.setImage(null);
+                    System.err.println("Game image file not found at: " + fullImagePath);
+                    gameImage.setImage(null); // Optionally set a default "not found" image
                 }
             } else {
                 gameImage.setImage(null);
@@ -122,6 +127,4 @@ public class GameCardController {
 
         alert.showAndWait();
     }
-
-
 }

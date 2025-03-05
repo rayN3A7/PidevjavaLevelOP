@@ -11,6 +11,8 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.*;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -76,13 +78,15 @@ public class QuestionCardController {
     @FXML private ImageView selectedEmojiImage;
     @FXML private HBox reactionContainer;
     @FXML private Button reportButton;
-    private ReportService reportService = new ReportService();
+    @FXML private Button shareButton;
+
+    private final ReportService reportService = new ReportService();
     private Question question;
     private ForumController forumController;
-    private int userId = SessionManager.getInstance().getUserId();
-    private UtilisateurService us = new UtilisateurService();
-    private QuestionService questionService = new QuestionService();
-    private GamesService gamesService = new GamesService();
+    private final int userId = SessionManager.getInstance().getUserId();
+    private final UtilisateurService us = new UtilisateurService();
+    private final QuestionService questionService = new QuestionService();
+    private final GamesService gamesService = new GamesService();
     private static final ExecutorService executorService = Executors.newFixedThreadPool(4);
     private static final ScheduledExecutorService shutdownExecutor = Executors.newScheduledThreadPool(1);
     private static final List<QuestionCardController> allControllers = Collections.synchronizedList(new ArrayList<>());
@@ -92,8 +96,8 @@ public class QuestionCardController {
     private MediaPlayer mediaPlayer;
     private boolean isFullScreen = false;
     private Scene originalScene;
-    private double originalWidth = 500;
-    private double originalHeight = 350;
+    private final double originalWidth = 500;
+    private final double originalHeight = 350;
     private BorderPane fullScreenLayout;
     private ScrollPane scrollPane;
     private volatile boolean isPlaying = false;
@@ -101,10 +105,11 @@ public class QuestionCardController {
     private ChangeListener<Boolean> valueChangingListener;
     private ChangeListener<Number> volumeListener;
     private ChangeListener<Bounds> boundsListener;
-    private PauseTransition boundsDebounceTimer;
+    private final PauseTransition boundsDebounceTimer;
     private double savedVolume = 1.0;
     private final double controlBarHeight = 40.0;
     private final double controlBarWidthPercentage = 0.8;
+    private static final String IMAGE_BASE_DIR = "C:\\xampp\\htdocs\\img\\games\\";
 
     public QuestionCardController() {
         synchronized (allControllers) {
@@ -133,7 +138,7 @@ public class QuestionCardController {
         upvoteButton.setOnAction(e -> forumController.handleUpvote(question, votesLabel, downvoteButton));
         downvoteButton.setOnAction(e -> forumController.handleDownvote(question, votesLabel, downvoteButton));
         downvoteButton.setDisable(question.getVotes() == 0);
-
+        shareButton.setOnAction(e -> showShareDialog());
         updateButton.setOnAction(e -> {
             stopAllVideos();
             forumController.updateQuestion(question);
@@ -195,38 +200,225 @@ public class QuestionCardController {
                 }
             }
         });
-
-
-
     }
+
+    private void showShareDialog() {
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle("Partager la Question");
+
+        VBox dialogContent = new VBox(10);
+        dialogContent.setPadding(new Insets(15));
+        dialogContent.setStyle("-fx-background-color: #091221; -fx-border-color: #ff4081; -fx-border-width: 2; -fx-border-radius: 10;");
+
+        Label header = new Label("Partager sur les réseaux sociaux");
+        header.setStyle("-fx-text-fill: #ff4081; -fx-font-size: 18px; -fx-font-weight: bold;");
+
+        Button twitterButton = new Button("Twitter");
+        twitterButton.setStyle("-fx-background-color: #1DA1F2; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+        ImageView twitterIcon = new ImageView(new Image(getClass().getResourceAsStream("/forumUI/icons/twitter.png")));
+        twitterIcon.setFitHeight(20);
+        twitterIcon.setFitWidth(20);
+        twitterButton.setGraphic(twitterIcon);
+        addButtonHoverEffect(twitterButton);
+
+        Button facebookButton = new Button("Facebook");
+        facebookButton.setStyle("-fx-background-color: #3B5998; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+        ImageView facebookIcon = new ImageView(new Image(getClass().getResourceAsStream("/forumUI/icons/facebook.png")));
+        facebookIcon.setFitHeight(20);
+        facebookIcon.setFitWidth(20);
+        facebookButton.setGraphic(facebookIcon);
+        addButtonHoverEffect(facebookButton);
+
+        Button redditButton = new Button("Reddit");
+        redditButton.setStyle("-fx-background-color: #FF4500; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+        ImageView redditIcon = new ImageView(new Image(getClass().getResourceAsStream("/forumUI/icons/reddit.png")));
+        redditIcon.setFitHeight(20);
+        redditIcon.setFitWidth(20);
+        redditButton.setGraphic(redditIcon);
+        addButtonHoverEffect(redditButton);
+
+        Button cancelButton = new Button("Annuler");
+        cancelButton.setStyle("-fx-background-color: #555; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 10 20 10 20;");
+        ImageView cancelIcon = new ImageView(new Image(getClass().getResourceAsStream("/forumUI/icons/cancel.png")));
+        cancelIcon.setFitHeight(20);
+        cancelIcon.setFitWidth(20);
+        cancelButton.setGraphic(cancelIcon);
+        addButtonHoverEffect(cancelButton);
+
+        twitterButton.setOnAction(e -> {
+            shareOnSocialMedia("twitter");
+            Platform.runLater(dialogStage::close);
+        });
+        facebookButton.setOnAction(e -> {
+            shareOnSocialMedia("facebook");
+            Platform.runLater(dialogStage::close);
+        });
+        redditButton.setOnAction(e -> {
+            shareOnSocialMedia("reddit");
+            Platform.runLater(dialogStage::close);
+        });
+        cancelButton.setOnAction(e -> Platform.runLater(dialogStage::close));
+
+        dialogContent.getChildren().addAll(header, twitterButton, facebookButton, redditButton, cancelButton);
+        dialogContent.setAlignment(Pos.CENTER);
+
+        Scene dialogScene = new Scene(dialogContent, 300, 300);
+        dialogStage.setScene(dialogScene);
+        dialogStage.showAndWait();
+    }
+
+    private void addButtonHoverEffect(Button button) {
+        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(150), button);
+        scaleIn.setToX(1.05);
+        scaleIn.setToY(1.05);
+
+        ScaleTransition scaleOut = new ScaleTransition(Duration.millis(150), button);
+        scaleOut.setToX(1.0);
+        scaleOut.setToY(1.0);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(150), button);
+        fadeIn.setToValue(0.9);
+
+        FadeTransition fadeOut = new FadeTransition(Duration.millis(150), button);
+        fadeOut.setToValue(1.0);
+
+        button.setOnMouseEntered(e -> {
+            scaleIn.playFromStart();
+            fadeIn.playFromStart();
+        });
+
+        button.setOnMouseExited(e -> {
+            scaleOut.playFromStart();
+            fadeOut.playFromStart();
+        });
+    }
+
+    private void shareOnSocialMedia(final String platform) {
+        String shareTitle = question.getTitle();
+        String shareContent = question.getContent() != null ? question.getContent() : "";
+
+        if (platform.equals("twitter")) {
+            String combinedText = shareTitle + "\n" + shareContent;
+            if (combinedText.length() > 280) {
+                int remainingLength = 280 - (shareTitle.length() + 1 + 3);
+                if (remainingLength > 0) {
+                    shareContent = shareContent.substring(0, Math.min(remainingLength, shareContent.length())) + "...";
+                } else {
+                    shareTitle = shareTitle.substring(0, 277) + "...";
+                    shareContent = "";
+                }
+            }
+        } else if (platform.equals("facebook")) {
+            String combinedText = shareTitle + "\n" + shareContent;
+            if (combinedText.length() > 500) {
+                int remainingLength = 500 - (shareTitle.length() + 1 + 3);
+                if (remainingLength > 0) {
+                    shareContent = shareContent.substring(0, Math.min(remainingLength, shareContent.length())) + "...";
+                } else {
+                    shareTitle = shareTitle.substring(0, 496) + "...";
+                    shareContent = "";
+                }
+            }
+        } else if (platform.equals("reddit")) {
+            String combinedText = shareTitle + "\n" + shareContent;
+            if (combinedText.length() > 1000) {
+                int remainingLength = 1000 - (shareTitle.length() + 1 + 3);
+                if (remainingLength > 0) {
+                    shareContent = shareContent.substring(0, Math.min(remainingLength, shareContent.length())) + "...";
+                } else {
+                    shareTitle = shareTitle.substring(0, 996) + "...";
+                    shareContent = "";
+                }
+            }
+        }
+
+        String navUrl;
+        if (platform.equals("twitter")) {
+            String tweetText = shareTitle + "\n" + shareContent;
+            navUrl = "https://twitter.com/intent/tweet?text=" + encodeURIComponent(tweetText);
+            showAlert("Information", "L'API Twitter nécessite une configuration OAuth complexe pour une application locale.\nNous utilisons un partage basé sur URL à la place.");
+            PauseTransition delay = new PauseTransition(Duration.seconds(3));
+            delay.setOnFinished(event -> openUrlInBrowser(navUrl));
+            delay.play();
+        } else if (platform.equals("facebook")) {
+            String postText = shareTitle + "\n" + shareContent;
+            navUrl = "https://www.facebook.com/sharer/sharer.php";
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent content = new ClipboardContent();
+            content.putString(postText);
+            clipboard.setContent(content);
+            showAlert("Information", "Le partage sur Facebook nécessite un collage manuel.\nLe titre et le contenu de la question ont été copiés dans votre presse-papiers.\nCollez-les dans la boîte de dialogue Facebook (Ctrl+V ou Cmd+V).");
+            PauseTransition delay = new PauseTransition(Duration.seconds(3));
+            delay.setOnFinished(event -> openUrlInBrowser(navUrl));
+            delay.play();
+        } else if (platform.equals("reddit")) {
+            navUrl = "https://www.reddit.com/submit?selftext=true&title=" + encodeURIComponent(shareTitle) + "&text=" + encodeURIComponent(shareContent);
+            Clipboard clipboard = Clipboard.getSystemClipboard();
+            ClipboardContent content = new ClipboardContent();
+            content.putString(shareContent);
+            clipboard.setContent(content);
+            showAlert("Information", "Reddit peut ne pas pré-remplir le champ de contenu.\nLe contenu a été copié dans votre presse-papiers.\nCollez-le dans le champ 'Corps' (Ctrl+V ou Cmd+V) si nécessaire.");
+            PauseTransition delay = new PauseTransition(Duration.seconds(3));
+            delay.setOnFinished(event -> openUrlInBrowser(navUrl));
+            delay.play();
+        }
+    }
+
+    private String encodeURIComponent(String input) {
+        try {
+            return java.net.URLEncoder.encode(input, "UTF-8")
+                    .replace("+", "%20")
+                    .replace("!", "%21")
+                    .replace("'", "%27")
+                    .replace("(", "%28")
+                    .replace(")", "%29")
+                    .replace("~", "%7E")
+                    .replace("\n", "%0A")
+                    .replace("#", "%23")
+                    .replace("&", "%26")
+                    .replace("?", "%3F");
+        } catch (java.io.UnsupportedEncodingException e) {
+            System.err.println("Erreur d'encodage: " + e.getMessage());
+            return input;
+        }
+    }
+
+    private void openUrlInBrowser(String url) {
+        try {
+            java.awt.Desktop.getDesktop().browse(new java.net.URI(url));
+        } catch (Exception e) {
+            showAlert("Erreur", "Impossible d'ouvrir l'URL dans le navigateur:\n" + e.getMessage());
+        }
+    }
+
     private void showReportForm(int reportedUserId, String evidence) {
         Stage reportStage = new Stage();
-        reportStage.setTitle("Report Question");
+        reportStage.setTitle("Signaler la Question");
 
         VBox reportForm = new VBox(10);
         reportForm.setPadding(new Insets(10));
-        reportForm.setStyle("-fx-background-color: #2e2e2e; -fx-border-color: #666; -fx-border-width: 1;");
+        reportForm.setStyle("-fx-background-color: #091221; -fx-border-color: #666; -fx-border-width: 1;");
 
-        Label title = new Label("Report this question");
+        Label title = new Label("Signaler cette question");
         title.setStyle("-fx-text-fill: white; -fx-font-size: 16px;");
 
         ComboBox<ReportReason> reasonComboBox = new ComboBox<>();
         reasonComboBox.getItems().addAll(ReportReason.values());
-        reasonComboBox.setPromptText("Select a reason");
-        reasonComboBox.setStyle("-fx-background-color: #444; -fx-text-fill: white;");
+        reasonComboBox.setPromptText("Sélectionner une raison");
+        reasonComboBox.setStyle("-fx-background-color: #091221; -fx-text-fill: white;");
 
         TextArea evidenceField = new TextArea(evidence);
-        evidenceField.setEditable(false); // Evidence is pre-filled and not editable
+        evidenceField.setEditable(false);
         evidenceField.setWrapText(true);
         evidenceField.setPrefHeight(100);
         evidenceField.setStyle("-fx-control-inner-background: #555; -fx-text-fill: white;");
 
-        Button submitReportButton = new Button("Submit Report");
-        submitReportButton.setStyle("-fx-background-color: #ff4081; -fx-text-fill: white; -fx-font-size: 14px;"); // Match neon pink theme
+        Button submitReportButton = new Button("Soumettre le Signalement");
+        submitReportButton.setStyle("-fx-background-color: #ff4081; -fx-text-fill: white; -fx-font-size: 14px;");
         submitReportButton.setOnAction(event -> {
             ReportReason reason = reasonComboBox.getValue();
             if (reason == null) {
-                showAlert("Erreur", "Please select a reason for the report.");
+                showAlert("Erreur", "Veuillez sélectionner une raison pour le signalement.");
                 return;
             }
 
@@ -235,7 +427,7 @@ public class QuestionCardController {
             executorService.submit(() -> {
                 reportService.addReport(report);
                 Platform.runLater(() -> {
-                    showSuccessAlert("Success", "Report submitted successfully!");
+                    showSuccessAlert("Succès", "Signalement soumis avec succès!");
                     reportStage.close();
                 });
             });
@@ -249,16 +441,45 @@ public class QuestionCardController {
         reportStage.show();
     }
 
-    // Add success alert method
     private void showSuccessAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        Label contentLabel = new Label(message);
+        contentLabel.setWrapText(true);
+        alert.getDialogPane().setContent(contentLabel);
+        alert.getDialogPane().setPrefWidth(400);
         alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
         alert.getDialogPane().getStyleClass().add("gaming-alert");
         alert.showAndWait();
     }
+
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        Label contentLabel = new Label(message);
+        contentLabel.setWrapText(true);
+        alert.getDialogPane().setContent(contentLabel);
+        alert.getDialogPane().setPrefWidth(400);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
+        icon.setFitHeight(80);
+        icon.setFitWidth(80);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
+        alert.showAndWait();
+    }
+
     private void setupBoundsListener() {
         scrollPane = findParentScrollPane(contentVBox);
         if (scrollPane != null) {
@@ -338,7 +559,7 @@ public class QuestionCardController {
                     toggleFullScreen();
                 }
             } catch (Exception e) {
-                System.err.println("Error pausing MediaPlayer: " + e.getMessage());
+                System.err.println("Erreur lors de la pause du MediaPlayer: " + e.getMessage());
             }
         }
     }
@@ -388,7 +609,7 @@ public class QuestionCardController {
                     fullScreenLayout = null;
                 }
             } catch (Exception e) {
-                System.err.println("Error disposing MediaPlayer: " + e.getMessage());
+                System.err.println("Erreur lors de la suppression du MediaPlayer: " + e.getMessage());
             }
         });
 
@@ -400,7 +621,7 @@ public class QuestionCardController {
                         mediaPlayer.dispose();
                         mediaPlayer = null;
                     } catch (Exception e) {
-                        System.err.println("Final cleanup failed: " + e.getMessage());
+                        System.err.println("Échec du nettoyage final: " + e.getMessage());
                     }
                 }
             });
@@ -497,7 +718,7 @@ public class QuestionCardController {
                 String baseDir = "C:\\xampp\\htdocs\\img";
                 File file = new File(baseDir, mediaPath);
                 if (!file.exists()) {
-                    System.err.println("Media file not found: " + file.getAbsolutePath());
+                    System.err.println("Fichier média introuvable: " + file.getAbsolutePath());
                     Platform.runLater(this::resetMediaState);
                     return;
                 }
@@ -509,7 +730,7 @@ public class QuestionCardController {
                     Image image = imageCache.computeIfAbsent(cacheKey, k -> {
                         Image img = new Image(fileUri, originalWidth, originalHeight, true, true);
                         if (img.isError()) {
-                            System.err.println("Failed to cache image: " + file.getAbsolutePath() + " - " + img.getException().getMessage());
+                            System.err.println("Échec de la mise en cache de l'image: " + file.getAbsolutePath() + " - " + img.getException().getMessage());
                         }
                         return img;
                     });
@@ -525,15 +746,15 @@ public class QuestionCardController {
                             mediaContainer.setManaged(true);
                         });
                     } else {
-                        System.err.println("Failed to load image: " + file.getAbsolutePath() + " - " + image.getException());
+                        System.err.println("Échec du chargement de l'image: " + file.getAbsolutePath() + " - " + image.getException());
                         Platform.runLater(() -> {
                             showFallbackMedia();
-                            showAlert("Erreur", "Impossible de charger l'image: " + image.getException().getMessage());
+                            showAlert("Erreur", "Impossible de charger l'image:\n" + image.getException().getMessage());
                         });
                     }
                 } else if ("video".equals(mediaType)) {
                     if (!isValidVideoFormat(file) || !isPlayableVideo(file)) {
-                        System.err.println("Invalid or unplayable video format: " + file.getAbsolutePath());
+                        System.err.println("Format vidéo invalide ou fichier non lisible: " + file.getAbsolutePath());
                         Platform.runLater(() -> {
                             showFallbackMedia();
                             showAlert("Erreur", "Format vidéo non valide ou fichier corrompu.");
@@ -546,17 +767,17 @@ public class QuestionCardController {
                         MediaPlayer player = new MediaPlayer(media);
                         player.setAutoPlay(false);
                         player.setOnError(() -> {
-                            System.err.println("MediaPlayer error for file " + file.getAbsolutePath() + ": " + player.getError().getMessage());
+                            System.err.println("Erreur du MediaPlayer pour le fichier " + file.getAbsolutePath() + ": " + player.getError().getMessage());
                             Platform.runLater(() -> {
                                 showFallbackMedia();
-                                showAlert("Erreur", "Impossible de lire la vidéo: " + player.getError().getMessage());
+                                showAlert("Erreur", "Impossible de lire la vidéo:\n" + player.getError().getMessage());
                             });
                         });
                         player.setOnReady(() -> {
                             double width = player.getMedia().getWidth();
                             double height = player.getMedia().getHeight();
                             if (width <= 0 || height <= 0) {
-                                System.err.println("Invalid media dimensions for file: " + file.getAbsolutePath());
+                                System.err.println("Dimensions média invalides pour le fichier: " + file.getAbsolutePath());
                                 Platform.runLater(this::showFallbackMedia);
                             } else {
                                 player.pause();
@@ -581,11 +802,11 @@ public class QuestionCardController {
                     });
                 }
             } catch (Exception e) {
-                System.err.println("Error loading question media for file " + mediaPath + ": " + e.getMessage());
-                e.printStackTrace(); // Add stack trace for better debugging
+                System.err.println("Erreur lors du chargement du média pour le fichier " + mediaPath + ": " + e.getMessage());
+                e.printStackTrace();
                 Platform.runLater(() -> {
                     showFallbackMedia();
-                    showAlert("Erreur", "Erreur lors du chargement du média: " + e.getMessage());
+                    showAlert("Erreur", "Erreur lors du chargement du média:\n" + e.getMessage());
                 });
             }
         });
@@ -600,12 +821,12 @@ public class QuestionCardController {
         try {
             Media media = new Media(file.toURI().toString());
             MediaPlayer testPlayer = new MediaPlayer(media);
-            testPlayer.setOnError(() -> { throw new RuntimeException("Invalid media"); });
+            testPlayer.setOnError(() -> { throw new RuntimeException("Média invalide"); });
             Thread.sleep(100);
             testPlayer.dispose();
             return true;
         } catch (Exception e) {
-            System.err.println("Video is not playable: " + file.getAbsolutePath() + " - " + e.getMessage());
+            System.err.println("La vidéo n'est pas lisible: " + file.getAbsolutePath() + " - " + e.getMessage());
             return false;
         }
     }
@@ -623,7 +844,7 @@ public class QuestionCardController {
             mediaContainer.setVisible(true);
             mediaContainer.setManaged(true);
         } else {
-            System.err.println("Failed to load fallback image: " + fallbackImage.getException());
+            System.err.println("Échec du chargement de l'image de secours: " + fallbackImage.getException());
             resetMediaState();
         }
     }
@@ -663,7 +884,7 @@ public class QuestionCardController {
                     mediaPlayer.setMute(false);
                     volumeSlider.setValue(savedVolume * 100);
                 } catch (Exception e) {
-                    System.err.println("Error playing MediaPlayer: " + e.getMessage());
+                    System.err.println("Erreur lors de la lecture du MediaPlayer: " + e.getMessage());
                 }
             }
         });
@@ -754,7 +975,7 @@ public class QuestionCardController {
             Scene fullScreenScene = new Scene(fullScreenLayout, screenWidth, screenHeight);
             URL cssResource = getClass().getResource("/forumUI/forum.css");
             if (cssResource != null) fullScreenScene.getStylesheets().add(cssResource.toExternalForm());
-            else System.err.println("Failed to load stylesheet: /forumUI/forum.css");
+            else System.err.println("Échec du chargement de la feuille de style: /forumUI/forum.css");
             stage.setScene(fullScreenScene);
 
             double videoWidth = mediaPlayer.getMedia().getWidth();
@@ -903,7 +1124,7 @@ public class QuestionCardController {
 
                     reactionBox.getChildren().addAll(emojiIcon, countLabel);
                 } else {
-                    System.err.println("Failed to load reaction emoji for URL: " + emojiUrl + " - " + emojiImage.getException());
+                    System.err.println("Échec du chargement de l'emoji de réaction pour l'URL: " + emojiUrl + " - " + emojiImage.getException());
                     Label fallbackLabel = new Label(getEmojiNameFromUrl(emojiUrl) + " " + count);
                     fallbackLabel.getStyleClass().add("reaction-label");
                     reactionContainer.getChildren().add(fallbackLabel);
@@ -924,30 +1145,30 @@ public class QuestionCardController {
         if (url.contains("twemoji")) {
             String hexcode = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf(".")).replace("72x72_", "");
             return switch (hexcode.toLowerCase()) {
-                case "1f44d" -> "Like";
-                case "2764" -> "Love";
+                case "1f44d" -> "J'aime";
+                case "2764" -> "Amour";
                 case "1f602" -> "Haha";
-                case "1f62e" -> "Sad";
-                case "1f620" -> "Angry";
+                case "1f62e" -> "Triste";
+                case "1f620" -> "En colère";
                 case "1f60d" -> "Wow";
-                case "1f44f" -> "Applause";
-                case "1f525" -> "Fire";
+                case "1f44f" -> "Applaudissements";
+                case "1f525" -> "Feu";
                 case "1f4af" -> "100";
-                case "1f389" -> "Party";
+                case "1f389" -> "Fête";
                 case "1f44c" -> "OK";
-                case "1f499" -> "Blue Heart";
+                case "1f499" -> "Cœur bleu";
                 case "1f60a" -> "Cool";
-                case "1f4a9" -> "Poop";
-                case "1f680" -> "Rocket";
-                case "1f3c6" -> "Trophy";
-                case "1f381" -> "Gift";
-                case "1f3ae" -> "Game";
-                case "1f3b2" -> "Die";
+                case "1f4a9" -> "Caca";
+                case "1f680" -> "Fusée";
+                case "1f3c6" -> "Trophée";
+                case "1f381" -> "Cadeau";
+                case "1f3ae" -> "Jeu";
+                case "1f3b2" -> "Dé";
                 case "1f4a5" -> "Collision";
-                case "1f64f" -> "Pray";
-                case "1f3c3" -> "Runner";
-                case "1f451" -> "Crown";
-                case "1f3b0" -> "Slots";
+                case "1f64f" -> "Prier";
+                case "1f3c3" -> "Coureur";
+                case "1f451" -> "Couronne";
+                case "1f3b0" -> "Machines à sous";
                 default -> hexcode;
             };
         }
@@ -962,7 +1183,7 @@ public class QuestionCardController {
                 if (!emojiImage.isError()) {
                     selectedEmojiImage.setImage(emojiImage);
                 } else {
-                    System.err.println("Failed to load selected emoji: " + userReaction + " - " + emojiImage.getException());
+                    System.err.println("Échec du chargement de l'emoji sélectionné: " + userReaction + " - " + emojiImage.getException());
                     selectedEmojiImage.setImage(null);
                 }
             } else {
@@ -1034,7 +1255,7 @@ public class QuestionCardController {
                     popup.setAutoHide(true);
                 });
             } catch (Exception e) {
-                System.err.println("Failed to load emojis: " + e.getMessage());
+                System.err.println("Échec du chargement des emojis: " + e.getMessage());
                 Platform.runLater(() -> {
                     String[] fallbackPaths = {
                             "/forumUI/icons/like.png", "/forumUI/icons/love.png", "/forumUI/icons/haha.png", "/forumUI/icons/wow.png",
@@ -1097,24 +1318,27 @@ public class QuestionCardController {
     private void setGameIcon(String gameName) {
         Games game = gamesService.getByName(gameName);
         if (game != null && game.getImagePath() != null && !game.getImagePath().isEmpty()) {
-            File file = new File(game.getImagePath());
+            String fullImagePath = IMAGE_BASE_DIR + game.getImagePath();
+            File file = new File(fullImagePath);
             if (file.exists()) {
                 String cacheKey = game.getImagePath();
                 Image image = imageCache.computeIfAbsent(cacheKey, k -> {
                     Image img = new Image(file.toURI().toString(), 100, 100, true, true);
                     if (img.isError()) {
-                        System.err.println("Failed to load game image: " + game.getImagePath() + " - " + img.getException());
+                        System.err.println("Échec du chargement de l'image du jeu: " + fullImagePath + " - " + img.getException());
                     }
                     return img;
                 });
                 if (!image.isError()) {
                     gameIcon.setImage(image);
                 } else {
-                    System.err.println("Failed to load game image: " + game.getImagePath());
+                    System.err.println("Échec du chargement de l'image du jeu: " + fullImagePath + " - " + image.getException());
                 }
             } else {
-                System.out.println("Game image file not found: " + game.getImagePath());
+                System.err.println("Fichier image du jeu introuvable à: " + fullImagePath);
             }
+        } else {
+            System.err.println("Jeu ou chemin d'image null/vide pour le jeu: " + gameName);
         }
     }
 
@@ -1128,29 +1352,7 @@ public class QuestionCardController {
             stage.setScene(new Scene(root));
         } catch (IOException e) {
             e.printStackTrace();
+            showAlert("Erreur", "Impossible d'ouvrir les détails de la question:\n" + e.getMessage());
         }
-    }
-
-    private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.NONE);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-
-        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
-        icon.setFitHeight(80);
-        icon.setFitWidth(80);
-        alert.setGraphic(icon);
-
-        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
-        alert.getDialogPane().getStyleClass().add("gaming-alert");
-
-        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toString()));
-
-        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
-        alert.getButtonTypes().setAll(okButton);
-
-        alert.showAndWait();
     }
 }

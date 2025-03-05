@@ -34,6 +34,7 @@ import java.util.ResourceBundle;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class ForumController implements Initializable {
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool();
@@ -56,10 +57,9 @@ public class ForumController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        if (SessionManager.getInstance().getRole() == Role.ADMIN) loadAdminSidebarAsync();
+       // if (SessionManager.getInstance().getRole() == Role.ADMIN) loadAdminSidebarAsync();
         loadQuestionsLazy();
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterQuestionsRealTime(newVal));
-        setupFloatingAnimation();
         EventBus.getInstance().addHandler(event -> {
             CompletableFuture.supplyAsync(() -> us.getOne(event.getUserId()), EXECUTOR_SERVICE)
                     .thenAcceptAsync(user -> {
@@ -73,33 +73,7 @@ public class ForumController implements Initializable {
                     }, Platform::runLater);
         });
     }
-    private void setupFloatingAnimation() {
-        applyFloatingAnimation(addQuestionButton);
-        applyFloatingAnimation(navigateToQuestionFormButton);
-    }
 
-    private void applyFloatingAnimation(Button button) {
-        TranslateTransition floatTransition = new TranslateTransition(Duration.seconds(2), button);
-        floatTransition.setFromY(0);
-        floatTransition.setToY(-10); // Move up by 10 pixels
-        floatTransition.setCycleCount(TranslateTransition.INDEFINITE);
-        floatTransition.setAutoReverse(true); // Reverse for smooth up-and-down float
-        floatTransition.setRate(1.0); // Steady pace
-        floatTransition.play();
-    }
-    private void loadAdminSidebarAsync() {
-        CompletableFuture.supplyAsync(() -> {
-            try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/sidebarAdmin.fxml"));
-                return loader.load();
-            } catch (IOException e) {
-                System.err.println("Error loading admin sidebar: " + e.getMessage());
-                return null;
-            }
-        }, EXECUTOR_SERVICE).thenAcceptAsync(sidebar -> {
-            if (sidebar != null) mainLayout.setLeft((Node) sidebar);
-        }, Platform::runLater);
-    }
 
     public void loadQuestionsLazy() {
         CompletableFuture.supplyAsync(questionService::getAll, EXECUTOR_SERVICE)
@@ -115,12 +89,35 @@ public class ForumController implements Initializable {
     private void filterQuestionsRealTime(String searchText) {
         String query = searchText.trim().toLowerCase();
         Platform.runLater(() -> {
+            Map<Question, Parent> filteredCards = questionCardMap.entrySet().stream()
+                    .filter(entry -> {
+                        Question question = entry.getKey();
+                        String gameName = question.getGame() != null && question.getGame().getGame_name() != null
+                                ? question.getGame().getGame_name().toLowerCase()
+                                : "";
+                        String gameType = question.getGame() != null && question.getGame().getGameType() != null
+                                ? question.getGame().getGameType().toLowerCase()
+                                : "";
+                        String title = question.getTitle() != null ? question.getTitle().toLowerCase() : "";
+                        String content = question.getContent() != null ? question.getContent().toLowerCase() : "";
+                        String authorNickname = question.getUser() != null && question.getUser().getNickname() != null
+                                ? question.getUser().getNickname().toLowerCase()
+                                : "";
+                        return query.isEmpty() ||
+                                gameName.contains(query) ||
+                                gameType.contains(query) ||
+                                title.contains(query) ||
+                                content.contains(query) ||
+                                authorNickname.contains(query);
+                    })
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
             questionCardMap.forEach((question, card) -> {
-                String gameName = question.getGame().getGame_name() != null ? question.getGame().getGame_name().toLowerCase() : "";
-                boolean matches = query.isEmpty() || gameName.contains(query);
+                boolean matches = filteredCards.containsKey(question);
                 card.setVisible(matches);
                 card.setManaged(matches);
             });
+
             questionCardContainer.requestLayout();
         });
     }
@@ -269,7 +266,7 @@ public class ForumController implements Initializable {
                             if (user != null) Platform.runLater(() -> controller.updatePrivilegeUI(user));
                         }
                     });
-            loadQuestionsLazy(); // Ensure full consistency
+            loadQuestionsLazy();
         }, EXECUTOR_SERVICE);
     }
 

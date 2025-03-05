@@ -28,14 +28,13 @@ public class AddGameController {
     @FXML
     private Button uploadImageButton;
 
-    private String imagePath;
+    private String imageFileName;
 
     @FXML
     public void initialize() {
-        // Populate game type options
-        if (gameTypeComboBox != null) { // Add null check
+        if (gameTypeComboBox != null) {
             gameTypeComboBox.getItems().addAll("FPS", "Hero Shooter", "Third Person Shooter", "Sports", "Other");
-            gameTypeComboBox.setValue("Other"); // Default value
+            gameTypeComboBox.setValue("Other");
         } else {
             System.err.println("gameTypeComboBox is null in AddGameController. Check FXML injection.");
         }
@@ -62,7 +61,8 @@ public class AddGameController {
                 Path targetPath = destinationPath.resolve(fileName);
                 Files.copy(selectedFile.toPath(), targetPath);
 
-                imagePath = targetPath.toString();
+                imageFileName = fileName;
+
                 Image image = new Image(selectedFile.toURI().toString(), 200, 150, true, true);
                 gameImageView.setImage(image);
                 showSuccessAlert("Succès", "Image uploaded successfully!");
@@ -83,7 +83,7 @@ public class AddGameController {
             return;
         }
 
-        Games newGame = new Games(gameName, imagePath, gameType);
+        Games newGame = new Games(gameName, imageFileName, gameType);
         gamesService.add(newGame);
         showSuccessAlert("Succès", "Game added successfully!");
         clearForm();
@@ -91,13 +91,14 @@ public class AddGameController {
 
     private void clearForm() {
         gameNameField.clear();
-        if (gameTypeComboBox != null) { // Add null check
+        if (gameTypeComboBox != null) {
             gameTypeComboBox.setValue("Other");
         }
         gameImageView.setImage(null);
-        imagePath = null;
+        imageFileName = null; // Reset to null
     }
 
+    // showAlert and showSuccessAlert methods remain unchanged
     private void showAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle(title);

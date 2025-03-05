@@ -14,14 +14,14 @@ public class Main {
         UtilisateurService us = new UtilisateurService();
 
 
-        Utilisateur u1 =new Coach(
+       /* Utilisateur u1 =new Coach(
                 "luffy@gmail.com",
                 "luffy@1235",
                 "mugiwara",
                 "luffy",
                 69696969,
                 ".D",
-                Role.CLIENT);
+                Role.CLIENT);*/
 
        //us.updatePassword("luffy@gmail.com","luffy@1235");
        // System.out.println(us.getByEmail("luffy@gmail.com"));

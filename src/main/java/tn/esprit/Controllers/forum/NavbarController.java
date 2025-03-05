@@ -74,7 +74,7 @@ public class NavbarController implements Initializable {
     private void navigateTo(String page) {
         try {
             System.out.println("Navigating to: " + page);
-            QuestionCardController.stopAllVideos(); // Stop all videos before navigating
+            QuestionCardController.stopAllVideos();
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/" + page + ".fxml"));
             Parent root = loader.load();
