@@ -31,18 +31,6 @@
     -fx-font-size: 14px;
 }
 
-/* Search bar */
-.search-bar {
-    -fx-background-color: black;
-    -fx-text-fill: white;
-    -fx-prompt-text-fill: grey;
-    -fx-border-color: transparent;
-    -fx-border-radius: 20;
-    -fx-padding: 5 15;
-    -fx-min-width: 150px;
-    -fx-pref-width: 25%;
-}
-
 /* Navigation buttons */
 .nav-button {
     -fx-background-color: transparent;
