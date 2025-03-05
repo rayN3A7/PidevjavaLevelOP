@@ -253,19 +253,19 @@ public class QuestionService implements IService<Question> {
             throw new SecurityException("Vous n'avez pas la permission de modifier cette question.");
         }
 
-        String query = "UPDATE Questions SET title = ?, content = ?, Votes = ?, media_path = ?, media_type = ? WHERE question_id = ?";
+        String query = "UPDATE Questions SET title = ?, content = ?, game_id = ?, Votes = ?, media_path = ?, media_type = ? WHERE question_id = ?";
         try (PreparedStatement ps = connexion.prepareStatement(query)) {
             ps.setString(1, question.getTitle());
             ps.setString(2, question.getContent());
-            ps.setInt(3, question.getVotes());
-            ps.setString(4, question.getMediaPath());
-            ps.setString(5, question.getMediaType());
-            ps.setInt(6, question.getQuestion_id());
+            ps.setInt(3, question.getGame().getGame_id()); // Update the game_id
+            ps.setInt(4, question.getVotes());
+            ps.setString(5, question.getMediaPath());
+            ps.setString(6, question.getMediaType());
+            ps.setInt(7, question.getQuestion_id());
             ps.executeUpdate();
 
             // Trigger privilege update for the user who updated the question
             us.updateUserPrivilege(userId);
-
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update question: " + e.getMessage(), e);
         }

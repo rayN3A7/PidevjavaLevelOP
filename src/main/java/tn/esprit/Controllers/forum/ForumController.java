@@ -45,7 +45,7 @@ public class ForumController implements Initializable {
     private static final String ALERT_CSS = "/forumUI/alert.css";
     private static final String ALERT_ICON = "/forumUI/icons/alert.png";
     private static final String SUCCESS_ICON = "/forumUI/icons/sucessalert.png";
-    private static final int QUESTIONS_PER_PAGE = 1;
+    private static final int QUESTIONS_PER_PAGE = 5;
     @FXML private VBox trendingPostsContainer;
     @FXML private VBox questionCardContainer;
     @FXML private Button addQuestionButton;

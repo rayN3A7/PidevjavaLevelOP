@@ -66,7 +66,7 @@
                 <children>
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <Label styleClass="section-title" text="Questions Populaires" />
-                        <Button text="VOIR TOUS" styleClass="voir-tous-button"/>
+                        <Button text="VOIR TOUS" styleClass="voir-tous-button" onAction="#navigateToForum"/>
                     </HBox>
                     <StackPane fx:id="carouselContainer" style="-fx-padding: 20;">
                         <HBox fx:id="questionCarousel" spacing="20" alignment="CENTER">

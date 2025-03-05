@@ -221,6 +221,30 @@ public class HomeController {
             alert.showAndWait();
         }
     }
+    @FXML
+    private void navigateToForum(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/Forum.fxml"));
+            if (loader.getLocation() == null) {
+                LOGGER.error("Forum.fxml not found at /forumUI/Forum.fxml");
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Forum page not found.");
+                return;
+            }
+
+            Parent root = loader.load();
+            Scene forumScene = new Scene(root);
+
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(forumScene);
+            stage.show();
+
+            LOGGER.info("Successfully navigated to Forum.fxml");
+        } catch (IOException e) {
+            LOGGER.error("Error loading Forum.fxml: " + e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible de charger la page du forum : " + e.getMessage());
+        }
+    }
+
     private void loadTopQuestions() {
         LOGGER.info("Loading top questions...");
         topQuestions = questionService.getAll();
