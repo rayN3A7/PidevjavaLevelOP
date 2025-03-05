@@ -18,13 +18,9 @@ import tn.esprit.Services.Evenement.CategorieEvService;
 import tn.esprit.Services.Evenement.EvenementService;
 
 import java.io.IOException;
-import java.net.URL;
-import java.sql.Date;
-import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ResourceBundle;
 
 public class AjouterEvenementController {
     EvenementService es = new EvenementService();
@@ -136,7 +132,7 @@ public class AjouterEvenementController {
     }
     @FXML
     public void ButtonListeEvenement(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/ListEvenement.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/ListeEvenementAdmin.fxml"));
         Parent signInRoot = loader.load();
         Scene signInScene = new Scene(signInRoot);
 

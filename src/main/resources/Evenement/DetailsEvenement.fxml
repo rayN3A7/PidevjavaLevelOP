@@ -16,7 +16,7 @@
             <!-- Header -->
             <fx:include source="/forumUI/navbar.fxml"/>
 
-            <VBox spacing="20" styleClass="content-container" GridPane.rowIndex="1">
+            <VBox spacing="20" styleClass="content-container" GridPane.rowIndex="1" fx:id="hbox">
                 <padding>
                     <Insets top="20" right="30" bottom="20" left="30"/>
                 </padding>
@@ -67,11 +67,12 @@
                                     <Label fx:id="eventNBPLabel" styleClass="info-value"/>
                                 </VBox>
                             </HBox>
-
+                            <HBox alignment="CENTER">
+                                <ImageView fx:id="qrCodeImageView" fitWidth="150" fitHeight="150"/>
+                            </HBox>
                             <Button text="Réserver maintenant" fx:id="reserverButton" onAction="#reserverPlace"
                                     styleClass="book-button" maxWidth="Infinity"/>
-                            <Button text="Exporter en PDF" fx:id="exportPDFButton" onAction="#exporterPDF"
-                                    styleClass="export-button" maxWidth="Infinity"/>
+
 
                         </VBox>
                     </HBox>

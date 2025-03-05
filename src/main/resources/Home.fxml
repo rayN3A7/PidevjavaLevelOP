@@ -4,13 +4,13 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="735.0" prefWidth="768.0"
@@ -18,146 +18,236 @@
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="tn.esprit.Controllers.HomeController">
 
-    <GridPane prefHeight="441.0" prefWidth="767.0" maxWidth="Infinity" maxHeight="Infinity"
-              style="-fx-background-color: linear-gradient(to bottom, rgba(30, 30, 46, 0.7), rgba(42, 44, 62, 0.7));
-"
+    <GridPane prefHeight="2000.0" prefWidth="767.0" maxWidth="Infinity" maxHeight="Infinity"
               styleClass="gradient-background">
+
         <children>
 
             <!-- Header -->
-            <fx:include source="/forumUI/navbar.fxml"/>
+            <fx:include source="/forumUI/navbar.fxml" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+
             <!-- Section Bannière -->
-            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="banner" GridPane.columnIndex="0" GridPane.rowIndex="1">
+            <HBox alignment="CENTER_LEFT" spacing="40" styleClass="banner" GridPane.columnIndex="0" GridPane.rowIndex="1">
                 <children>
-                    <VBox spacing="10">
+                    <VBox spacing="30" style="-fx-padding: 60 0 60 40;">
                         <children>
-                            <Label styleClass="title" text="Bienvenue" />
-                            <Label styleClass="title2" text="au paradis des joueurs" />
-                            <Label styleClass="subtitle" text="Dans notre paradis des joueurs, vous pouvez trouver des solutions..." />
+                            <Label fx:id="titleLabel" styleClass="title" text="Bienvenue" />
+                            <Label fx:id="title2Label" styleClass="title2" text="au paradis des joueurs" />
+                            <Label styleClass="subtitle" text="Plongez dans un univers de gaming !" />
                         </children>
                     </VBox>
-                    <ImageView fitHeight="200" fitWidth="200">
+                    <ImageView fitHeight="350" fitWidth="350">
                         <image>
-                            <Image url="@assets/image/image.png" />
+                            <Image url="@assets/image/jinx.png" />
                         </image>
                     </ImageView>
                 </children>
             </HBox>
 
+            <!-- Delimiter -->
+            <HBox styleClass="delimiter" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+
             <!-- Section Événements -->
-            <VBox styleClass="section" GridPane.columnIndex="0" GridPane.rowIndex="2">
+            <VBox styleClass="section-events" GridPane.columnIndex="0" GridPane.rowIndex="3">
                 <children>
-                    <Label styleClass="section-title" text="Événements en cours" />
-                    <HBox spacing="10">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label styleClass="section-title" text="Événements en cours" />
+                        <Button text="VOIR TOUS" styleClass="voir-tous-button"/>
+                    </HBox>
+                    <HBox spacing="20" style="-fx-padding: 20;" alignment="CENTER">
                         <children>
-                            <ImageView fitHeight="100" fitWidth="100">
-                                <image>
-                                    <Image url="@assets/image/eventgaming.jpg" />
-                                </image>
-                            </ImageView>
-                            <ImageView fitHeight="100" fitWidth="100">
-                                <image>
-                                    <Image url="@assets/image/event2.jpg" />
-                                </image>
-                            </ImageView>
+                            <VBox styleClass="event-card">
+                                <ImageView fitHeight="200" fitWidth="250">
+                                    <image>
+                                        <Image url="@assets/image/event1.png" />
+                                    </image>
+                                </ImageView>
+                                <Label styleClass="event-title" text="Tournoi Valorant" />
+                            </VBox>
+                            <VBox styleClass="event-card">
+                                <ImageView fitHeight="200" fitWidth="250">
+                                    <image>
+                                        <Image url="@assets/image/event2.jpg" />
+                                    </image>
+                                </ImageView>
+                                <Label styleClass="event-title" text="Apex Legends Clash" />
+                            </VBox>
+                            <VBox styleClass="event-card">
+                                <ImageView fitHeight="200" fitWidth="250">
+                                    <image>
+                                        <Image url="@assets/image/event3.png" />
+                                    </image>
+                                </ImageView>
+                                <Label styleClass="event-title" text="CS:GO Championship" />
+                            </VBox>
                         </children>
                     </HBox>
                 </children>
             </VBox>
 
-            <!-- Section Forums -->
-            <VBox styleClass="forum-section" GridPane.columnIndex="0" GridPane.rowIndex="3">
+            <!-- Delimiter -->
+            <HBox styleClass="delimiter" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+
+            <!-- Section Principaux forums (Modern Carousel) -->
+            <VBox styleClass="forum-section" GridPane.columnIndex="0" GridPane.rowIndex="5">
                 <children>
-                    <Label styleClass="section-title" text="Principaux forums" />
-                    <HBox spacing="10">
-                        <children>
-                            <ImageView fitHeight="100" fitWidth="100">
-                                <image>
-                                    <Image url="@assets/image/ForumLol.jpg" />
-                                </image>
-                            </ImageView>
-                            <ImageView fitHeight="100" fitWidth="100">
-                                <image>
-                                    <Image url="@assets/image/cs2.jpg" />
-                                </image>
-                            </ImageView>
-                        </children>
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label styleClass="section-title" text="Questions Populaires" />
+                        <Button text="VOIR TOUS" styleClass="voir-tous-button"/>
+                    </HBox>
+                    <StackPane fx:id="carouselContainer" style="-fx-padding: 20;">
+                        <HBox fx:id="questionCarousel" spacing="20" alignment="CENTER">
+                            <!-- Carousel items will be added dynamically -->
+                        </HBox>
+                        <HBox fx:id="carouselIndicators" alignment="CENTER" style="-fx-padding: 10 0;" StackPane.alignment="BOTTOM_CENTER"/>
+                    </StackPane>
+                    <HBox spacing="10" alignment="CENTER" style="-fx-padding: 10 0;">
+                        <Button fx:id="prevButton" styleClass="carousel-button" text="◄" onAction="#previousQuestion"/>
+                        <Button fx:id="nextButton" styleClass="carousel-button" text="►" onAction="#nextQuestion"/>
                     </HBox>
                 </children>
             </VBox>
+
+            <!-- Delimiter -->
+            <HBox styleClass="delimiter" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
 
             <!-- Section Entraîneurs -->
-            <VBox styleClass="trainer-section" GridPane.columnIndex="0" GridPane.rowIndex="4">
+            <VBox styleClass="trainer-section" GridPane.columnIndex="0" GridPane.rowIndex="7">
                 <children>
-                    <Label styleClass="section-title" text="Meilleurs entraîneurs" />
-                    <HBox spacing="10">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label styleClass="section-title" text="Meilleurs entraîneurs" />
+                        <Button text="VOIR TOUS" styleClass="voir-tous-button"/>
+                    </HBox>
+                    <HBox spacing="20" style="-fx-padding: 20;" alignment="CENTER">
                         <children>
-                            <ImageView fitHeight="100" fitWidth="100">
-                                <image>
-                                    <Image url="@assets/image/coach1.png" />
-                                </image>
-                            </ImageView>
-                            <ImageView fitHeight="100" fitWidth="100">
-                                <image>
-                                    <Image url="@assets/image/coach1.png" />
-                                </image>
-                            </ImageView>
+                            <VBox styleClass="trainer-card">
+                                <ImageView fitHeight="200" fitWidth="200">
+                                    <image>
+                                        <Image url="@assets/image/coach1.png" />
+                                    </image>
+                                </ImageView>
+                            </VBox>
+                            <VBox styleClass="trainer-card">
+                                <ImageView fitHeight="200" fitWidth="200">
+                                    <image>
+                                        <Image url="@assets/image/coach1.png" />
+                                    </image>
+                                </ImageView>
+                            </VBox>
+                            <VBox styleClass="trainer-card">
+                                <ImageView fitHeight="200" fitWidth="200">
+                                    <image>
+                                        <Image url="@assets/image/coach1.png" />
+                                    </image>
+                                </ImageView>
+                            </VBox>
+                            <VBox styleClass="trainer-card">
+                                <ImageView fitHeight="200" fitWidth="200">
+                                    <image>
+                                        <Image url="@assets/image/coach1.png" />
+                                    </image>
+                                </ImageView>
+                            </VBox>
                         </children>
                     </HBox>
                 </children>
             </VBox>
+
+            <!-- Delimiter -->
+            <HBox styleClass="delimiter" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
 
             <!-- Section Produits -->
-            <VBox styleClass="section-produits" GridPane.columnIndex="0" GridPane.rowIndex="5">
+            <VBox styleClass="section-produits" GridPane.columnIndex="0" GridPane.rowIndex="9">
                 <children>
-                    <Label styleClass="section-title" text="Produits en soldes" />
-                    <HBox spacing="10">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label styleClass="section-title" text="Produits en soldes" />
+                        <Button text="VOIR TOUS" styleClass="voir-tous-button"/>
+                    </HBox>
+                    <HBox spacing="20" style="-fx-padding: 20;" alignment="CENTER">
                         <children>
-                            <ImageView fitHeight="100" fitWidth="100">
-                                <image>
-                                    <Image url="@assets/image/cardValorant.jpg" />
-                                </image>
-                            </ImageView>
-                            <ImageView fitHeight="100" fitWidth="100">
-                                <image>
-                                    <Image url="@assets/image/steam.jpg" />
-                                </image>
-                            </ImageView>
+                            <VBox styleClass="product-card">
+                                <ImageView fitHeight="200" fitWidth="140">
+                                    <image>
+                                        <Image url="@assets/image/cardValorant.jpg" />
+                                    </image>
+                                </ImageView>
+                                <Label styleClass="product-name" text="League of Legends" />
+                                <Label styleClass="product-price" text="25€" />
+                            </VBox>
+                            <VBox styleClass="product-card">
+                                <ImageView fitHeight="200" fitWidth="140">
+                                    <image>
+                                        <Image url="@assets/image/cardValorant.jpg" />
+                                    </image>
+                                </ImageView>
+                                <Label styleClass="product-name" text="Apex Legends" />
+                                <Label styleClass="product-price" text="20€" />
+                            </VBox>
+                            <VBox styleClass="product-card">
+                                <ImageView fitHeight="200" fitWidth="140">
+                                    <image>
+                                        <Image url="@assets/image/cardValorant.jpg" />
+                                    </image>
+                                </ImageView>
+                                <Label styleClass="product-name" text="Counter Strike" />
+                                <Label styleClass="product-price" text="15€" />
+                            </VBox>
+                            <VBox styleClass="product-card">
+                                <ImageView fitHeight="200" fitWidth="140">
+                                    <image>
+                                        <Image url="@assets/image/steam.jpg" />
+                                    </image>
+                                </ImageView>
+                                <Label styleClass="product-name" text="World of Warcraft" />
+                                <Label styleClass="product-price" text="40€" />
+                            </VBox>
                         </children>
                     </HBox>
                 </children>
             </VBox>
 
+            <!-- Delimiter -->
+            <HBox styleClass="delimiter" GridPane.columnIndex="0" GridPane.rowIndex="10"/>
+
             <!-- Footer -->
-            <HBox alignment="CENTER" styleClass="footer" GridPane.columnIndex="0" GridPane.rowIndex="6">
+            <HBox alignment="CENTER" styleClass="footer" GridPane.columnIndex="0" GridPane.rowIndex="11">
                 <children>
-                    <Label styleClass="footer-text" text="© 2025 LEVEL UP - Tous droits réservés" />
+                    <VBox style="-fx-padding: 40;" spacing="10" alignment="CENTER">
+                        <Label styleClass="footer-text" text="LEVEL UP" style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+                        <Label styleClass="footer-text" text="© 2025 LEVEL UP - Tous droits réservés" />
+                    </VBox>
                 </children>
-                <Button fx:id="chatbotButton" onAction="#openChatbotDialog" styleClass="chatbot-btn">
-                    <graphic>
-                        <ImageView fitHeight="30" fitWidth="30">
-                            <image>
-                                <Image url="@assets/image/chatbot-icon.png" />
-                            </image>
-                        </ImageView>
-                    </graphic>
-                </Button>
             </HBox>
+
+            <!-- Chatbot Button -->
+            <Button fx:id="chatbotButton" onAction="#openChatbotDialog" styleClass="chatbot-btn" GridPane.columnIndex="0" GridPane.rowIndex="11" GridPane.halignment="RIGHT" GridPane.valignment="BOTTOM">
+                <graphic>
+                    <ImageView fitHeight="50" fitWidth="50">
+                        <image>
+                            <Image url="@assets/image/chatbot-icon.png" />
+                        </image>
+                    </ImageView>
+                </graphic>
+            </Button>
 
         </children>
 
-        <!-- Permet le redimensionnement -->
         <columnConstraints>
             <ColumnConstraints hgrow="ALWAYS"/>
         </columnConstraints>
         <rowConstraints>
-            <RowConstraints vgrow="ALWAYS"/>
-            <RowConstraints vgrow="ALWAYS"/>
-            <RowConstraints vgrow="ALWAYS"/>
-            <RowConstraints vgrow="ALWAYS"/>
-            <RowConstraints vgrow="ALWAYS"/>
-            <RowConstraints vgrow="ALWAYS"/>
-            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints vgrow="NEVER"/> <!-- Navbar -->
+            <RowConstraints vgrow="ALWAYS" prefHeight="500"/> <!-- Banner -->
+            <RowConstraints vgrow="NEVER" prefHeight="10"/> <!-- Delimiter -->
+            <RowConstraints vgrow="ALWAYS" prefHeight="500"/> <!-- Events -->
+            <RowConstraints vgrow="NEVER" prefHeight="10"/> <!-- Delimiter -->
+            <RowConstraints vgrow="ALWAYS" prefHeight="500"/> <!-- Forums -->
+            <RowConstraints vgrow="NEVER" prefHeight="10"/> <!-- Delimiter -->
+            <RowConstraints vgrow="ALWAYS" prefHeight="500"/> <!-- Trainers -->
+            <RowConstraints vgrow="NEVER" prefHeight="10"/> <!-- Delimiter -->
+            <RowConstraints vgrow="ALWAYS" prefHeight="500"/> <!-- Products -->
+            <RowConstraints vgrow="NEVER" prefHeight="10"/> <!-- Delimiter -->
+            <RowConstraints vgrow="ALWAYS" prefHeight="200"/> <!-- Footer -->
         </rowConstraints>
 
     </GridPane>

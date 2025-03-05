@@ -26,10 +26,10 @@
             </HBox>
 
             <!-- Liste des Sessions -->
-            <ScrollPane fitToWidth="true" 
-                       style="-fx-background-color: transparent;
+            <ScrollPane fitToWidth="true"
+                        style="-fx-background-color: transparent;
                               -fx-background: transparent;">
-                <VBox fx:id="mySessionsContainer" 
+                <VBox fx:id="mySessionsContainer"
                       spacing="15"
                       style="-fx-background-color: #0D1D36;
                              -fx-padding: 30;
@@ -50,4 +50,4 @@
             </HBox>
         </VBox>
     </center>
-</BorderPane> 
+</BorderPane>

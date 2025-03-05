@@ -20,7 +20,7 @@
     <HBox AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
         AnchorPane.topAnchor="0.0">
         <!-- Include Sidebar -->
-        <fx:include source="SideBar.fxml" />
+        <fx:include source="/sidebarAdmin.fxml" />
 
         <!-- Main Content Area -->
         <VBox styleClass="main-content" HBox.hgrow="ALWAYS">

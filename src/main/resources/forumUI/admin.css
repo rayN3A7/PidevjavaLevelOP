@@ -1,0 +1,109 @@
+/* Base styles */
+.root {
+    -fx-background-color: #091221;
+}
+
+.label {
+    -fx-text-fill: white;
+}
+
+.button {
+    -fx-background-color: #ff007f;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 8 16;
+}
+
+.button:hover {
+    -fx-background-color: #cc0066;
+}
+
+.vbox {
+    -fx-background-color: #1e2a38;
+    -fx-border-color: #ff007f;
+    -fx-border-width: 1;
+}
+
+/* Admin Dashboard specific styles */
+.dashboard {
+    -fx-background-color: #091221; /* Overall background */
+}
+
+.dashboard-content {
+    -fx-background-color: #091221; /* Inner content background */
+}
+
+.dashboard-header {
+    -fx-background-color: #091221; /* Header background */
+    -fx-text-fill: white; /* Default text color for children */
+}
+
+.dashboard-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+.dashboard-button {
+    -fx-background-color: #ff007f;
+    -fx-text-fill: white;
+    -fx-padding: 5 15; /* Matches original inline padding */
+}
+
+.dashboard-button:hover {
+    -fx-background-color: #cc0066; /* Consistent hover effect */
+}
+
+.games-scroll {
+    -fx-background-color: #091221; /* ScrollPane background */
+}
+
+.games-flow {
+    -fx-background-color: #091221; /* FlowPane background */
+}
+
+.games-list-label {
+    -fx-font-size: 30px;
+    -fx-font-weight: bold;
+    -fx-text-fill: white;
+}
+
+
+
+/* ComboBox styles (unchanged) */
+.combo-box {
+    -fx-background-color: #091221;
+    -fx-border-color: #ff007f;
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+    -fx-padding: 10;
+}
+
+.combo-box .text {
+    -fx-fill: #aaaaaa;
+}
+
+.combo-box .arrow {
+    -fx-background-color: #ff007f;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: #091221;
+    -fx-border-color: #ff007f;
+}
+
+.combo-box-popup .list-cell {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-background-color: #091221;
+}
+
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: #ff007f;
+    -fx-text-fill: black;
+}
+
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: #ff007f;
+    -fx-text-fill: black;
+}

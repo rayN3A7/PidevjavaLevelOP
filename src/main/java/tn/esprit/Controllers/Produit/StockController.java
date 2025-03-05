@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -19,15 +20,16 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import tn.esprit.Models.Produit;
 import tn.esprit.Models.Stock;
 import tn.esprit.Services.ProduitService;
 import tn.esprit.Services.StockService;
+import tn.esprit.utils.SessionManager;
 
 public class StockController {
     @FXML private VBox stockContainer;
     @FXML private TextField searchField;
-    @FXML private TextField txtId;
     @FXML private TextField txtProduit;
     @FXML private TextField txtQuantity;
     @FXML private TextField txtPrice;
@@ -38,7 +40,7 @@ public class StockController {
     private ProduitService produitService;
     private List<Stock> stocks;
     private Stock selectedStock;
-
+    String userRole= SessionManager.getInstance().getRole().name();
     @FXML
     public void initialize() {
         stockService = new StockService();
@@ -69,24 +71,19 @@ public class StockController {
         gridPane.setHgap(10);
         gridPane.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
+        // Updated column constraints without ID column
         ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(10);
+        col1.setPercentWidth(25);
         ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(20);
+        col2.setPercentWidth(15);
         ColumnConstraints col3 = new ColumnConstraints();
         col3.setPercentWidth(15);
         ColumnConstraints col4 = new ColumnConstraints();
-        col4.setPercentWidth(15);
+        col4.setPercentWidth(25);
         ColumnConstraints col5 = new ColumnConstraints();
         col5.setPercentWidth(20);
-        ColumnConstraints col6 = new ColumnConstraints();
-        col6.setPercentWidth(20);
 
-        gridPane.getColumnConstraints().addAll(col1, col2, col3, col4, col5, col6);
-
-        Label idLabel = new Label(String.valueOf(stock.getId()));
-        idLabel.getStyleClass().addAll("info-value", "cell");
-        idLabel.setMaxWidth(Double.MAX_VALUE);
+        gridPane.getColumnConstraints().addAll(col1, col2, col3, col4, col5);
 
         Produit produit = produitService.getOne(stock.getProduitId());
         Label produitLabel = new Label(produit != null ? produit.getNomProduit() : "N/A");
@@ -119,12 +116,11 @@ public class StockController {
         actionsBox.getStyleClass().add("action-buttons");
         actionsBox.setAlignment(javafx.geometry.Pos.CENTER);
 
-        gridPane.add(idLabel, 0, 0);
-        gridPane.add(produitLabel, 1, 0);
-        gridPane.add(quantityLabel, 2, 0);
-        gridPane.add(priceLabel, 3, 0);
-        gridPane.add(imageLabel, 4, 0);
-        gridPane.add(actionsBox, 5, 0);
+        gridPane.add(produitLabel, 0, 0);
+        gridPane.add(quantityLabel, 1, 0);
+        gridPane.add(priceLabel, 2, 0);
+        gridPane.add(imageLabel, 3, 0);
+        gridPane.add(actionsBox, 4, 0);
 
         gridPane.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(gridPane, javafx.scene.layout.Priority.ALWAYS);
@@ -152,8 +148,8 @@ public class StockController {
     @FXML
     public void updateStock(Stock stock) {
         this.selectedStock = stock;
-        txtId.setText(String.valueOf(stock.getId()));
-        txtProduit.setText(String.valueOf(stock.getProduitId()));
+        Produit produit = produitService.getOne(stock.getProduitId());
+        txtProduit.setText(produit != null ? produit.getNomProduit() : "");
         txtQuantity.setText(String.valueOf(stock.getQuantity()));
         txtPrice.setText(String.valueOf(stock.getPrixProduit()));
         txtImage.setText(stock.getImage());
@@ -169,34 +165,33 @@ public class StockController {
                 return;
             }
 
+            // Get and validate product name
+            String productName = txtProduit.getText().trim();
+            Produit produit = findProductByName(productName);
+            if (produit == null) {
+                showAlert(AlertType.ERROR, "Erreur", "Produit '" + productName + "' n'existe pas.");
+                return;
+            }
+
             // Validate numeric fields
             int quantity;
             int price;
-            int productId;
             try {
                 quantity = Integer.parseInt(txtQuantity.getText().trim());
                 price = Integer.parseInt(txtPrice.getText().trim());
-                productId = Integer.parseInt(txtProduit.getText().trim());
 
                 if (quantity < 0 || price < 0) {
                     showAlert(AlertType.ERROR, "Erreur", "La quantité et le prix doivent être positifs.");
                     return;
                 }
             } catch (NumberFormatException e) {
-                showAlert(AlertType.ERROR, "Erreur", "La quantité, le prix et l'ID du produit doivent être des nombres entiers.");
-                return;
-            }
-
-            // Verify that the product exists
-            Produit produit = produitService.getOne(productId);
-            if (produit == null) {
-                showAlert(AlertType.ERROR, "Erreur", "Produit avec ID " + productId + " n'existe pas.");
+                showAlert(AlertType.ERROR, "Erreur", "La quantité et le prix doivent être des nombres entiers.");
                 return;
             }
 
             if (selectedStock != null) {
                 // Update existing stock
-                selectedStock.setProduitId(productId);
+                selectedStock.setProduitId(produit.getId());
                 selectedStock.setQuantity(quantity);
                 selectedStock.setPrixProduit(price);
                 selectedStock.setImage(txtImage.getText().trim());
@@ -207,7 +202,7 @@ public class StockController {
                 // Create new stock
                 Stock newStock = new Stock(
                         0,
-                        productId,
+                        produit.getId(),
                         0,
                         quantity,
                         price,
@@ -227,6 +222,18 @@ public class StockController {
             showAlert(AlertType.ERROR, "Erreur", "Une erreur inattendue est survenue: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private Produit findProductByName(String name) {
+        List<Produit> products = produitService.getAll();
+        String normalizedInput = name.trim().toLowerCase();
+        for (Produit produit : products) {
+            String normalizedProductName = produit.getNomProduit().trim().toLowerCase();
+            if (normalizedProductName.equals(normalizedInput)) {
+                return produit;
+            }
+        }
+        return null;
     }
 
     @FXML
@@ -276,7 +283,7 @@ public class StockController {
     }
 
     private void clearFields() {
-        txtId.clear();
+        // No need to clear ID field
         txtProduit.clear();
         txtQuantity.clear();
         txtPrice.clear();
@@ -299,15 +306,33 @@ public class StockController {
     }
 
     @FXML
-    public void navigateToHome() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
-            BorderPane mainView = loader.load();
-            BorderPane currentRoot = (BorderPane) stockContainer.getScene().getRoot();
-            currentRoot.setCenter(mainView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+    public void handleBack() {
+        if(userRole.equals ("ADMIN"))  {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/sidebarAdmin.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+
+                Stage window = (Stage) stockContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
+        } else {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+
+                Stage window = (Stage) stockContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
         }
     }
 

@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
+import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.UtilisateurService;
 import tn.esprit.utils.SessionManager;
@@ -85,10 +86,27 @@ public class LoginController {
             }
         }
 
+        Utilisateur u=null;
         if (userService.loginUser(email, password, rememberMe)) {
-            navigateToHome();
+            u = userService.getByEmail(email);
+            if(u.getRole().equals(Role.CLIENT)||u.getRole().equals(Role.COACH))
+                navigateToHome();
+            else{
+                navigateToDash();
+            }
         } else {
             lblError.setText("Email ou mot de passe incorrect.");
+        }
+    }
+    private void navigateToDash() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/dashadmin.fxml"));
+            Stage stage = (Stage) btnConx.getScene().getWindow();
+            stage.setScene(new Scene(loader.load()));
+            stage.show();
+        } catch (IOException e) {
+            lblError.setText("Impossible de charger la page d'accueil.");
+            e.printStackTrace();
         }
     }
 

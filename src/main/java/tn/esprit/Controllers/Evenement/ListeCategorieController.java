@@ -7,8 +7,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.stage.Stage;
@@ -67,20 +65,6 @@ public class ListeCategorieController implements Initializable {
     }
 
     @FXML
-    private void ButtonAjouterCategorie(ActionEvent event) throws IOException {
-        if (userRole.equals("ADMIN")) {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/AjouterCategorie.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            window.setScene(scene);
-            window.show();
-        } else {
-            showAlert(Alert.AlertType.INFORMATION, "Information", "Vous n'avez pas les droits pour ajouter une catégorie");
-        }
-    }
-
-    @FXML
     private void Search() {
         String searchText = searchField.getText().trim().toLowerCase();
         eventContainer.getChildren().clear();
@@ -97,12 +81,5 @@ public class ListeCategorieController implements Initializable {
                 e.printStackTrace();
             }
         }
-    }
-
-    private void showAlert(Alert.AlertType alertType, String title, String content) {
-        Alert alert = new Alert(alertType);
-        alert.setTitle(title);
-        alert.setContentText(content);
-        alert.showAndWait();
     }
 }

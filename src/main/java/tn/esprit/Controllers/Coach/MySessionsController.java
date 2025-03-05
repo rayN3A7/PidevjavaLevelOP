@@ -1,5 +1,13 @@
 package tn.esprit.Controllers.Coach;
 
+import java.awt.Desktop;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+import com.stripe.Stripe;
+
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
@@ -14,15 +22,10 @@ import javafx.stage.Stage;
 import tn.esprit.Models.Reservation;
 import tn.esprit.Models.Session_game;
 import tn.esprit.Models.Utilisateur;
+import tn.esprit.Services.EmailService;
 import tn.esprit.Services.ServiceReservation;
 import tn.esprit.Services.UtilisateurService;
 import tn.esprit.utils.SessionManager;
-
-import java.awt.*;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
 
 public class MySessionsController {
 
@@ -34,83 +37,112 @@ public class MySessionsController {
 
     @FXML
     public void initialize() {
-        loadMyReservations();
-    }
-
-    private void loadMyReservations() {
-        // Obtenir l'ID du client connecté
-        int clientId = SessionManager.getInstance().getUserId();
-        
-        // Obtenir les réservations du client
-        List<Reservation> reservations = serviceReservation.getReservationsByClientId(clientId);
-        
-        mySessionsContainer.getChildren().clear();
-        
-        for (Reservation reservation : reservations) {
-            Session_game session = reservation.getSession();
-            
-            // Créer une carte pour chaque réservation
-            VBox sessionCard = new VBox(10);
-            sessionCard.setStyle("-fx-background-color: #162942; " +
-                               "-fx-padding: 20; " +
-                               "-fx-background-radius: 10; " +
-                               "-fx-margin: 10;");
-            
-            // Informations de la session
-            Label gameLabel = new Label("Jeu: " + session.getGame());
-            gameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
-            
-            Label priceLabel = new Label("Prix: " + session.getprix() + " DT");
-            priceLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
-            
-            Label durationLabel = new Label("Durée: " + session.getduree_session());
-            durationLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
-            
-            Label dateLabel = new Label("Date de réservation: " + reservation.getdate_reservation());
-            dateLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
-            
-            // Créer un HBox pour contenir les boutons
-            HBox buttonContainer = new HBox(10);
-            buttonContainer.setAlignment(Pos.CENTER_LEFT);
-            
-            // Bouton de paiement existant
-            Button payButton = new Button("Payer maintenant");
-            payButton.setStyle("-fx-background-color: #2ecc71; " +
-                             "-fx-text-fill: white; " +
-                             "-fx-font-size: 14px; " +
-                             "-fx-padding: 8 20; " +
-                             "-fx-background-radius: 20; ");
-
-            // Nouveau bouton d'annulation
-            Button cancelButton = new Button("Annuler la réservation");
-            cancelButton.setStyle("-fx-background-color: #e74c3c; " +
-                                "-fx-text-fill: white; " +
-                                "-fx-font-size: 14px; " +
-                                "-fx-padding: 8 20; " +
-                                "-fx-background-radius: 20; "
-                                );
-
-            final int reservationId = reservation.getId();
-            payButton.setOnAction(e -> handlePayment(reservationId, session.getprix()));
-            cancelButton.setOnAction(e -> handleCancellation(reservation));
-
-            buttonContainer.getChildren().addAll(payButton, cancelButton);
-            
-            sessionCard.getChildren().addAll(
-                gameLabel,
-                priceLabel,
-                durationLabel,
-                dateLabel,
-                buttonContainer
-            );
-            
-            mySessionsContainer.getChildren().add(sessionCard);
+        try {
+            // Initialiser Stripe avec votre clé API (utilisez une clé test pour le développement)
+            Stripe.apiKey = "sk_test_51QwnFBQo8eHPYc0vBA9m5i0nBxdhefRpQrwYyk8VAPRg21d2UKSRiUJsR7T7VIFAlyeiDuQaZRwSCeQveeOETK9q00BDEThZIx"; // Remplacez par votre clé test réelle
+            loadMyReservations();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur d'initialisation",
+                    "Impossible de charger les réservations : " + e.getMessage(),
+                    Alert.AlertType.ERROR);
         }
     }
 
-    private void handlePayment(int reservationId, double amount) {
+    private void loadMyReservations() {
         try {
-            // Construire l'URL PayPal avec les paramètres
+            int clientId = SessionManager.getInstance().getUserId();
+            if (clientId <= 0) {
+                showAlert("Erreur", "Utilisateur non connecté", Alert.AlertType.WARNING);
+                return;
+            }
+
+            List<Reservation> reservations = serviceReservation.getReservationsByClientId(clientId);
+            if (reservations == null || reservations.isEmpty()) {
+                mySessionsContainer.getChildren().clear();
+                mySessionsContainer.getChildren().add(new Label("Aucune réservation trouvée."));
+                return;
+            }
+
+            mySessionsContainer.getChildren().clear();
+            for (Reservation reservation : reservations) {
+                Session_game session = reservation.getSession();
+                if (session == null) {
+                    continue; // Ignorer si la session est nulle
+                }
+
+                VBox sessionCard = new VBox(10);
+                sessionCard.setStyle("-fx-background-color: #162942; " +
+                        "-fx-padding: 20; " +
+                        "-fx-background-radius: 10; " +
+                        "-fx-margin: 10;");
+
+                Label gameLabel = new Label("Jeu: " + session.getGame());
+                gameLabel.setStyle("-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;");
+
+                Label priceLabel = new Label("Prix: " + session.getprix() + " DT");
+                priceLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
+
+                Label durationLabel = new Label("Durée: " + session.getduree_session());
+                durationLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
+
+                Label dateLabel = new Label("Date de réservation: " + reservation.getdate_reservation());
+                dateLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
+
+                HBox buttonContainer = new HBox(10);
+                buttonContainer.setAlignment(Pos.CENTER_LEFT);
+
+                Button paypalButton = new Button("Payer avec PayPal");
+                paypalButton.setStyle("-fx-background-color: #0070ba; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 20; -fx-background-radius: 20;");
+                paypalButton.setOnAction(e -> handlePayPalPayment(reservation.getId(), session.getprix()));
+
+                Button stripeButton = new Button("Payer avec Stripe");
+                stripeButton.setStyle("-fx-background-color: #5469d4; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 20; -fx-background-radius: 20;");
+                stripeButton.setOnAction(e -> handleStripePayment(reservation.getId(), session.getprix()));
+
+                Button cancelButton = new Button("Annuler la réservation");
+                cancelButton.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8 20; -fx-background-radius: 20;");
+                cancelButton.setOnAction(e -> handleCancellation(reservation));
+
+                buttonContainer.getChildren().addAll(paypalButton, stripeButton, cancelButton);
+                sessionCard.getChildren().addAll(gameLabel, priceLabel, durationLabel, dateLabel, buttonContainer);
+                mySessionsContainer.getChildren().add(sessionCard);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Erreur lors du chargement des réservations : " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    @FXML
+    private void backToSessions() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/search_session.fxml"));
+            if (loader.getLocation() == null) {
+                throw new IllegalStateException("Le fichier session.fxml n'a pas été trouvé.");
+            }
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            Stage stage = (Stage) mySessionsContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur", "Impossible de retourner aux sessions : " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    private void showAlert(String title, String content, Alert.AlertType type) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    private void handlePayPalPayment(int reservationId, double amount) {
+        try {
+
             String baseUrl = "https://www.sandbox.paypal.com/cgi-bin/webscr";
             String business = "votre_email_business_sandbox@test.com"; // Email PayPal sandbox
             String itemName = "Session de coaching #" + reservationId;
@@ -118,29 +150,53 @@ public class MySessionsController {
             String cancelUrl = "http://localhost:8080/cancel";
 
             String paypalUrl = String.format("%s?cmd=_xclick&business=%s&item_name=%s&amount=%.2f&currency_code=EUR&return=%s&cancel_return=%s",
-                baseUrl,
-                URLEncoder.encode(business, StandardCharsets.UTF_8),
-                URLEncoder.encode(itemName, StandardCharsets.UTF_8),
-                amount,
-                URLEncoder.encode(returnUrl, StandardCharsets.UTF_8),
-                URLEncoder.encode(cancelUrl, StandardCharsets.UTF_8));
+                    baseUrl,
+                    URLEncoder.encode(business, StandardCharsets.UTF_8),
+                    URLEncoder.encode(itemName, StandardCharsets.UTF_8),
+                    amount,
+                    URLEncoder.encode(returnUrl, StandardCharsets.UTF_8),
+                    URLEncoder.encode(cancelUrl, StandardCharsets.UTF_8));
 
-            
+            // Ouvrir le navigateur par défaut avec l'URL PayPal
             Desktop.getDesktop().browse(new URI(paypalUrl));
 
             showAlert(
-                "Redirection PayPal", 
-                "Vous allez être redirigé vers PayPal pour effectuer le paiement de " + amount + " €", 
-                Alert.AlertType.INFORMATION
+                    "Redirection PayPal",
+                    "Vous allez être redirigé vers PayPal pour effectuer le paiement de " + amount + " €",
+                    Alert.AlertType.INFORMATION
             );
 
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(
-                "Erreur", 
-                "Erreur lors de la redirection vers PayPal. Veuillez réessayer plus tard.", 
-                Alert.AlertType.ERROR
+                    "Erreur",
+                    "Erreur lors de la redirection vers PayPal. Veuillez réessayer plus tard.",
+                    Alert.AlertType.ERROR
             );
+        }
+    }
+
+    private void handleStripePayment(int reservationId, double amount) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/stripe_payment_form.fxml"));
+            Parent root = loader.load();
+
+            // Get the controller and initialize data
+            StripePaymentFormController controller = loader.getController();
+            controller.initData(reservationId, amount);
+
+            // Create and configure the new stage
+            Stage stage = new Stage();
+            stage.setTitle("Paiement Stripe");
+            Scene scene = new Scene(root);
+            stage.setScene(scene);
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Erreur",
+                    "Erreur lors de l'ouverture du formulaire de paiement : " + e.getMessage(),
+                    Alert.AlertType.ERROR);
         }
     }
 
@@ -150,66 +206,45 @@ public class MySessionsController {
             Session_game session = reservation.getSession();
             int coachId = session.getCoach_id();
             Utilisateur coach = utilisateurService.getOne(coachId);
-            
+
             if (coach != null) {
                 // Préparer le contenu de l'email
                 String subject = "Annulation de réservation de session";
-                String body = String.format(
-                    "Bonjour,\n\nLa réservation pour la session de %s a été annulée par le client.\n\nDétails de la session :\n" +
-                    "- Jeu : %s\n" +
-                    "- Date : %s\n" +
-                    "- Durée : %s\n\n" +
-                    "Cordialement.",
-                    session.getGame(),
-                    session.getGame(),
-                    reservation.getdate_reservation(),
-                    session.getduree_session()
+                String additionalInfo = String.format(
+                        "La réservation pour la session de %s a été annulée par le client.\n\n" +
+                                "Détails de la session :\n" +
+                                "- Jeu : %s\n" +
+                                "- Date : %s\n" +
+                                "- Durée : %s",
+                        session.getGame(),
+                        session.getGame(),
+                        reservation.getdate_reservation(),
+                        session.getduree_session()
                 );
 
-                // Encoder les paramètres pour l'URL mailto
-                subject = URLEncoder.encode(subject, "UTF-8");
-                body = URLEncoder.encode(body, "UTF-8");
-
-                // Créer l'URL mailto
-                String mailtoUrl = String.format("mailto:%s?subject=%s&body=%s",
-                    coach.getEmail(), subject, body);
-
-                // Ouvrir le client email par défaut
-                Desktop.getDesktop().mail(new URI(mailtoUrl));
+                // Utiliser EmailService pour envoyer l'email automatiquement
+                EmailService.sendEmail(
+                        coach.getEmail(),
+                        subject,
+                        "custom", // Nouveau type pour message personnalisé
+                        additionalInfo
+                );
 
                 // Supprimer la réservation
                 serviceReservation.delete(reservation);
 
-                // Rafraîchir l'affichage
+                // Recharger la liste des réservations
                 loadMyReservations();
 
-                showAlert("Succès", "La réservation a été annulée et le coach a été notifié.", Alert.AlertType.INFORMATION);
+                showAlert("Succès",
+                        "La réservation a été annulée et le coach a été notifié par email.",
+                        Alert.AlertType.INFORMATION);
             }
         } catch (Exception e) {
-            showAlert("Erreur", "Erreur lors de l'annulation : " + e.getMessage(), Alert.AlertType.ERROR);
+            showAlert("Erreur",
+                    "Erreur lors de l'annulation : " + e.getMessage(),
+                    Alert.AlertType.ERROR);
             e.printStackTrace();
         }
     }
-
-    @FXML
-    private void backToSessions() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/session.fxml"));
-            Parent root = loader.load();
-            Scene scene = new Scene(root);
-            Stage stage = (Stage) mySessionsContainer.getScene().getWindow();
-            stage.setScene(scene);
-            stage.show();
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert("Erreur", "Erreur lors de la navigation: " + e.getMessage(), Alert.AlertType.ERROR);
-        }
-    }
-
-    private void showAlert(String title, String content, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
-} 
+}

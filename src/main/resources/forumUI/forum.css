@@ -235,7 +235,6 @@
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
 }
 
-
 .question-image {
     -fx-border-color: #ff69b4;
     -fx-border-width: 2;
@@ -249,61 +248,121 @@
 }
 
 .video-control-bar {
-    -fx-background-color: rgba(254, 3, 105, 0.9); /* Semi-transparent pink */
-    -fx-padding: 5;
-    -fx-spacing: 10;
-    -fx-alignment: center-left;
-    -fx-background-radius: 0 0 8 8;
-    -fx-max-width: infinity;
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 5, 0, 0, 2);
-    -fx-transition: opacity 0.3s; /* For fade effect */
+    -fx-background-color: rgba(9, 18, 33, 0.9); /* Semi-transparent dark background matching app theme */
+    -fx-padding: 5px;
+    -fx-spacing: 10px;
+    -fx-alignment: center; /* Center the children for a balanced look */
+    -fx-background-radius: 0; /* No rounded corners in full-screen */
+    -fx-effect: none; /* Remove shadow for a cleaner look in full-screen */
+    -fx-max-width: 80%; /* Réfléchir le pourcentage utilisé dans Java, ou une valeur fixe en pixels */
+    -fx-pref-height: 40px;
+    -fx-min-height: 40px;
+    -fx-max-height: 40px;
+    -fx-opacity: 1.0;
+    -fx-visibility: visible;
 }
 
-.video-control-button {
+.video-control-bar .button {
     -fx-background-color: transparent;
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-padding: 4px 8px;
-    -fx-background-radius: 15;
+    -fx-opacity: 1.0; /* Forcer l’opacité du bouton à 100% */
+    -fx-visibility: visible;
 }
 
-.video-control-button:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.2);
+.video-control-bar .button:hover {
+    -fx-background-color: rgba(255, 0, 127, 0.2); /* Hover effect with neon pink */
     -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
 }
 
 .progress-slider {
-    -fx-pref-height: 10;
+    -fx-pref-height: 10px;
 }
 
 .progress-slider .track {
     -fx-background-color: #e0e0e0;
-    -fx-pref-height: 4;
+    -fx-pref-height: 4px;
 }
 
 .progress-slider .thumb {
-    -fx-background-color: #ff007f;
-    -fx-pref-width: 12;
-    -fx-pref-height: 12;
+    -fx-background-color: #ff007f; /* Neon pink thumb */
+    -fx-pref-width: 12px;
+    -fx-pref-height: 12px;
 }
 
 .volume-slider {
-    -fx-pref-height: 10;
+    -fx-pref-height: 10px;
 }
 
 .volume-slider .track {
     -fx-background-color: #e0e0e0;
-    -fx-pref-height: 4;
+    -fx-pref-height: 4px;
 }
 
 .volume-slider .thumb {
-    -fx-background-color: #ff007f;
-    -fx-pref-width: 12;
-    -fx-pref-height: 12;
+    -fx-background-color: #ff007f; /* Neon pink thumb */
+    -fx-pref-width: 12px;
+    -fx-pref-height: 12px;
 }
 
 .time-label {
     -fx-text-fill: white;
     -fx-font-size: 12px;
 }
+.crown-icon {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 5, 0, 0, 2);
+}
+
+.comment-author .text-flow {
+    -fx-font-weight: bold;
+}
+.report-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ff4081; /* Neon pink to match the theme */
+    -fx-font-size: 16px;
+    -fx-padding: 5;
+    -fx-border-width: 0;
+}
+
+.report-button:hover {
+    -fx-text-fill: #ff80ab; /* Lighter pink on hover */
+    -fx-cursor: hand;
+}
+
+.report-button:pressed {
+    -fx-text-fill: #d81b60; /* Darker pink when pressed */
+}
+
+/* Ensure the button has some margin from the edge of the card */
+.question-card .report-button,
+.comment-card .report-button {
+    -fx-margin: 5 5 0 0; /* Top-right corner spacing */
+}
+/* Existing styles remain unchanged until the end, where we update the floating button and its container */
+
+.floating-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-padding: 8px 16px;
+    -fx-border-radius: 5px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(gaussian, rgb(0, 157, 255), 10, 0.5, 0, 3);
+    -fx-cursor: hand;
+}
+
+.floating-button:hover {
+    -fx-text-fill: #ff80ab;
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.7), 12, 0.5, 0, 4);
+}
+
+.floating-button:pressed {
+    -fx-text-fill: #091221;
+    -fx-scale-x: 0.95;
+    -fx-scale-y: 0.95;
+}
+

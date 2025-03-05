@@ -27,7 +27,6 @@ public class ListeEvenementController implements Initializable {
     private FlowPane eventContainer;
     @FXML
     private TextField searchField;
-
     private final EvenementService es = new EvenementService();
     private final CategorieEvService ces = new CategorieEvService();
 
@@ -54,18 +53,6 @@ public class ListeEvenementController implements Initializable {
             }
         }
     }
-
-    @FXML
-    private void ButtonAjouterEvenement(ActionEvent event) throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/AjouterEvenement.fxml"));
-        Parent signInRoot = loader.load();
-        Scene signInScene = new Scene(signInRoot);
-
-        Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
-        window.setScene(signInScene);
-        window.show();
-    }
-
     @FXML
     private void ButtonListeCategorie(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/ListeCategorie.fxml"));
@@ -82,7 +69,6 @@ public class ListeEvenementController implements Initializable {
         String searchText = searchField.getText().trim().toLowerCase();
         eventContainer.getChildren().clear();
         List<Evenement> filteredEvents = es.GetByNom(searchText);
-        System.out.println(filteredEvents);
         for (Evenement event : filteredEvents) {
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/EvenementCard.fxml"));

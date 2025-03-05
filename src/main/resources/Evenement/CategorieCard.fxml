@@ -10,7 +10,7 @@
             xmlns:fx="http://javafx.com/fxml/1" 
             fx:id="cardContainer"
             stylesheets="@/assets/style/style.css" 
-            styleClass="event-card">
+            styleClass="event-card2">
     
     <children>
         <VBox spacing="15" alignment="CENTER" styleClass="card-content">
@@ -25,17 +25,7 @@
             </VBox>
             
             <!-- Action Buttons -->
-            <HBox spacing="10" styleClass="event-actions" alignment="CENTER">
-                <Button fx:id="modifierButton" styleClass="edit-button">
-                    <graphic>
-                        <Label text="Modifier" styleClass="button-text"/>
-                    </graphic>
-                </Button>
-                <Button fx:id="supprimerButton" styleClass="delete-button">
-                    <graphic>
-                        <Label text="Supprimer" styleClass="button-text"/>
-                    </graphic>
-                </Button>
+            <HBox spacing="10" fx:id="actionsHBox" styleClass="event-actions2" alignment="CENTER">
                 <Button fx:id="detailsButton" styleClass="view-button">
                     <graphic>
                         <Label text="Détails" styleClass="button-text"/>

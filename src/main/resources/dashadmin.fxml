@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.text.Text?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="tn.esprit.Controllers.dashAdminController"
+            stylesheets="@assets/style/stylesheet.css"
+            styleClass="content-container">
+
+    <!-- Left Sidebar -->
+    <left>
+        <fx:include source="sidebarAdmin.fxml"/>
+    </left>
+
+    <!-- Main Content -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="content-container">
+            <VBox spacing="20">
+                <!-- Stats Cards -->
+                <HBox spacing="20">
+                    <VBox styleClass="stat-card,stat-card-purple">
+                        <Label text="Avg First Reply Time" styleClass="stat-title"/>
+                        <HBox alignment="CENTER_LEFT" spacing="5">
+                            <Label text="30" styleClass="stat-value"/>
+                            <Label text="h" styleClass="stat-unit"/>
+                            <Label text="15" styleClass="stat-value"/>
+                            <Label text="min" styleClass="stat-unit"/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox styleClass="stat-card,stat-card-blue">
+                        <Label text="Avg Full Response Time" styleClass="stat-title"/>
+                        <HBox alignment="CENTER_LEFT" spacing="5">
+                            <Label text="22" styleClass="stat-value"/>
+                            <Label text="h" styleClass="stat-unit"/>
+                            <Label text="40" styleClass="stat-value"/>
+                            <Label text="min" styleClass="stat-unit"/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox styleClass="stat-card">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="Messages" styleClass="stat-label"/>
+                            <Label text="+20%" styleClass="stat-percentage"/>
+                        </HBox>
+                    </VBox>
+
+                    <VBox styleClass="stat-card">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label text="Emails" styleClass="stat-label"/>
+                            <Label text="+25%" styleClass="stat-percentage"/>
+                        </HBox>
+                    </VBox>
+                </HBox>
+
+                <!-- Main Chart -->
+                <VBox styleClass="chart-container">
+                    <Label text="Tickets Created vs Tickets Solved" styleClass="chart-title"/>
+                    <LineChart fx:id="ticketsChart">
+                        <xAxis>
+                            <CategoryAxis label="Months"/>
+                        </xAxis>
+                        <yAxis>
+                            <NumberAxis label="Number of Tickets"/>
+                        </yAxis>
+                    </LineChart>
+                </VBox>
+
+                <!-- Bottom Charts -->
+                <HBox spacing="20">
+                    <VBox styleClass="chart-container" HBox.hgrow="ALWAYS">
+                        <Label text="Tickets By Type" styleClass="chart-title"/>
+                        <PieChart fx:id="ticketTypeChart"/>
+                    </VBox>
+
+                    <VBox styleClass="chart-container" HBox.hgrow="ALWAYS">
+                        <Label text="New Tickets vs Returned Tickets" styleClass="chart-title"/>
+                        <PieChart fx:id="ticketStatusChart"/>
+                    </VBox>
+
+                    <VBox styleClass="chart-container" HBox.hgrow="ALWAYS">
+                        <Label text="Number of Tickets / Week Day" styleClass="chart-title"/>
+                        <BarChart fx:id="weekdayChart">
+                            <xAxis>
+                                <CategoryAxis label="Days"/>
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis label="Tickets"/>
+                            </yAxis>
+                        </BarChart>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

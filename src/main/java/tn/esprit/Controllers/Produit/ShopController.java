@@ -8,18 +8,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import tn.esprit.Models.Produit;
-import tn.esprit.Models.Role;
 import tn.esprit.Services.ProduitService;
-import tn.esprit.utils.SessionManager;
 
 public class ShopController {
 
     @FXML private GridPane productGrid;
     @FXML private TextField searchField;
-    @FXML private HBox adminButtonsContainer;
 
     private ProduitService produitService = new ProduitService();
     private List<Produit> produits;
@@ -27,56 +23,9 @@ public class ShopController {
     @FXML
     public void initialize() {
         loadProducts();
-        // Check if user is admin and show admin buttons
-        if (isAdmin()) {
-            adminButtonsContainer.setVisible(true);
-        }
-
         searchField.textProperty().addListener((observable, oldValue, newValue) -> {
             filterProducts(newValue);
         });
-    }
-
-    private boolean isAdmin() {
-        Role role = SessionManager.getInstance().getRole();
-        if (role.name().equals("ADMIN")) {
-            return true;
-        }
-        return false;
-    }
-
-
-    @FXML
-    public void handleProductManagement() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/produit_view.fxml"));
-            Region root = loader.load();
-            productGrid.getScene().setRoot(root);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    public void handleStockManagement() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/stock_view.fxml"));
-            Region root = loader.load();
-            productGrid.getScene().setRoot(root);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    public void handleOrderManagement() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/commande_view.fxml"));
-            Region root = loader.load();
-            productGrid.getScene().setRoot(root);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void loadProducts() {

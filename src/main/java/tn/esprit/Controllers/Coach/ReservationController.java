@@ -23,7 +23,7 @@ public class ReservationController {
     @FXML private DatePicker datePicker;
     @FXML private Label statusLabel;
 
-    private int sessionId; // Stocker l'ID de session en privé
+    private int sessionId;
     private int clientId = SessionManager.getInstance().getUserId();
 
     private final ServiceReservation serviceReservation = new ServiceReservation();
@@ -32,9 +32,15 @@ public class ReservationController {
     private void handleAddReservation() {
         try {
             LocalDate localDate = datePicker.getValue();
+            LocalDate today = LocalDate.now();
 
             if (localDate == null) {
                 showAlert("Erreur", "Veuillez sélectionner une date valide.");
+                return;
+            }
+
+            if (localDate.isBefore(today)) {
+                showAlert("Erreur", "Impossible de réserver pour une date passée. Veuillez choisir une date future.");
                 return;
             }
 
@@ -43,17 +49,17 @@ public class ReservationController {
                 return;
             }
 
-            // Vérifier si la session a déjà été réservée
+
             if (serviceReservation.isSessionAlreadyReserved(sessionId)) {
                 showAlert("Erreur", "Cette session a déjà été réservée.");
                 return;
             }
 
-            // Créer une session avec l'ID spécifié
+
             Session_game session = new Session_game();
             session.setId(sessionId);
 
-            // Créer une nouvelle réservation
+
             Reservation reservation = new Reservation(
                     Date.valueOf(localDate),
                     session,
@@ -64,7 +70,7 @@ public class ReservationController {
             statusLabel.setText("Réservation effectuée avec succès !");
             statusLabel.setStyle("-fx-text-fill: #2ecc71;");
 
-            // Rediriger vers la page des réservations après un court délai
+
             new Thread(() -> {
                 try {
                     Thread.sleep(1500);

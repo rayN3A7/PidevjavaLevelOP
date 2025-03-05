@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Produit.CommandeStatistiqueController" style="-fx-background-color: #091221;">
+    <children>
+        <VBox spacing="20" AnchorPane.topAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.bottomAnchor="20">
+            <children>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <children>
+                        <Button fx:id="backButton" onAction="#handleBack" styleClass="back-button">
+                            <graphic>
+                                <ImageView fitHeight="20" fitWidth="20">
+                                    <Image url="@/assets/image/retour.png"/>
+                                </ImageView>
+                            </graphic>
+                        </Button>
+                        <Label styleClass="title-label" text="Statistiques des Commandes" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                    </children>
+                </HBox>
+
+                <!-- Bar Chart for Most Sold Products -->
+                <BarChart fx:id="productSalesChart" title="Produits les Plus Vendus" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+                    <xAxis>
+                        <CategoryAxis label="Produits" style="-fx-text-fill: white;" />
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis label="Nombre de Ventes" style="-fx-text-fill: white;" />
+                    </yAxis>
+                </BarChart>
+            </children>
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+        </VBox>
+    </children>
+</AnchorPane>

@@ -10,18 +10,15 @@
             styleClass="scroll-pane" stylesheets="@/assets/style/style.css"
             xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="tn.esprit.Controllers.Evenement.ModifierCategorieController">
+<BorderPane>
+    <left>
+        <fx:include source="../sidebarAdmin.fxml"/>
+    </left>
+    <center>
 
     <GridPane maxHeight="Infinity" maxWidth="Infinity" styleClass="main-grid">
         <children>
-            <!-- Header -->
-            <fx:include source="/forumUI/navbar.fxml"/>
-
-            <VBox spacing="20" styleClass="content-container" GridPane.rowIndex="1">
-                <padding>
-                    <Insets top="20" right="30" bottom="20" left="30"/>
-                </padding>
-
-                <!-- Title Section with Navigation -->
+            <VBox spacing="20" styleClass="content-container" alignment="CENTER" GridPane.rowIndex="1">
                 <HBox alignment="CENTER_LEFT" spacing="20" styleClass="header-section">
                     <VBox spacing="5">
                         <Label text="Modifier la catégorie" styleClass="page-title"/>
@@ -30,7 +27,7 @@
                     <Region HBox.hgrow="ALWAYS"/>
                     <HBox spacing="10" alignment="CENTER_RIGHT">
                         <Button fx:id="listCategoriesButton" onAction="#ButtonlisteCategories"
-                                styleClass="nav-link-button">
+                                styleClass="list-button">
                             <graphic>
                                 <HBox spacing="10" alignment="CENTER">
                                     <ImageView fitHeight="16" fitWidth="16">
@@ -90,4 +87,6 @@
             <RowConstraints vgrow="NEVER"/>
         </rowConstraints>
     </GridPane>
+    </center>
+</BorderPane>
 </ScrollPane>

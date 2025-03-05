@@ -38,17 +38,6 @@
                     <HBox spacing="10" alignment="CENTER_RIGHT">
                         <TextField fx:id="searchField" promptText="Rechercher un événement..."
                                    styleClass="search-field" onKeyReleased="#Search"/>
-                        <Button fx:id="addEventButton" onAction="#ButtonAjouterEvenement"
-                                styleClass="add-button">
-                            <graphic>
-                                <HBox spacing="10" alignment="CENTER">
-                                    <ImageView fitHeight="16" fitWidth="16">
-                                        <Image url="@/assets/image/ajouter.png"/>
-                                    </ImageView>
-                                    <Label text="Nouvel Événement" styleClass="button-text"/>
-                                </HBox>
-                            </graphic>
-                        </Button>
                         <Button fx:id="categoriesButton" onAction="#ButtonListeCategorie"
                                 styleClass="list-button">
                             <graphic>
@@ -63,25 +52,6 @@
                     </HBox>
                 </HBox>
 
-                <!-- Table Header -->
-                <GridPane styleClass="table-header">
-                    <columnConstraints>
-                        <ColumnConstraints percentWidth="8"/>
-                        <ColumnConstraints percentWidth="20"/>
-                        <ColumnConstraints percentWidth="15"/>
-                        <ColumnConstraints percentWidth="15"/>
-                        <ColumnConstraints percentWidth="15"/>
-                        <ColumnConstraints percentWidth="12"/>
-                        <ColumnConstraints percentWidth="15"/>
-                    </columnConstraints>
-                    <Label text="ID" styleClass="header-cell" GridPane.columnIndex="0"/>
-                    <Label text="Nom" styleClass="header-cell" GridPane.columnIndex="1"/>
-                    <Label text="Date" styleClass="header-cell" GridPane.columnIndex="2"/>
-                    <Label text="Lieu" styleClass="header-cell" GridPane.columnIndex="3"/>
-                    <Label text="Catégorie" styleClass="header-cell" GridPane.columnIndex="4"/>
-                    <Label text="Places" styleClass="header-cell" GridPane.columnIndex="5"/>
-                    <Label text="Actions" styleClass="header-cell" GridPane.columnIndex="6"/>
-                </GridPane>
 
                 <!-- List Content -->
                 <FlowPane fx:id="eventContainer" alignment="CENTER" styleClass="list-content"/>
