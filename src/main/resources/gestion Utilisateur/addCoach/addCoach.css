@@ -50,9 +50,10 @@
     -fx-border-color: rgba(74, 144, 226, 0.5);
     -fx-border-radius: 8px;
     -fx-background-radius: 8px;
-    -fx-text-fill: black;
+    -fx-text-fill: white;
     -fx-prompt-text-fill: #8692a6;
     -fx-padding: 8px;
+    -fx-wrap-text: true;
 }
 
 .text-area:hover {
@@ -61,8 +62,20 @@
 }
 
 .text-area .content {
-    -fx-background-color: transparent;
+    -fx-background-color: rgba(17, 17, 17, 0.90);
     -fx-padding: 5px;
+}
+
+.text-area .scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.text-area .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.text-area .scroll-pane .content {
+    -fx-background-color: transparent;
 }
 
 /* Upload button */
@@ -102,6 +115,17 @@
     -fx-text-fill: #ff4444;
     -fx-font-size: 12px;
     -fx-padding: 5px 0 10px 0;
+}
+
+/* Error label */
+.error-label {
+    -fx-text-fill: #ff4444;
+    -fx-font-size: 12px;
+    -fx-padding: 5px 0;
+    -fx-alignment: center;
+    -fx-text-alignment: center;
+    -fx-wrap-text: true;
+    -fx-max-width: 280px;
 }
 
 /* Link button */

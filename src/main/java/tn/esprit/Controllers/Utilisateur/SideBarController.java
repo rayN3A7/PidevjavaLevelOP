@@ -32,12 +32,7 @@ public class SideBarController implements Initializable {
         dashboardBtn.setOnAction(e -> navigateTo("gestion Utilisateur/Dashboard/Dashboard", dashboardBtn));
         usersBtn.setOnAction(e -> navigateTo("gestion Utilisateur/Dashboard/Dashboard", usersBtn));
         demandeBtn.setOnAction(e -> navigateTo("gestion Utilisateur/addCoach/displayDemand", demandeBtn));
-        logoutBtn.setOnAction(e -> {
-            // Implement logout functionality
-            // Example:
-            // SessionManager.getInstance().logout();
-            // Navigate to login screen
-        });
+        logoutBtn.setOnAction(e -> navigateTo("gestion Utilisateur/Dashboard/DisplayCoach", logoutBtn));
     }
 
     private void navigateTo(String page, Button btn) {

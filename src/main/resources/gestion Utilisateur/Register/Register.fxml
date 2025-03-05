@@ -70,43 +70,16 @@
                      styleClass="text-field" />
                   <Label fx:id="lblNumeroError" styleClass="error-label" textFill="#eb0707" />
 
-                  <!-- Password field with eye icon -->
-                  <HBox alignment="CENTER_LEFT" maxWidth="280.0">
-                     <PasswordField fx:id="txtPassword" promptText="Mot de passe"
-                        styleClass="password-field" HBox.hgrow="ALWAYS" />
-                     <Button fx:id="btnTogglePassword" styleClass="eye-button">
-                        <graphic>
-                           <ImageView fx:id="imgEyePassword" fitHeight="20.0" fitWidth="20.0"
-                              pickOnBounds="true" preserveRatio="true">
-                              <Image url="@../../assets/image/eye-closed.png" />
-                           </ImageView>
-                        </graphic>
-                     </Button>
-                  </HBox>
-                  <TextField fx:id="txtPasswordVisible" maxWidth="280.0" promptText="Mot de passe"
-                     styleClass="text-field" visible="false" />
+                  <PasswordField fx:id="txtPassword" maxWidth="280.0" promptText="Mot de passe"
+                     styleClass="password-field" />
                   <Label fx:id="lblPasswordError" styleClass="error-label" textFill="#eb0707" />
 
-                  <!-- Confirm Password field with eye icon -->
-                  <HBox alignment="CENTER_LEFT" maxWidth="280.0">
-                     <PasswordField fx:id="txtConfirmPassword"
-                        promptText="Confirmez le mot de passe" styleClass="password-field"
-                        HBox.hgrow="ALWAYS" />
-                     <Button fx:id="btnToggleConfirmPassword" styleClass="eye-button">
-                        <graphic>
-                           <ImageView fx:id="imgEyeConfirmPassword" fitHeight="20.0" fitWidth="20.0"
-                              pickOnBounds="true" preserveRatio="true">
-                              <Image url="@../../assets/image/eye-closed.png" />
-                           </ImageView>
-                        </graphic>
-                     </Button>
-                  </HBox>
-                  <TextField fx:id="txtConfirmPasswordVisible" maxWidth="280.0"
-                     promptText="Confirmez le mot de passe" styleClass="text-field" visible="false">
+                  <PasswordField fx:id="txtConfirmPassword" maxWidth="280.0"
+                     promptText="Confirmez le mot de passe" styleClass="password-field">
                      <VBox.margin>
                         <Insets bottom="5.0" />
                      </VBox.margin>
-                  </TextField>
+                  </PasswordField>
 
                   <Button fx:id="btnRegister" maxWidth="280.0" mnemonicParsing="false"
                      styleClass="login-button" text="S'inscrire">

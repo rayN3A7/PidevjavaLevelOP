@@ -218,11 +218,11 @@ public class DisplayDemandController {
         us.deleteClient(userid);
         us.addCoach(userid);
 
-        EmailService.sendEmail(us.getEmail(userid), "Welcome to LevelOP!", "coach_accepted", "");
+        EmailService.sendEmail(us.getEmail(userid), "Bienvenue sur LevelOP!", "coach_accepted", "");
 
         demandeService.delete(demand);
 
-        showSuccessAlert("Success", "Demand accepted successfully!");
+        showSuccessAlert("succès", "Demande acceptée avec succès !");
         loadDemands();
     }
 
@@ -242,7 +242,7 @@ public class DisplayDemandController {
         int userid = currentDemande.getUserId();
         String reason = rejectReasonText.getText();
         if (reason.trim().isEmpty()) {
-            showAlert("Error", "Please provide a reason for rejection");
+            showAlert("Error", "Veuillez fournir une raison de rejet");
             return;
         }
 
@@ -250,7 +250,7 @@ public class DisplayDemandController {
         // demandeService.delete(currentDemande);
 
         closeRejectPopup();
-        showSuccessAlert("Success", "Demand rejected successfully!");
+        showSuccessAlert("succès", "Demande rejetée avec succès!");
         loadDemands();
     }
 

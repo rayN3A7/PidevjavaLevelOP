@@ -34,16 +34,14 @@ public class AddCoachController {
     private Button btnGoToLogin;
     @FXML
     private Label lblCVStatus;
-
+    @FXML
+    private Label lblError;
     @FXML
     private Button btnUploadCV;
-
     @FXML
     private ComboBox<String> cbgames;
-
     @FXML
     private Button btnGoToHome;
-
     @FXML
     private TextArea txtDescription;
 
@@ -56,6 +54,12 @@ public class AddCoachController {
     public void initialize() {
         populateGamesComboBox();
         btnGoToHome.setOnAction(event -> navigateToHome2());
+
+        // Initialize error label
+        if (lblError != null) {
+            lblError.setVisible(false);
+            lblError.setStyle("-fx-text-fill: #ff4444; -fx-font-size: 12px;");
+        }
     }
 
     private void populateGamesComboBox() {
@@ -81,39 +85,71 @@ public class AddCoachController {
         if (selectedFile != null) {
             lblCVStatus.setText("Fichier sélectionné : " + selectedFile.getName());
             lblCVStatus.setStyle("-fx-text-fill: green;");
+            hideError();
         } else {
             lblCVStatus.setText("Aucun fichier sélectionné");
+            lblCVStatus.setStyle("-fx-text-fill: #ff4444;");
+        }
+    }
+
+    private boolean validateFields() {
+        if (txtDescription.getText().trim().isEmpty() && selectedFile == null) {
+            showError("Veuillez remplir la description et télécharger votre CV");
+            return false;
+        }
+        if (txtDescription.getText().trim().isEmpty()) {
+            showError("Veuillez remplir la description");
+            return false;
+        }
+        if (selectedFile == null) {
+            showError("Veuillez télécharger votre CV");
+            return false;
+        }
+        return true;
+    }
+
+    private void showError(String message) {
+        if (lblError != null) {
+            lblError.setText(message);
+            lblError.setVisible(true);
+        }
+    }
+
+    private void hideError() {
+        if (lblError != null) {
+            lblError.setVisible(false);
         }
     }
 
     @FXML
     void handleSubmit(ActionEvent event) {
-        if (selectedFile != null) {
-            try {
-                // Generate unique filename with timestamp
-                String uniqueFileName = System.currentTimeMillis() + "_" + selectedFile.getName();
-                String filePath = UPLOAD_DIR + uniqueFileName;
+        if (!validateFields()) {
+            return;
+        }
 
-                // Create Demande object with the file path
-                Demande demande = new Demande(
-                        SessionManager.getInstance().getUserId(),
-                        cbgames.getValue(),
-                        txtDescription.getText(),
-                        uniqueFileName // Store only the filename, not full path
-                );
-                demande.setDate(new Timestamp(System.currentTimeMillis()));
+        try {
+            // Generate unique filename with timestamp
+            String uniqueFileName = System.currentTimeMillis() + "_" + selectedFile.getName();
+            String filePath = UPLOAD_DIR + uniqueFileName;
 
-                // Copy file to destination and add demande
-                byte[] fileData = Files.readAllBytes(selectedFile.toPath());
-                demandeService.add(demande, fileData);
+            // Create Demande object with the file path
+            Demande demande = new Demande(
+                    SessionManager.getInstance().getUserId(),
+                    cbgames.getValue(),
+                    txtDescription.getText().trim(),
+                    uniqueFileName // Store only the filename, not full path
+            );
+            demande.setDate(new Timestamp(System.currentTimeMillis()));
 
-                System.out.println("Demande submitted successfully!");
-                navigateToHome();
-            } catch (IOException e) {
-                System.out.println("Error saving file: " + e.getMessage());
-            }
-        } else {
-            System.out.println("No file selected!");
+            // Copy file to destination and add demande
+            byte[] fileData = Files.readAllBytes(selectedFile.toPath());
+            demandeService.add(demande, fileData);
+
+            System.out.println("Demande submitted successfully!");
+            navigateToHome();
+        } catch (IOException e) {
+            showError("Error saving file: " + e.getMessage());
+            System.out.println("Error saving file: " + e.getMessage());
         }
     }
 

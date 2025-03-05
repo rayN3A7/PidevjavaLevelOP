@@ -7,7 +7,7 @@ public class Demande {
     private int userId;
     private String game;
     private String description;
-    private String filePath; // Store file path instead of file content
+    private String filePath;
     private Timestamp date;
 
     // Constructors

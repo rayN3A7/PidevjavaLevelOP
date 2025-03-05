@@ -107,7 +107,7 @@ public class UtilisateurService implements IService<Utilisateur> {
 
     @Override
     public void update(Utilisateur utilisateur) {
-        String query = "UPDATE utilisateur SET nickname = ?, nom = ?, numero = ?, prenom = ?, role = ?, ban = ?, banTime = ? WHERE id = ?";
+        String query = "UPDATE utilisateur SET nickname = ?, nom = ?, numero = ?, prenom = ?, role = ?, mot_passe = ?, photo = ? WHERE id = ?";
 
         try {
             PreparedStatement stmt = cnx.prepareStatement(query);
@@ -116,13 +116,13 @@ public class UtilisateurService implements IService<Utilisateur> {
             stmt.setInt(3, utilisateur.getNumero());
             stmt.setString(4, utilisateur.getPrenom());
             stmt.setString(5, utilisateur.getRole().name());
-            stmt.setBoolean(6, utilisateur.isBan());
+            stmt.setString(6, utilisateur.getMotPasse());
 
-            // Handle banTime (can be null for permanent ban)
-            if (utilisateur.getBanTime() != null) {
-                stmt.setTimestamp(7, Timestamp.valueOf(utilisateur.getBanTime()));
+            // Handle photo (can be null)
+            if (utilisateur.getPhoto() != null) {
+                stmt.setString(7, utilisateur.getPhoto());
             } else {
-                stmt.setNull(7, Types.TIMESTAMP);
+                stmt.setNull(7, Types.VARCHAR);
             }
 
             stmt.setInt(8, utilisateur.getId());
@@ -224,7 +224,6 @@ public class UtilisateurService implements IService<Utilisateur> {
 
             if (rs.next()) {
                 utilisateur = new Utilisateur(
-
                         rs.getInt("id"),
                         rs.getString("email"),
                         rs.getString("mot_passe"),
@@ -232,8 +231,14 @@ public class UtilisateurService implements IService<Utilisateur> {
                         rs.getString("nom"),
                         rs.getInt("numero"),
                         rs.getString("prenom"),
-                        Role.valueOf(rs.getString("role")));
-
+                        Role.valueOf(rs.getString("role"))
+                );
+                // Set additional fields
+                utilisateur.setPrivilege(rs.getString("privilege"));
+                utilisateur.setBan(rs.getBoolean("ban"));
+                utilisateur.setBanTime(rs.getTimestamp("banTime") != null ? rs.getTimestamp("banTime").toLocalDateTime() : null);
+                utilisateur.setCountRep(rs.getInt("countRep"));
+                utilisateur.setPhoto(rs.getString("photo"));
             }
 
         } catch (SQLException e) {
@@ -298,6 +303,7 @@ public class UtilisateurService implements IService<Utilisateur> {
                         rs.getString("prenom"),
                         Role.valueOf(rs.getString("role")));
                 user.setPrivilege(rs.getString("privilege") != null ? rs.getString("privilege") : "regular");
+                user.setPhoto(rs.getString("photo"));
                 return user;
             }
         } catch (SQLException e) {
@@ -528,38 +534,6 @@ public class UtilisateurService implements IService<Utilisateur> {
             System.out.println("Error updating ban status: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    public List<Map<String, Object>> getUserReports(int userId) {
-        List<Map<String, Object>> reports = new ArrayList<>();
-        String query = "SELECT r.*, u.prenom as reporter_prenom, u.nom as reporter_nom " +
-                "FROM report r " +
-                "JOIN utilisateur u ON r.reporter_id = u.id " +
-                "WHERE r.reported_user_id = ?";
-
-        try {
-            PreparedStatement stmt = cnx.prepareStatement(query);
-            stmt.setInt(1, userId);
-            ResultSet rs = stmt.executeQuery();
-
-            while (rs.next()) {
-                Map<String, Object> report = new HashMap<>();
-                report.put("reportId", rs.getInt("report_id"));
-                report.put("reporterId", rs.getInt("reporter_id"));
-                report.put("reporterName", rs.getString("reporter_prenom") + " " + rs.getString("reporter_nom"));
-                report.put("reason", rs.getString("reason"));
-                report.put("evidence", rs.getString("evidence"));
-                report.put("status", rs.getString("status"));
-                report.put("createdAt", rs.getTimestamp("created_at"));
-
-                reports.add(report);
-            }
-        } catch (SQLException e) {
-            System.out.println("Error fetching user reports: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        return reports;
     }
 
 }

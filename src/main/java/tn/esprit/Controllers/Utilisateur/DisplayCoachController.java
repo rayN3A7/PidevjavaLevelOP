@@ -1,29 +1,31 @@
 package tn.esprit.Controllers.Utilisateur;
 
-import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.geometry.Pos;
-import javafx.scene.text.Text;
-import tn.esprit.Models.Utilisateur;
-import tn.esprit.Services.UtilisateurService;
-import java.net.URL;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import java.time.LocalDateTime;
-import javafx.geometry.Insets;
-import javafx.scene.control.ButtonBar;
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.ReportService;
+import tn.esprit.Services.UtilisateurService;
 
-public class DashboardController implements Initializable {
+import java.net.URL;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.ResourceBundle;
+
+public class DisplayCoachController implements Initializable {
 
     @FXML
     private FlowPane usersContainer;
@@ -56,7 +58,7 @@ public class DashboardController implements Initializable {
     }
 
     private void loadUsers() {
-        List<Utilisateur> users = utilisateurService.getAll();
+        List<Utilisateur> users = utilisateurService.getByRole("COACH");
         allUsers = FXCollections.observableArrayList(users);
         displayUsers();
     }
@@ -208,7 +210,7 @@ public class DashboardController implements Initializable {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("User Ban Status");
             alert.setHeaderText(null);
-            alert.setContentText("L'utilisateur a été banni jusqu'à " +
+            alert.setContentText("User has been banned until " +
                     (banEndTime != null ? banEndTime.toString() : "permanently"));
             alert.showAndWait();
 

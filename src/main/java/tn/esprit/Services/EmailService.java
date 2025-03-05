@@ -20,8 +20,8 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 public class EmailService {
-    private static final String EMAIL_SENDER = "hsouna.sellami07@gmail.com"; // Remplace avec ton email
-    private static final String EMAIL_PASSWORD = "tvjh oytw mmjs yfap"; // ⚠️ Ne pas exposer publiquement
+    private static final String EMAIL_SENDER = "levelopcorporation@gmail.com"; // Remplace avec ton email
+    private static final String EMAIL_PASSWORD = "uwrk lpba zikl xlcq"; // ⚠️ Ne pas exposer publiquement
     private static String generatedOtp;
 
     public static String getGeneratedOtp() {

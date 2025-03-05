@@ -25,6 +25,26 @@ public class Utilisateur  {
     private boolean ban;
     private LocalDateTime banTime;
     private int countRep;
+    private String photo;
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public Utilisateur(String email, String motPasse, String nickname, String nom, int numero, String prenom, Role role, String photo) {
+        this.email = email;
+        this.motPasse = motPasse;
+        this.nickname = nickname;
+        this.nom = nom;
+        this.numero = numero;
+        this.prenom = prenom;
+        this.role = role;
+        this.photo = photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
 
     public int getCountRep() {
         return countRep;

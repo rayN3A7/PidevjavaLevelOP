@@ -7,8 +7,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import tn.esprit.Models.Role;
 import tn.esprit.Models.Utilisateur;
@@ -31,11 +29,7 @@ public class RegisterController {
     @FXML
     private PasswordField txtPassword;
     @FXML
-    private TextField txtPasswordVisible;
-    @FXML
     private PasswordField txtConfirmPassword;
-    @FXML
-    private TextField txtConfirmPasswordVisible;
 
     @FXML
     private Label lblNomError;
@@ -54,84 +48,18 @@ public class RegisterController {
     private Button btnGoToLogin;
     @FXML
     private Button btnRegister;
-    @FXML
-    private Button btnTogglePassword;
-    @FXML
-    private Button btnToggleConfirmPassword;
-
-    @FXML
-    private ImageView imgEyePassword;
-    @FXML
-    private ImageView imgEyeConfirmPassword;
 
     private final UtilisateurService userService = new UtilisateurService();
-    private boolean passwordVisible = false;
-    private boolean confirmPasswordVisible = false;
 
     @FXML
     private void initialize() {
         btnRegister.setOnAction(event -> handleRegister());
         btnGoToLogin.setOnAction(event -> navigateToLoginPage());
 
-        // Set up password field synchronization
+        // Set up password field style update
         txtPassword.textProperty().addListener((observable, oldValue, newValue) -> {
-            txtPasswordVisible.setText(newValue);
             updatePasswordFieldStyle(newValue);
         });
-
-        txtPasswordVisible.textProperty().addListener((observable, oldValue, newValue) -> {
-            txtPassword.setText(newValue);
-            updatePasswordFieldStyle(newValue);
-        });
-
-        txtConfirmPassword.textProperty()
-                .addListener((observable, oldValue, newValue) -> txtConfirmPasswordVisible.setText(newValue));
-
-        txtConfirmPasswordVisible.textProperty()
-                .addListener((observable, oldValue, newValue) -> txtConfirmPassword.setText(newValue));
-
-        // Set up toggle password visibility
-        btnTogglePassword.setOnAction(event -> togglePasswordVisibility());
-        btnToggleConfirmPassword.setOnAction(event -> toggleConfirmPasswordVisibility());
-    }
-
-    private void togglePasswordVisibility() {
-        passwordVisible = !passwordVisible;
-        txtPassword.setVisible(!passwordVisible);
-        txtPasswordVisible.setVisible(passwordVisible);
-
-        // Update eye icon
-        String imagePath = passwordVisible ? "../../assets/image/eye-open.png" : "../../assets/image/eye-closed.png";
-        imgEyePassword.setImage(new Image(getClass().getResourceAsStream(imagePath)));
-
-        // Set focus to the visible field
-        if (passwordVisible) {
-            txtPasswordVisible.requestFocus();
-            txtPasswordVisible.positionCaret(txtPasswordVisible.getText().length());
-        } else {
-            txtPassword.requestFocus();
-            txtPassword.positionCaret(txtPassword.getText().length());
-        }
-    }
-
-    private void toggleConfirmPasswordVisibility() {
-        confirmPasswordVisible = !confirmPasswordVisible;
-        txtConfirmPassword.setVisible(!confirmPasswordVisible);
-        txtConfirmPasswordVisible.setVisible(confirmPasswordVisible);
-
-        // Update eye icon
-        String imagePath = confirmPasswordVisible ? "../../assets/image/eye-open.png"
-                : "../../assets/image/eye-closed.png";
-        imgEyeConfirmPassword.setImage(new Image(getClass().getResourceAsStream(imagePath)));
-
-        // Set focus to the visible field
-        if (confirmPasswordVisible) {
-            txtConfirmPasswordVisible.requestFocus();
-            txtConfirmPasswordVisible.positionCaret(txtConfirmPasswordVisible.getText().length());
-        } else {
-            txtConfirmPassword.requestFocus();
-            txtConfirmPassword.positionCaret(txtConfirmPassword.getText().length());
-        }
     }
 
     private void updatePasswordFieldStyle(String password) {
@@ -139,18 +67,14 @@ public class RegisterController {
 
         // Remove all previous styles
         txtPassword.getStyleClass().removeAll("weak-password", "medium-password", "strong-password");
-        txtPasswordVisible.getStyleClass().removeAll("weak-password", "medium-password", "strong-password");
 
         // Apply new style based on strength
         if (strength == 0) {
             txtPassword.getStyleClass().add("weak-password");
-            txtPasswordVisible.getStyleClass().add("weak-password");
         } else if (strength == 1) {
             txtPassword.getStyleClass().add("medium-password");
-            txtPasswordVisible.getStyleClass().add("medium-password");
         } else {
             txtPassword.getStyleClass().add("strong-password");
-            txtPasswordVisible.getStyleClass().add("strong-password");
         }
     }
 
@@ -219,7 +143,7 @@ public class RegisterController {
         }
 
         // Vérification du mot de passe
-        String password = passwordVisible ? txtPasswordVisible.getText() : txtPassword.getText();
+        String password = txtPassword.getText();
         if (password.isEmpty()) {
             lblPasswordError.setText("Mot de passe requis !");
             isValid = false;
@@ -232,8 +156,7 @@ public class RegisterController {
         }
 
         // Vérification de la confirmation du mot de passe
-        String confirmPassword = confirmPasswordVisible ? txtConfirmPasswordVisible.getText()
-                : txtConfirmPassword.getText();
+        String confirmPassword = txtConfirmPassword.getText();
         if (!password.equals(confirmPassword)) {
             lblPasswordError.setText("Les mots de passe ne correspondent pas !");
             isValid = false;

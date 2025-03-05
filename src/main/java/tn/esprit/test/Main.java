@@ -27,8 +27,9 @@ public class Main {
        // System.out.println(us.loginUser("luffy@gmail.com","luffy@1235",true));
        // SessionManager.getInstance().logout();
 
-        System.out.println(us.getAll());
-
+       // us.loginUser("luffy@gmail.com","luffy@1235",true);
+       // System.out.println(us.getByRole("COACH"));
+        System.out.println(us.getByEmail("hsouna.sellami1@gmail.com"));
 
 
 
