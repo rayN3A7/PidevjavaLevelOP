@@ -1,5 +1,6 @@
 package tn.esprit.Controllers.Produit;
 
+import java.io.File;
 import java.io.IOException;
 
 import javafx.fxml.FXML;
@@ -24,6 +25,8 @@ public class ProductCardController {
     private Stock stock;
     private StockService stockService;
 
+    private static final String IMAGE_DIR = "C:\\xampp\\htdocs\\img\\";
+
     @FXML
     public void initialize() {
         stockService = new StockService();
@@ -33,35 +36,36 @@ public class ProductCardController {
         this.product = product;
         productName.setText(product.getNomProduit());
 
-        // Get stock information
         this.stock = stockService.getByProduitId(product.getId());
         if (stock != null) {
-            productPrice.setText(stock.getPrixProduit() + " DNT");
+            productPrice.setText(stock.getPrixProduit() + " TND");
 
-            // Load image from stock
-            String imagePath = "/assets/image/" + stock.getImage();
+            String imagePath = IMAGE_DIR + stock.getImage();
             try {
-                Image image = new Image(getClass().getResourceAsStream(imagePath));
-                productImage.setImage(image);
-            } catch (IllegalArgumentException | NullPointerException e) {
-                System.err.println("Error loading image: " + e.getMessage());
-                // Load a default image
-                try {
-                    Image defaultImage = new Image(getClass().getResourceAsStream("/assets/image/default-product.png"));
-                    productImage.setImage(defaultImage);
-                } catch (Exception ex) {
-                    System.err.println("Error loading default image: " + ex.getMessage());
+                Image image = new Image(new File(imagePath).toURI().toString());
+                if (!image.isError()) {
+                    productImage.setImage(image);
+                } else {
+                    loadDefaultImage();
                 }
+            } catch (Exception e) {
+                System.err.println("Error loading image: " + e.getMessage());
+                loadDefaultImage();
             }
         } else {
             productPrice.setText("N/A");
-            // Load default image
-            try {
-                Image defaultImage = new Image(getClass().getResourceAsStream("/assets/image/default-product.png"));
+            loadDefaultImage();
+        }
+    }
+
+    private void loadDefaultImage() {
+        try {
+            Image defaultImage = new Image(getClass().getResourceAsStream("/assets/image/default-product.png"));
+            if (!defaultImage.isError()) {
                 productImage.setImage(defaultImage);
-            } catch (Exception e) {
-                System.err.println("Error loading default image: " + e.getMessage());
             }
+        } catch (Exception e) {
+            System.err.println("Error loading default image: " + e.getMessage());
         }
     }
 

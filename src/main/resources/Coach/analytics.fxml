@@ -7,7 +7,6 @@
 
 <BorderPane fx:id="mainLayout" prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: #1E1E2F;"
             xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-            stylesheets="@../assets/style/styleCoach.css"
             fx:controller="tn.esprit.Controllers.Coach.AnalyticsController">
     <left>
         <fx:include source="../sidebarAdmin.fxml"/>

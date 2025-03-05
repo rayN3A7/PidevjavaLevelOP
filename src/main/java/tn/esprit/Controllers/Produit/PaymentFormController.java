@@ -32,7 +32,7 @@ public class PaymentFormController {
     private boolean paymentSuccessful = false;
 
     static {
-        Stripe.apiKey = "sk_test_51QvMH5PNauIHPjoTTov10mAdNwhbSH0ycAHTkArf2taZUSP5rtsMNxgyehsKnq4dfoazZz1nXkGNrQQn4uzSxZBt00pANi7uFX"; // Replace with your actual Stripe secret key
+        Stripe.apiKey = "sk_test_51QvMH5PNauIHPjoTTov10mAdNwhbSH0ycAHTkArf2taZUSP5rtsMNxgyehsKnq4dfoazZz1nXkGNrQQn4uzSxZBt00pANi7uFX";
     }
 
     @FXML
@@ -65,13 +65,13 @@ public class PaymentFormController {
         }
 
         try {
-            String testToken = "tok_visa"; // Test token for a successful charge
+            String testToken = "tok_visa";
             ChargeCreateParams params = ChargeCreateParams.builder()
-                    .setAmount((long) (currentStock.getPrixProduit() * 100)) // Amount in cents
+                    .setAmount((long) (currentStock.getPrixProduit() * 100))
                     .setCurrency("usd")
                     .setSource(testToken)
                     .setDescription("Payment for " + currentProduct.getNomProduit())
-                    .setReceiptEmail(emailField.getText()) // Add customer's email to receipt
+                    .setReceiptEmail(emailField.getText())
                     .build();
 
             Charge charge = Charge.create(params);
@@ -81,12 +81,10 @@ public class PaymentFormController {
                 successAlert.setHeaderText(null);
                 successAlert.setContentText("Paiement effectué avec succès!");
 
-                // Apply custom styling
                 DialogPane dialogPane = successAlert.getDialogPane();
                 dialogPane.getStylesheets().add(getClass().getResource("/assets/style/styles.css").toExternalForm());
                 dialogPane.getStyleClass().add("custom-alert");
 
-                // Set custom icon
                 Stage stage = (Stage) dialogPane.getScene().getWindow();
                 stage.getIcons().add(new Image(getClass().getResourceAsStream("/forumUI/icons/sucessalert.png")));
 
@@ -117,28 +115,23 @@ public class PaymentFormController {
         String cvc = cvcField.getText().trim();
         String cardholderName = cardholderNameField.getText().trim();
 
-        // Email validation (basic regex)
         String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
         if (!Pattern.matches(emailRegex, email)) {
             return false;
         }
 
-        // Card number validation (basic length check, e.g., 16 digits for Visa/MasterCard)
         if (!cardNumber.matches("\\d{16}")) {
             return false;
         }
 
-        // Expiry validation (MM/YY format)
         if (!expiry.matches("^(0[1-9]|1[0-2])\\/([0-9]{2})$")) {
             return false;
         }
 
-        // CVC validation (3 or 4 digits)
         if (!cvc.matches("\\d{3,4}")) {
             return false;
         }
 
-        // Cardholder name (non-empty)
         if (cardholderName.isEmpty()) {
             return false;
         }
