@@ -117,7 +117,6 @@ public class CommentCardController {
         });
     }
 
-
     private void configureVisibility() {
         editCommentField.setVisible(false);
         editButtonsBox.setVisible(false);
@@ -165,7 +164,7 @@ public class CommentCardController {
         evidenceField.setStyle("-fx-control-inner-background: #555; -fx-text-fill: white;");
 
         Button submitReportButton = new Button("Submit Report");
-        submitReportButton.setStyle("-fx-background-color: #ff4081; -fx-text-fill: white; -fx-font-size: 14px;"); // Match neon pink theme
+        submitReportButton.setStyle("-fx-background-color: #ff4081; -fx-text-fill: white; -fx-font-size: 14px;");
         submitReportButton.setOnAction(event -> {
             ReportReason reason = reasonComboBox.getValue();
             if (reason == null) {
@@ -201,6 +200,7 @@ public class CommentCardController {
         alert.getDialogPane().getStyleClass().add("gaming-alert");
         alert.showAndWait();
     }
+
     private void handleUpdateComment() {
         Utilisateur currentUser = us.getOne(userId);
         if (currentUser == null || (currentUser.getRole() != Role.ADMIN && commentaire.getUtilisateur().getId() != userId)) {
@@ -272,9 +272,7 @@ public class CommentCardController {
                     votesLabel.setText("Votes: " + updatedVotes);
                     votesLabel.setVisible(true);
                     downvoteButton.setDisable(updatedVotes == 0);
-
                 });
-
             } catch (Exception e) {
                 Platform.runLater(() -> showAlert("Erreur", "Erreur lors de l'upvote: " + e.getMessage()));
             }
@@ -298,9 +296,7 @@ public class CommentCardController {
                     votesLabel.setText("Votes: " + updatedVotes);
                     votesLabel.setVisible(true);
                     downvoteButton.setDisable(updatedVotes == 0);
-
                 });
-
             } catch (Exception e) {
                 Platform.runLater(() -> showAlert("Erreur", "Erreur lors du downvote: " + e.getMessage()));
             }
@@ -324,41 +320,40 @@ public class CommentCardController {
     }
 
     public void updatePrivilegeUI(Utilisateur user) {
-        Platform.runLater(() -> {
-            TextFlow authorFlow = new TextFlow();
-            Text usernameText = new Text(user.getNickname());
-            usernameText.setStyle("-fx-fill: white;");
+        // Removed Platform.runLater as this is typically called from FX thread or after background task
+        TextFlow authorFlow = new TextFlow();
+        Text usernameText = new Text(user.getNickname());
+        usernameText.setStyle("-fx-fill: white;");
 
-            if (user.getRole() == Role.ADMIN) {
-                Text adminText = new Text("Admin ");
-                adminText.setStyle("-fx-fill: #009dff;");
-                authorFlow.getChildren().addAll(adminText, usernameText);
-            } else {
-                authorFlow.getChildren().add(usernameText);
-            }
+        if (user.getRole() == Role.ADMIN) {
+            Text adminText = new Text("Admin ");
+            adminText.setStyle("-fx-fill: #009dff;");
+            authorFlow.getChildren().addAll(adminText, usernameText);
+        } else {
+            authorFlow.getChildren().add(usernameText);
+        }
 
-            String privilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
-            System.out.println("Updating privilege UI for user " + user.getNickname() + " to " + privilege);
-            commentAuthor.setText(user.getNickname());
-            switch (privilege) {
-                case "top_contributor":
-                    commentAuthor.setStyle("-fx-text-fill: silver;");
-                    crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png"));
-                    crownIcon.setVisible(true);
-                    break;
-                case "top_fan":
-                    commentAuthor.setStyle("-fx-text-fill: gold;");
-                    crownIcon.setImage(new Image("/forumUI/icons/crown.png"));
-                    crownIcon.setVisible(true);
-                    break;
-                default:
-                    commentAuthor.setStyle("-fx-text-fill: white;");
-                    crownIcon.setVisible(false);
-                    break;
-            }
-            commentAuthor.setGraphic(authorFlow);
-            commentAuthor.setText("");
-        });
+        String privilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
+        System.out.println("Updating privilege UI for user " + user.getNickname() + " to " + privilege);
+        commentAuthor.setText(user.getNickname());
+        switch (privilege) {
+            case "top_contributor":
+                commentAuthor.setStyle("-fx-text-fill: silver;");
+                crownIcon.setImage(new Image("/forumUI/icons/silver_crown.png"));
+                crownIcon.setVisible(true);
+                break;
+            case "top_fan":
+                commentAuthor.setStyle("-fx-text-fill: gold;");
+                crownIcon.setImage(new Image("/forumUI/icons/crown.png"));
+                crownIcon.setVisible(true);
+                break;
+            default:
+                commentAuthor.setStyle("-fx-text-fill: white;");
+                crownIcon.setVisible(false);
+                break;
+        }
+        commentAuthor.setGraphic(authorFlow);
+        commentAuthor.setText("");
     }
 
     private void animatePrivilegeChange(ImageView crownIcon, boolean isVisible) {
@@ -390,45 +385,44 @@ public class CommentCardController {
     private void showPrivilegeAlert(UtilisateurService.PrivilegeChange change) {
         if (!change.isChanged()) return;
 
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.NONE);
-            alert.setHeaderText(null);
-            String oldPrivilege = change.getOldPrivilege();
-            String newPrivilege = change.getNewPrivilege();
-            boolean isPromotion = getPrivilegeRank(newPrivilege) > getPrivilegeRank(oldPrivilege);
+        // Removed Platform.runLater as this is typically called from FX thread
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setHeaderText(null);
+        String oldPrivilege = change.getOldPrivilege();
+        String newPrivilege = change.getNewPrivilege();
+        boolean isPromotion = getPrivilegeRank(newPrivilege) > getPrivilegeRank(oldPrivilege);
 
-            alert.setTitle(isPromotion ? "Félicitations!" : "Mise à jour de privilège");
-            alert.setContentText(isPromotion ?
-                    (newPrivilege.equals("top_contributor") ? "Vous êtes passé de Regular à Top Contributor ! Bravo pour votre contribution !" :
-                            "Vous êtes maintenant un Top Fan depuis " + oldPrivilege + " ! Votre passion est récompensée !") :
-                    (oldPrivilege.equals("top_contributor") ? "Désolé, vous êtes redescendu de Top Contributor à Regular." :
-                            "Désolé, vous êtes passé de Top Fan à " + newPrivilege + "."));
+        alert.setTitle(isPromotion ? "Félicitations!" : "Mise à jour de privilège");
+        alert.setContentText(isPromotion ?
+                (newPrivilege.equals("top_contributor") ? "Vous êtes passé de Regular à Top Contributor ! Bravo pour votre contribution !" :
+                        "Vous êtes maintenant un Top Fan depuis " + oldPrivilege + " ! Votre passion est récompensée !") :
+                (oldPrivilege.equals("top_contributor") ? "Désolé, vous êtes redescendu de Top Contributor à Regular." :
+                        "Désolé, vous êtes passé de Top Fan à " + newPrivilege + "."));
 
-            ImageView icon = new ImageView(new Image(getClass().getResource(
-                    isPromotion ? (newPrivilege.equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png") :
-                            "/forumUI/icons/alert.png").toExternalForm()));
-            icon.setFitHeight(60);
-            icon.setFitWidth(60);
-            alert.setGraphic(icon);
+        ImageView icon = new ImageView(new Image(getClass().getResource(
+                isPromotion ? (newPrivilege.equals("top_contributor") ? "/forumUI/icons/silver_crown.png" : "/forumUI/icons/crown.png") :
+                        "/forumUI/icons/alert.png").toExternalForm()));
+        icon.setFitHeight(60);
+        icon.setFitWidth(60);
+        alert.setGraphic(icon);
 
-            Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-            stage.getIcons().add(new Image(getClass().getResource(isPromotion ? "/forumUI/icons/sucessalert.png" : "/forumUI/icons/alert.png").toString()));
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource(isPromotion ? "/forumUI/icons/sucessalert.png" : "/forumUI/icons/alert.png").toString()));
 
-            alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
-            alert.getDialogPane().getStyleClass().add("privilege-alert");
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("privilege-alert");
 
-            ButtonType okButton = new ButtonType(isPromotion ? "GG!" : "OK", ButtonBar.ButtonData.OK_DONE);
-            alert.getButtonTypes().setAll(okButton);
+        ButtonType okButton = new ButtonType(isPromotion ? "GG!" : "OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
 
-            FadeTransition fadeIn = new FadeTransition(Duration.millis(500), alert.getDialogPane());
-            fadeIn.setFromValue(0.0);
-            fadeIn.setToValue(1.0);
-            alert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
-                if (isShowing) fadeIn.play();
-            });
-
-            alert.showAndWait();
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(500), alert.getDialogPane());
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        alert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (isShowing) fadeIn.play();
         });
+
+        alert.showAndWait();
     }
 
     private void toggleReplyInput() {
@@ -447,7 +441,7 @@ public class CommentCardController {
             try {
                 if (ProfanityChecker.containsProfanity(replyText)) {
                     final boolean[] proceed = {false};
-                    Platform.runLater(() -> proceed[0] = showProfanityWarningAlert("Avertissement", "Contenu inapproprié. Continuer?"));
+                    Platform.runLater(() -> proceed[0] = showProfanityWarningAlert("Avertissement", "Contenu inapproprié pourrait être signalée. Continuer?"));
                     while (!proceed[0] && !Thread.currentThread().isInterrupted()) Thread.yield();
                     if (!proceed[0]) return;
                 }
@@ -466,10 +460,10 @@ public class CommentCardController {
                     replyInput.clear();
                     replyInputBox.setVisible(false);
                     replyInputBox.setManaged(false);
-                    loadReplies(); // Sync replies
+                    loadReplies();
                     toggleRepliesButton.setVisible(true);
                     toggleRepliesButton.setManaged(true);
-                    checkPrivilegeChange(userId); // Check for logged-in user
+                    checkPrivilegeChange(userId);
                     checkPrivilegeChange(commentaire.getUtilisateur().getId());
                 });
             } catch (IOException e) {
@@ -786,7 +780,7 @@ public class CommentCardController {
             Platform.runLater(() -> {
                 displayReactions();
                 displayUserReaction();
-                checkPrivilegeChange(userId); // Check for logged-in user
+                checkPrivilegeChange(userId);
                 checkPrivilegeChange(commentaire.getUtilisateur().getId());
             });
         });
@@ -818,10 +812,24 @@ public class CommentCardController {
     private boolean showProfanityWarningAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle(title);
+        alert.setHeaderText(null);
         alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
+        icon.setFitHeight(60);
+        icon.setFitWidth(60);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
         ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.CANCEL_CLOSE);
-        ButtonType addAnywayButton = new ButtonType("Ajouter", ButtonBar.ButtonData.OK_DONE);
+        ButtonType addAnywayButton = new ButtonType("Ajouter quand même", ButtonBar.ButtonData.OK_DONE);
         alert.getButtonTypes().setAll(okButton, addAnywayButton);
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource("/forumUI/icons/alert.png").toExternalForm()));
+
         return alert.showAndWait().filter(response -> response == addAnywayButton).isPresent();
     }
 

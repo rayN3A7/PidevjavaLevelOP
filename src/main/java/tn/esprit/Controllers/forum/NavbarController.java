@@ -79,7 +79,6 @@ public class NavbarController implements Initializable {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/" + page + ".fxml"));
             Parent root = loader.load();
 
-            // If navigating to Forum, refresh questions
             if (page.equals("forumUI/Forum") && forumController != null) {
                 forumController.refreshQuestions();
             }

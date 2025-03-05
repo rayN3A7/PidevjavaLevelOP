@@ -247,17 +247,17 @@ public class QuestionCardController {
 
         twitterButton.setOnAction(e -> {
             shareOnSocialMedia("twitter");
-            Platform.runLater(dialogStage::close);
+            dialogStage.close();
         });
         facebookButton.setOnAction(e -> {
             shareOnSocialMedia("facebook");
-            Platform.runLater(dialogStage::close);
+            dialogStage.close();
         });
         redditButton.setOnAction(e -> {
             shareOnSocialMedia("reddit");
-            Platform.runLater(dialogStage::close);
+            dialogStage.close();
         });
-        cancelButton.setOnAction(e -> Platform.runLater(dialogStage::close));
+        cancelButton.setOnAction(e -> dialogStage.close());
 
         dialogContent.getChildren().addAll(header, twitterButton, facebookButton, redditButton, cancelButton);
         dialogContent.setAlignment(Pos.CENTER);
@@ -633,14 +633,14 @@ public class QuestionCardController {
         synchronized (allControllers) {
             controllersCopy = new ArrayList<>(allControllers);
         }
-        Platform.runLater(() -> {
-            for (QuestionCardController controller : controllersCopy) {
-                controller.disposeVideo();
-            }
-        });
+        // Removed outer Platform.runLater as this is typically called from FX thread (e.g., navigation)
+        for (QuestionCardController controller : controllersCopy) {
+            controller.disposeVideo();
+        }
     }
 
     public void updatePrivilegeUI(Utilisateur user) {
+        // Removed Platform.runLater as this is called from FX thread or scheduled appropriately
         TextFlow authorFlow = new TextFlow();
         Text usernameText = new Text(user.getNickname());
         usernameText.setStyle("-fx-fill: white;");
@@ -674,7 +674,6 @@ public class QuestionCardController {
         commentAuthor.setGraphic(authorFlow);
         commentAuthor.setText("");
     }
-
     private void animatePrivilegeChange(ImageView crownIcon, boolean isVisible) {
         FadeTransition fade = new FadeTransition(Duration.millis(500), crownIcon);
         ScaleTransition scale = new ScaleTransition(Duration.millis(500), crownIcon);
@@ -1085,7 +1084,6 @@ public class QuestionCardController {
             }
         }
     }
-
     private void resetMediaState() {
         questionImage.setImage(null);
         questionImage.setVisible(false);

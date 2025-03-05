@@ -19,10 +19,10 @@
                     </image>
                 </ImageView>
                 <Label text="Forum des Questions" styleClass="forum-title"/>
-                <Label text="vous pouvez ajouter une question" styleClass="forum-subtite"/>
+                <Label text="Vous pouvez ajouter une question" styleClass="forum-subtite"/>
                 <HBox spacing="10" alignment="CENTER" style="-fx-padding: 10px;">
                     <TextField fx:id="searchField" promptText="Recherche de questions par jeu..." styleClass="search-field"/>
-                    <Button fx:id="addQuestionButton" text="ajouter" onAction="#navigateToAddQuestion" styleClass="create-post-button"/>
+                    <Button fx:id="addQuestionButton" text="Ajouter" onAction="#navigateToAddQuestion" styleClass="create-post-button"/>
                 </HBox>
                 <VBox fx:id="questionCardContainer" spacing="20" alignment="CENTER"
                       style="-fx-background-color: transparent; -fx-padding: 10px;"/>
@@ -33,6 +33,8 @@
         <VBox alignment="CENTER" style="-fx-padding: 10px;">
             <Button fx:id="navigateToQuestionFormButton" text="Ajouter une nouvelle question" onAction="#navigateToAddQuestion"
                     styleClass="floating-button" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8px 16px; -fx-border-radius: 5px;"/>
+            <Button fx:id="loadMoreButton" text="Charger plus" onAction="#loadMoreQuestions"
+                    styleClass="floating-button" style="-fx-background-color: #ff007f; -fx-text-fill: white; -fx-font-size: 14px; -fx-padding: 8px 16px; -fx-border-radius: 5px;"/>
         </VBox>
     </bottom>
 </BorderPane>

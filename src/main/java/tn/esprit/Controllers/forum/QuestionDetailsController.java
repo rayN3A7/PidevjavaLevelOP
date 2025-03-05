@@ -264,6 +264,7 @@ public class QuestionDetailsController implements AutoCloseable {
     private void showPrivilegeAlert(UtilisateurService.PrivilegeChange change) {
         if (!change.isChanged()) return;
 
+        // Removed Platform.runLater as this is called from FX thread or scheduled appropriately
         boolean isPromotion = getPrivilegeRank(change.getNewPrivilege()) > getPrivilegeRank(change.getOldPrivilege());
         String title = isPromotion ? "Félicitations!" : "Mise à jour de privilège";
         String message = getPrivilegeMessage(change, isPromotion);
@@ -417,19 +418,18 @@ public class QuestionDetailsController implements AutoCloseable {
     }
 
     public void updatePrivilegeUI(int affectedUserId) {
-        Platform.runLater(() -> {
-            for (Node node : commentContainer.getChildren()) {
-                if (node instanceof VBox) {
-                    CommentCardController controller = (CommentCardController) node.getUserData();
-                    if (controller != null && controller.getCommentaire().getUtilisateur().getId() == affectedUserId) {
-                        Utilisateur user = utilisateurService.getOne(affectedUserId);
-                        if (user != null) {
-                            controller.updatePrivilegeUI(user);
-                        }
+        // Removed Platform.runLater as this is called from FX thread or scheduled appropriately
+        for (Node node : commentContainer.getChildren()) {
+            if (node instanceof StackPane) {
+                CommentCardController controller = (CommentCardController) node.getUserData();
+                if (controller != null && controller.getCommentaire().getUtilisateur().getId() == affectedUserId) {
+                    Utilisateur user = utilisateurService.getOne(affectedUserId);
+                    if (user != null) {
+                        controller.updatePrivilegeUI(user);
                     }
                 }
             }
-        });
+        }
     }
 
     @Override

@@ -8,7 +8,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -28,9 +27,7 @@ import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,23 +40,26 @@ public class ForumController implements Initializable {
     private static final String ALERT_CSS = "/forumUI/alert.css";
     private static final String ALERT_ICON = "/forumUI/icons/alert.png";
     private static final String SUCCESS_ICON = "/forumUI/icons/sucessalert.png";
+    private static final int QUESTIONS_PER_PAGE = 1;
 
     @FXML private VBox questionCardContainer;
     @FXML private Button addQuestionButton;
     @FXML private TextField searchField;
     @FXML private BorderPane mainLayout;
     @FXML private Button navigateToQuestionFormButton;
+    @FXML private Button loadMoreButton;
     private final QuestionService questionService = new QuestionService();
     private final UtilisateurService us = new UtilisateurService();
     private final int userId = SessionManager.getInstance().getUserId();
     private final Map<Question, Parent> questionCardMap = new HashMap<>();
     private ObservableList<Question> allQuestions = FXCollections.observableArrayList();
+    private int currentQuestionCount = 0;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-       // if (SessionManager.getInstance().getRole() == Role.ADMIN) loadAdminSidebarAsync();
-        loadQuestionsLazy();
+        loadInitialQuestions();
         searchField.textProperty().addListener((obs, oldVal, newVal) -> filterQuestionsRealTime(newVal));
+        setupFloatingAnimation();
         EventBus.getInstance().addHandler(event -> {
             CompletableFuture.supplyAsync(() -> us.getOne(event.getUserId()), EXECUTOR_SERVICE)
                     .thenAcceptAsync(user -> {
@@ -74,57 +74,107 @@ public class ForumController implements Initializable {
         });
     }
 
+    private void setupFloatingAnimation() {
+        applyFloatingAnimation(addQuestionButton);
+        applyFloatingAnimation(navigateToQuestionFormButton);
+        applyFloatingAnimation(loadMoreButton);
+    }
 
-    public void loadQuestionsLazy() {
-        CompletableFuture.supplyAsync(questionService::getAll, EXECUTOR_SERVICE)
+    private void applyFloatingAnimation(Button button) {
+        TranslateTransition floatTransition = new TranslateTransition(Duration.seconds(2), button);
+        floatTransition.setFromY(0);
+        floatTransition.setToY(-10);
+        floatTransition.setCycleCount(TranslateTransition.INDEFINITE);
+        floatTransition.setAutoReverse(true);
+        floatTransition.setRate(1.0);
+        floatTransition.play();
+    }
+
+    public void loadInitialQuestions() {
+        CompletableFuture.supplyAsync(() -> {
+                    List<Question> questions = questionService.getAll();
+                    System.out.println("Loaded questions from DB: " + (questions != null ? questions.size() : "null"));
+                    return questions;
+                }, EXECUTOR_SERVICE)
                 .thenAcceptAsync(questions -> {
+                    if (questions == null || questions.isEmpty()) {
+                        System.out.println("No questions found in database.");
+                        questionCardContainer.getChildren().setAll(new Label("Aucune question disponible."));
+                        loadMoreButton.setDisable(true);
+                        return;
+                    }
                     allQuestions.setAll(questions);
                     questionCardContainer.getChildren().clear();
                     questionCardMap.clear();
-                    questions.forEach(this::addQuestionCard);
-                    filterQuestionsRealTime(searchField.getText().trim().toLowerCase());
-                }, Platform::runLater);
+                    currentQuestionCount = 0;
+                    loadMoreQuestions();
+                }, Platform::runLater)
+                .exceptionally(throwable -> {
+                    System.err.println("Error loading questions: " + throwable.getMessage());
+                    Platform.runLater(() -> showAlert("Erreur", "Erreur lors du chargement des questions: " + throwable.getMessage()));
+                    return null;
+                });
+    }
+
+    @FXML
+    private void loadMoreQuestions() {
+        System.out.println("Loading more questions. Current count: " + currentQuestionCount + ", Total: " + allQuestions.size());
+        int startIndex = currentQuestionCount;
+        int endIndex = Math.min(startIndex + QUESTIONS_PER_PAGE, allQuestions.size());
+        if (startIndex >= allQuestions.size()) {
+            loadMoreButton.setDisable(true);
+            return;
+        }
+
+        for (int i = startIndex; i < endIndex; i++) {
+            Question question = allQuestions.get(i);
+            addQuestionCard(question);
+        }
+        currentQuestionCount = endIndex;
+        filterQuestionsRealTime(searchField.getText().trim().toLowerCase());
+        loadMoreButton.setDisable(currentQuestionCount >= allQuestions.size());
+        System.out.println("Loaded " + (endIndex - startIndex) + " more questions. New count: " + currentQuestionCount);
     }
 
     private void filterQuestionsRealTime(String searchText) {
         String query = searchText.trim().toLowerCase();
-        Platform.runLater(() -> {
-            Map<Question, Parent> filteredCards = questionCardMap.entrySet().stream()
-                    .filter(entry -> {
-                        Question question = entry.getKey();
-                        String gameName = question.getGame() != null && question.getGame().getGame_name() != null
-                                ? question.getGame().getGame_name().toLowerCase()
-                                : "";
-                        String gameType = question.getGame() != null && question.getGame().getGameType() != null
-                                ? question.getGame().getGameType().toLowerCase()
-                                : "";
-                        String title = question.getTitle() != null ? question.getTitle().toLowerCase() : "";
-                        String content = question.getContent() != null ? question.getContent().toLowerCase() : "";
-                        String authorNickname = question.getUser() != null && question.getUser().getNickname() != null
-                                ? question.getUser().getNickname().toLowerCase()
-                                : "";
-                        return query.isEmpty() ||
-                                gameName.contains(query) ||
-                                gameType.contains(query) ||
-                                title.contains(query) ||
-                                content.contains(query) ||
-                                authorNickname.contains(query);
-                    })
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            questionCardMap.forEach((question, card) -> {
-                boolean matches = filteredCards.containsKey(question);
-                card.setVisible(matches);
-                card.setManaged(matches);
-            });
-
-            questionCardContainer.requestLayout();
-        });
+        CompletableFuture.supplyAsync(() -> {
+                    return questionCardMap.entrySet().stream()
+                            .filter(entry -> {
+                                Question question = entry.getKey();
+                                String gameName = question.getGame() != null && question.getGame().getGame_name() != null
+                                        ? question.getGame().getGame_name().toLowerCase()
+                                        : "";
+                                String gameType = question.getGame() != null && question.getGame().getGameType() != null
+                                        ? question.getGame().getGameType().toLowerCase()
+                                        : "";
+                                String title = question.getTitle() != null ? question.getTitle().toLowerCase() : "";
+                                String content = question.getContent() != null ? question.getContent().toLowerCase() : "";
+                                String authorNickname = question.getUser() != null && question.getUser().getNickname() != null
+                                        ? question.getUser().getNickname().toLowerCase()
+                                        : "";
+                                return query.isEmpty() ||
+                                        gameName.contains(query) ||
+                                        gameType.contains(query) ||
+                                        title.contains(query) ||
+                                        content.contains(query) ||
+                                        authorNickname.contains(query);
+                            })
+                            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                }, EXECUTOR_SERVICE)
+                .thenAcceptAsync(filteredCards -> {
+                    questionCardMap.forEach((question, card) -> {
+                        boolean matches = filteredCards.containsKey(question);
+                        card.setVisible(matches);
+                        card.setManaged(matches);
+                    });
+                    questionCardContainer.requestLayout();
+                }, Platform::runLater);
     }
 
     public void refreshQuestions() {
         QuestionCardController.stopAllVideos();
-        loadQuestionsLazy();
+        loadInitialQuestions();
     }
 
     private void addQuestionCard(Question question) {
@@ -137,14 +187,14 @@ public class ForumController implements Initializable {
                 card.setUserData(controller);
                 return card;
             } catch (IOException e) {
-                System.err.println("Error adding question card: " + e.getMessage());
+                System.err.println("Erreur lors de l'ajout de la carte de question: " + e.getMessage());
                 return null;
             }
         }, EXECUTOR_SERVICE).thenAcceptAsync(card -> {
             if (card != null) {
                 questionCardMap.put(question, card);
                 questionCardContainer.getChildren().add(card);
-                card.setVisible(false); // Initial visibility handled by filter
+                card.setVisible(true);
                 filterQuestionsRealTime(searchField.getText().trim().toLowerCase());
             }
         }, Platform::runLater);
@@ -160,7 +210,7 @@ public class ForumController implements Initializable {
                 downvoteButton.setDisable(updatedVotes == 0);
             });
         }, EXECUTOR_SERVICE).exceptionally(t -> {
-            Platform.runLater(() -> showAlert("Erreur", "Erreur lors de l'upvote: " + t.getMessage()));
+            Platform.runLater(() -> showAlert("Erreur", "Erreur lors de l'upvote:\n" + t.getMessage()));
             return null;
         });
     }
@@ -176,7 +226,7 @@ public class ForumController implements Initializable {
                 downvoteButton.setDisable(updatedVotes == 0);
             });
         }, EXECUTOR_SERVICE).exceptionally(t -> {
-            Platform.runLater(() -> showAlert("Erreur", "Erreur lors du downvote: " + t.getMessage()));
+            Platform.runLater(() -> showAlert("Erreur", "Erreur lors du downvote:\n" + t.getMessage()));
             return null;
         });
     }
@@ -237,22 +287,59 @@ public class ForumController implements Initializable {
                     stage.show();
                 }, Platform::runLater);
     }
-
     public void deleteQuestion(Question question) {
         Utilisateur currentUser = us.getOne(userId);
         if (currentUser == null || (currentUser.getRole() != Role.ADMIN && question.getUser().getId() != userId)) {
             showAlert("Erreur", "Permission refusée.");
             return;
         }
-        CompletableFuture.runAsync(() -> questionService.delete(question), EXECUTOR_SERVICE)
-                .thenAcceptAsync(v -> {
-                    Parent card = questionCardMap.get(question);
-                    if (card != null) {
-                        questionCardContainer.getChildren().remove(card);
-                        questionCardMap.remove(question);
-                        allQuestions.remove(question);
-                    }
-                }, Platform::runLater);
+
+        Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmationAlert.setTitle("Confirmer la suppression");
+        confirmationAlert.setHeaderText(null);
+        confirmationAlert.setContentText("Voulez-vous vraiment supprimer cette question et tous ses commentaires ? ");
+
+        ImageView icon = new ImageView(new Image(getClass().getResource(ALERT_ICON).toExternalForm()));
+        icon.setFitHeight(80);
+        icon.setFitWidth(80);
+        confirmationAlert.setGraphic(icon);
+
+        confirmationAlert.getDialogPane().getStylesheets().add(getClass().getResource(ALERT_CSS).toExternalForm());
+        confirmationAlert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage alertStage = (Stage) confirmationAlert.getDialogPane().getScene().getWindow();
+        alertStage.getIcons().add(new Image(getClass().getResource(ALERT_ICON).toExternalForm()));
+
+        ButtonType deleteButton = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelButton = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        confirmationAlert.getButtonTypes().setAll(deleteButton, cancelButton);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(FADE_DURATION_MS), confirmationAlert.getDialogPane());
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        confirmationAlert.showingProperty().addListener((obs, wasShowing, isShowing) -> {
+            if (isShowing) fadeIn.play();
+        });
+
+        Optional<ButtonType> result = confirmationAlert.showAndWait();
+        if (result.isPresent() && result.get() == deleteButton) {
+            CompletableFuture.runAsync(() -> questionService.delete(question.getQuestion_id(), userId), EXECUTOR_SERVICE)
+                    .thenAcceptAsync(v -> {
+                        Parent card = questionCardMap.get(question);
+                        if (card != null) {
+                            questionCardContainer.getChildren().remove(card);
+                            questionCardMap.remove(question);
+                            allQuestions.remove(question);
+                            currentQuestionCount--;
+                            loadMoreButton.setDisable(currentQuestionCount >= allQuestions.size());
+
+                        }
+                    }, Platform::runLater)
+                    .exceptionally(t -> {
+                        Platform.runLater(() -> showAlert("Erreur", "Erreur lors de la suppression: " + t.getMessage()));
+                        return null;
+                    });
+        }
     }
 
     public void updatePrivilegeUI(int affectedUserId) {
@@ -266,7 +353,6 @@ public class ForumController implements Initializable {
                             if (user != null) Platform.runLater(() -> controller.updatePrivilegeUI(user));
                         }
                     });
-            loadQuestionsLazy();
         }, EXECUTOR_SERVICE);
     }
 
@@ -299,7 +385,7 @@ public class ForumController implements Initializable {
                         .forEach(node -> {
                             QuestionCardController controller = (QuestionCardController) node.getUserData();
                             if (controller != null && controller.getQuestion().equals(question)) {
-
+                                // Reaction handling can be updated here if needed
                             }
                         });
             });
@@ -307,22 +393,58 @@ public class ForumController implements Initializable {
     }
 
     private void showAlert(String title, String message) {
-        showStyledAlert(title, message, ALERT_ICON, ALERT_ICON, "OK", 80, 80);
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        Label contentLabel = new Label(message);
+        contentLabel.setWrapText(true);
+        alert.getDialogPane().setContent(contentLabel);
+        alert.getDialogPane().setPrefWidth(400);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource(ALERT_ICON).toExternalForm()));
+        icon.setFitHeight(80);
+        icon.setFitWidth(80);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource(ALERT_CSS).toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource(ALERT_ICON).toExternalForm()));
+
+        ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
+        FadeTransition fadeIn = new FadeTransition(Duration.millis(FADE_DURATION_MS), alert.getDialogPane());
+        fadeIn.setFromValue(0.0);
+        fadeIn.setToValue(1.0);
+        fadeIn.play();
+        alert.showAndWait();
     }
 
     private void showStyledAlert(String title, String message, String iconPath, String stageIconPath, String buttonText, double iconHeight, double iconWidth) {
         Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle(title);
-        alert.setContentText(message);
-        ImageView icon = new ImageView(new Image(getClass().getResourceAsStream(iconPath)));
+        alert.setHeaderText(null);
+        Label contentLabel = new Label(message);
+        contentLabel.setWrapText(true);
+        alert.getDialogPane().setContent(contentLabel);
+        alert.getDialogPane().setPrefWidth(400);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource(iconPath).toExternalForm()));
         icon.setFitHeight(iconHeight);
         icon.setFitWidth(iconWidth);
         alert.setGraphic(icon);
+
         alert.getDialogPane().getStylesheets().add(getClass().getResource(ALERT_CSS).toExternalForm());
         alert.getDialogPane().getStyleClass().add("gaming-alert");
+
         Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
-        stage.getIcons().add(new Image(getClass().getResourceAsStream(stageIconPath)));
-        alert.getButtonTypes().setAll(new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE));
+        stage.getIcons().add(new Image(getClass().getResource(stageIconPath).toExternalForm()));
+
+        ButtonType okButton = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
         FadeTransition fadeIn = new FadeTransition(Duration.millis(FADE_DURATION_MS), alert.getDialogPane());
         fadeIn.setFromValue(0.0);
         fadeIn.setToValue(1.0);
