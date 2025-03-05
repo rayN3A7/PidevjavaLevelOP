@@ -3,6 +3,11 @@ package tn.esprit.Services;
 import tn.esprit.Models.Demande;
 import tn.esprit.utils.MyDatabase;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,24 +15,30 @@ import java.util.List;
 public class DemandeService {
 
     private Connection cnx;
+    private static final String FILE_DIRECTORY = "C:\\xampp\\htdocs\\img\\";
 
     public DemandeService() {
         cnx = MyDatabase.getInstance().getCnx(); // Initialize the database connection
     }
 
-    // Add a new demande with file content
-    public void add(Demande demande) {
-        String query = "INSERT INTO demande (userId, game, description, file, date) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = cnx.prepareStatement(query)) {
-            stmt.setInt(1, demande.getUserId());
-            stmt.setString(2, demande.getGame());
-            stmt.setString(3, demande.getDescription());
-            stmt.setBytes(4, demande.getFile()); // Set file content as bytes
-            stmt.setTimestamp(5, demande.getDate());
-            stmt.executeUpdate();
-            System.out.println("Demande added successfully!");
-        } catch (SQLException e) {
-            System.out.println("Error adding demande: " + e.getMessage());
+    // Add a new demande with file path
+    public void add(Demande demande, byte[] fileData) {
+        String filePath = FILE_DIRECTORY + demande.getFilePath(); // Use the filename from demande
+        try (FileOutputStream fos = new FileOutputStream(filePath)) {
+            fos.write(fileData);
+
+            String query = "INSERT INTO demande (userId, game, description, file, date) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement stmt = cnx.prepareStatement(query)) {
+                stmt.setInt(1, demande.getUserId());
+                stmt.setString(2, demande.getGame());
+                stmt.setString(3, demande.getDescription());
+                stmt.setString(4, demande.getFilePath()); // Store only filename in database
+                stmt.setTimestamp(5, demande.getDate());
+                stmt.executeUpdate();
+                System.out.println("Demande added successfully!");
+            }
+        } catch (IOException | SQLException e) {
+            System.out.println("Error: " + e.getMessage());
         }
     }
 
@@ -42,9 +53,8 @@ public class DemandeService {
                         rs.getInt("userId"),
                         rs.getString("game"),
                         rs.getString("description"),
-                        rs.getBytes("file"), // Retrieve file content as bytes
-                        rs.getTimestamp("date")
-                );
+                        rs.getString("file"),
+                        rs.getTimestamp("date"));
                 demandes.add(demande);
             }
         } catch (SQLException e) {
@@ -60,7 +70,7 @@ public class DemandeService {
             stmt.setInt(1, demande.getUserId());
             stmt.setString(2, demande.getGame());
             stmt.setString(3, demande.getDescription());
-            stmt.setBytes(4, demande.getFile()); // Update file content
+            stmt.setString(4, demande.getFilePath());
             stmt.setTimestamp(5, demande.getDate());
             stmt.setInt(6, demande.getId());
             int rowsUpdated = stmt.executeUpdate();
@@ -81,6 +91,12 @@ public class DemandeService {
             stmt.setInt(1, demande.getId());
             int rowsDeleted = stmt.executeUpdate();
             if (rowsDeleted > 0) {
+                // Delete the file from the server
+                try {
+                    Files.deleteIfExists(Paths.get(demande.getFilePath()));
+                } catch (IOException e) {
+                    System.out.println("Error deleting file: " + e.getMessage());
+                }
                 System.out.println("Demande deleted successfully!");
             } else {
                 System.out.println("No demande found with id: " + demande.getId());
@@ -102,9 +118,8 @@ public class DemandeService {
                         rs.getInt("userId"),
                         rs.getString("game"),
                         rs.getString("description"),
-                        rs.getBytes("file"), // Retrieve file content
-                        rs.getTimestamp("date")
-                );
+                        rs.getString("file"),
+                        rs.getTimestamp("date"));
             }
         } catch (SQLException e) {
             System.out.println("Error retrieving demande: " + e.getMessage());

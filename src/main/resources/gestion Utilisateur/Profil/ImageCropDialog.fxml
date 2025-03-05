@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.shape.Circle?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="tn.esprit.Controllers.Utilisateur.ImageCropDialogController"
+      spacing="10" alignment="CENTER" style="-fx-padding: 15; -fx-background-color: #2a2a2a;">
+
+    <StackPane fx:id="imageContainer" prefWidth="500" prefHeight="500"
+               style="-fx-background-color: #1a1a1a;">
+        <children>
+            <ImageView fx:id="imageView" preserveRatio="true" smooth="true" managed="false" />
+            <Pane fx:id="overlayPane" style="-fx-background-color: rgba(0,0,0,0.6);" mouseTransparent="true" managed="false" />
+            <Circle fx:id="cropCircle" radius="100" stroke="white" strokeWidth="3"
+                    fill="transparent" mouseTransparent="false" managed="false"
+                    style="-fx-cursor: move;" />
+        </children>
+    </StackPane>
+
+    <HBox spacing="15" alignment="CENTER" style="-fx-padding: 10;">
+        <children>
+            <Button fx:id="confirmButton" text="Confirm" prefWidth="100" styleClass="button-primary" />
+            <Button fx:id="cancelButton" text="Cancel" prefWidth="100" styleClass="button-secondary" />
+        </children>
+    </HBox>
+
+    <Label style="-fx-text-fill: white; -fx-font-size: 12px;"
+           text="Click and drag anywhere on the image to move the crop circle" />
+</VBox>

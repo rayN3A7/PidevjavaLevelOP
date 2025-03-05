@@ -10,12 +10,12 @@ import java.util.logging.Level;
 
 public class ProfanityChecker {
     private static final String SIGHTENGINE_API_URL = "https://api.sightengine.com/1.0/text/check.json";
-    private static final String API_USER = "1787381229"; // Replace with your SightEngine API User
-    private static final String API_SECRET = "SBjmvEWgFEJBXSDXAi3L4Yct3KwRMYtw"; // Replace with your SightEngine API Secret
+    private static final String API_USER = "1787381229";
+    private static final String API_SECRET = "SBjmvEWgFEJBXSDXAi3L4Yct3KwRMYtw";
     private static final OkHttpClient client = new OkHttpClient();
     private static final Logger logger = Logger.getLogger(ProfanityChecker.class.getName());
-    private static final List<String> LANGUAGES = Arrays.asList("en", "fr"); // Supported languages: English, French
-    private static final List<String> ARABIC_PROFANITIES = Arrays.asList("كلب", "حمار", "حرام"); // Example list
+    private static final List<String> LANGUAGES = Arrays.asList("en", "fr");
+    private static final List<String> ARABIC_PROFANITIES = Arrays.asList("كلب", "حمار", "حرام");
     public static boolean containsProfanity(String text) throws IOException {
         if (text == null || text.trim().isEmpty()) {
             logger.warning("Text is null or empty, skipping profanity check.");
@@ -42,8 +42,8 @@ public class ProfanityChecker {
     private static boolean checkProfanityInLanguage(String text, String lang) throws IOException {
         FormBody formBody = new FormBody.Builder()
                 .add("text", text)
-                .add("lang", lang) // Specific language for this check
-                .add("mode", "standard") // Standard mode for broad coverage
+                .add("lang", lang)
+                .add("mode", "standard")
                 .add("api_user", API_USER)
                 .add("api_secret", API_SECRET)
                 .build();
@@ -73,7 +73,7 @@ public class ProfanityChecker {
             }
         } catch (IOException e) {
             logger.log(Level.SEVERE, "Error contacting SightEngine API for " + lang + " with text: \"" + text + "\"", e);
-            return false; // Fallback: assume clean if API fails for this language
+            return false;
         }
     }
 }

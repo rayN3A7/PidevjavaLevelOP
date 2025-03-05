@@ -33,6 +33,13 @@ public class SessionUpdateController {
             double newPrice = Double.parseDouble(updatePriceField.getText());
             String newDuration = updateDurationField.getText();
 
+            // Récupérer la session existante depuis la base de données
+            Session_game existingSession = serviceSession.getSessionById(id);
+            if (existingSession == null) {
+                showAlert("Erreur", "Session introuvable", Alert.AlertType.ERROR);
+                return;
+            }
+
             // Validation des champs
             if (newGame.isEmpty() || newDuration.isEmpty()) {
                 showAlert("Erreur", "Tous les champs doivent être remplis", Alert.AlertType.ERROR);
@@ -44,23 +51,27 @@ public class SessionUpdateController {
                 return;
             }
 
-            // Créer un nouvel objet Session_game avec les nouvelles informations
-            Session_game session = new Session_game(id, newPrice, new Date(), newDuration, newGame, 1);
-            serviceSession.update(session);
+            // Mise à jour des champs de l'objet existant
+            existingSession.setprix(newPrice);
+            existingSession.setduree_session(newDuration);
+            existingSession.setGame(newGame);
+
+            // Appel du service pour mettre à jour en base
+            serviceSession.update(existingSession);
 
             showAlert("Succès", "Session mise à jour avec succès", Alert.AlertType.INFORMATION);
 
-            // Retourner à la page de gestion en utilisant l'event reçu
+            // Retourner à la page de gestion
             ManagementSesssion(event);
 
         } catch (NumberFormatException e) {
             showAlert("Erreur", "Veuillez entrer des valeurs valides", Alert.AlertType.ERROR);
         } catch (Exception e) {
-            // Log l'erreur pour le débogage
             System.out.println("Erreur détaillée : " + e.getMessage());
             e.printStackTrace();
         }
     }
+
 
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);
@@ -87,7 +98,7 @@ public class SessionUpdateController {
             updateGameField.setText(session.getGame());
             updatePriceField.setText(String.valueOf(session.getprix()));
             updateDurationField.setText(session.getduree_session());
-
+            Date existingDateCreation = session.getdate_creation();
             updateIdField.setEditable(false);
             availabilityLabel.setText("Session chargée avec succès");
             availabilityLabel.setStyle("-fx-text-fill: #2ecc71;");

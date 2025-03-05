@@ -5,25 +5,35 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-
 <?import javafx.scene.control.PasswordField?>
-<AnchorPane prefHeight="600.0" prefWidth="1080.0" stylesheets="@register.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Utilisateur.RegisterController">
-   <children>
-      <Pane styleClass="root" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-      <Pane styleClass="overlay" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 
-      <Label styleClass="welcome-text" text="Créez votre compte" textFill="WHITE" AnchorPane.leftAnchor="50.0" AnchorPane.topAnchor="120.0">
+<AnchorPane prefHeight="600.0" prefWidth="1080.0" stylesheets="@register.css"
+   xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+   fx:controller="tn.esprit.Controllers.Utilisateur.RegisterController">
+   <children>
+      <Pane styleClass="root" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+         AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+      <Pane styleClass="overlay" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+         AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+
+      <Label styleClass="welcome-text" text="Créez votre compte" textFill="WHITE"
+         AnchorPane.leftAnchor="50.0" AnchorPane.topAnchor="120.0">
          <font>
             <Font size="40.0" />
          </font>
       </Label>
 
-      <AnchorPane styleClass="login-form-container" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="700.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <AnchorPane styleClass="login-form-container" AnchorPane.bottomAnchor="0.0"
+         AnchorPane.leftAnchor="700.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
-            <VBox layoutX="30.0" layoutY="10.0" maxWidth="350.0" spacing="5.0" styleClass="login-pane" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="10.0">
+            <VBox layoutX="30.0" layoutY="10.0" maxWidth="350.0" spacing="5.0"
+               styleClass="login-pane" AnchorPane.rightAnchor="30.0" AnchorPane.topAnchor="10.0">
                <children>
                   <Label styleClass="label-title" text="Inscription">
                      <font>
@@ -40,36 +50,46 @@
                      </VBox.margin>
                   </Label>
 
-                  <TextField fx:id="txtNom" maxWidth="280.0" promptText="Nom" styleClass="text-field" />
+                  <TextField fx:id="txtNom" maxWidth="280.0" promptText="Nom"
+                     styleClass="text-field" />
                   <Label fx:id="lblNomError" styleClass="error-label" textFill="#eb0707" />
 
-                  <TextField fx:id="txtPrenom" maxWidth="280.0" promptText="Prénom" styleClass="text-field" />
+                  <TextField fx:id="txtPrenom" maxWidth="280.0" promptText="Prénom"
+                     styleClass="text-field" />
                   <Label fx:id="lblPrenomError" styleClass="error-label" textFill="#eb0707" />
 
-                  <TextField fx:id="txtEmail" maxWidth="280.0" promptText="Email" styleClass="text-field" />
+                  <TextField fx:id="txtEmail" maxWidth="280.0" promptText="Email"
+                     styleClass="text-field" />
                   <Label fx:id="lblEmailError" styleClass="error-label" textFill="#eb0707" />
 
-                  <TextField fx:id="txtUsername" maxWidth="280.0" promptText="Nom d'utilisateur" styleClass="text-field" />
+                  <TextField fx:id="txtUsername" maxWidth="280.0" promptText="Nom d'utilisateur"
+                     styleClass="text-field" />
                   <Label fx:id="lblUsernameError" styleClass="error-label" textFill="#eb0707" />
 
-                  <TextField fx:id="txtNumero" maxWidth="280.0" promptText="Numéro" styleClass="text-field" />
+                  <TextField fx:id="txtNumero" maxWidth="280.0" promptText="Numéro"
+                     styleClass="text-field" />
                   <Label fx:id="lblNumeroError" styleClass="error-label" textFill="#eb0707" />
 
-                  <PasswordField fx:id="txtPassword" accessibleRole="PASSWORD_FIELD" maxWidth="280.0" promptText="Mot de passe" styleClass="password-field" />
+                  <PasswordField fx:id="txtPassword" maxWidth="280.0" promptText="Mot de passe"
+                     styleClass="password-field" />
                   <Label fx:id="lblPasswordError" styleClass="error-label" textFill="#eb0707" />
 
-                  <PasswordField fx:id="txtConfirmPassword" accessibleRole="PASSWORD_FIELD" maxWidth="280.0" promptText="Confirmez le mot de passe" styleClass="password-field">
+                  <PasswordField fx:id="txtConfirmPassword" maxWidth="280.0"
+                     promptText="Confirmez le mot de passe" styleClass="password-field">
                      <VBox.margin>
                         <Insets bottom="5.0" />
-                     </VBox.margin></PasswordField>
+                     </VBox.margin>
+                  </PasswordField>
 
-                  <Button fx:id="btnRegister" maxWidth="280.0" mnemonicParsing="false" styleClass="login-button" text="S'inscrire">
+                  <Button fx:id="btnRegister" maxWidth="280.0" mnemonicParsing="false"
+                     styleClass="login-button" text="S'inscrire">
                      <font>
                         <Font size="14.0" />
                      </font>
                   </Button>
 
-                  <Button fx:id="btnGoToLogin" text="Déjà enregistré ?" styleClass="link-button" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="30.0" />
+                  <Button fx:id="btnGoToLogin" text="Déjà enregistré ?" styleClass="link-button"
+                     AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="30.0" />
 
                </children>
                <padding>

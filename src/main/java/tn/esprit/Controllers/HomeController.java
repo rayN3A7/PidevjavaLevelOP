@@ -17,7 +17,6 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -86,6 +85,7 @@ public class HomeController {
         LOGGER.info("Initializing carousel...");
         if (topQuestions == null || topQuestions.isEmpty()) {
             LOGGER.warn("Cannot initialize carousel: No questions available.");
+            questionCarousel.getChildren().add(new Label("Aucune question disponible."));
             return;
         }
 
@@ -123,9 +123,8 @@ public class HomeController {
 
     private HBox createQuestionCard(Question question) {
         HBox card = new HBox(15);
-        card.getStyleClass().add("modern-question-card"); // Updated style class for modern design
+        card.getStyleClass().add("modern-question-card");
 
-        // Game Image (Circular with Border)
         StackPane imageContainer = new StackPane();
         imageContainer.getStyleClass().add("image-container");
         ImageView gameImage = new ImageView();
@@ -156,16 +155,10 @@ public class HomeController {
             } catch (Exception e) {
                 LOGGER.error("Failed to load game image for question ID: {}. Path: {}. Error: {}", question.getQuestion_id(), question.getGame().getImagePath(), e.getMessage());
             }
-        } else {
-            LOGGER.warn("No game image available for question ID: {}. Game: {}, ImagePath: {}",
-                    question.getQuestion_id(),
-                    question.getGame() != null ? question.getGame().getGame_name() : "null",
-                    question.getGame() != null ? question.getGame().getImagePath() : "null");
         }
         gameImage.setMouseTransparent(true);
         imageContainer.getChildren().add(gameImage);
 
-        // Title and Author
         VBox textBox = new VBox(5);
         textBox.getStyleClass().add("text-container");
         Label titleLabel = new Label(question.getTitle());
@@ -181,13 +174,11 @@ public class HomeController {
 
         card.getChildren().addAll(imageContainer, textBox);
 
-        // Fixed card size for consistency
         card.setMinWidth(300);
         card.setMaxWidth(300);
         card.setMinHeight(100);
         card.setMaxHeight(100);
 
-        // Make the card clickable
         card.setOnMouseClicked(event -> {
             LOGGER.info("Question card clicked for question ID: {}. Event source: {}", question.getQuestion_id(), event.getSource());
             navigateToQuestionDetails(question);
@@ -259,13 +250,15 @@ public class HomeController {
         questionCarousel.getChildren().clear();
         if (carouselPages != null && carouselPages.length > 0) {
             questionCarousel.getChildren().add(carouselPages[currentIndex]);
+        } else {
+            questionCarousel.getChildren().add(new Label("Aucune question disponible."));
         }
         updateIndicators();
     }
 
     @FXML
     private void previousQuestion() {
-        if (currentIndex > 0) {
+        if (carouselPages != null && currentIndex > 0) {
             currentIndex--;
             animateCarouselTransition(300);
         }
@@ -273,7 +266,7 @@ public class HomeController {
 
     @FXML
     private void nextQuestion() {
-        if (currentIndex < carouselPages.length - 1) {
+        if (carouselPages != null && currentIndex < carouselPages.length - 1) {
             currentIndex++;
             animateCarouselTransition(-300);
         }
@@ -290,6 +283,13 @@ public class HomeController {
     }
 
     private void updateIndicators() {
+        if (carouselPages == null || carouselPages.length == 0) {
+            prevButton.setVisible(false);
+            nextButton.setVisible(false);
+            carouselIndicators.getChildren().clear();
+            return;
+        }
+
         for (int i = 0; i < carouselIndicators.getChildren().size(); i++) {
             Label indicator = (Label) carouselIndicators.getChildren().get(i);
             indicator.getStyleClass().remove("active");
@@ -316,7 +316,7 @@ public class HomeController {
         questionCarousel.setOnMouseReleased(event -> {
             double deltaX = event.getX() - dragStartX;
             LOGGER.debug("Drag ended with deltaX: {}", deltaX);
-            if (Math.abs(deltaX) > dragThreshold) {
+            if (carouselPages != null && Math.abs(deltaX) > dragThreshold) {
                 if (deltaX > 0 && currentIndex > 0) {
                     previousQuestion();
                 } else if (deltaX < 0 && currentIndex < carouselPages.length - 1) {
@@ -331,10 +331,12 @@ public class HomeController {
 
         questionCarousel.setOnScroll(event -> {
             double deltaY = event.getDeltaY();
-            if (deltaY > 0 && currentIndex > 0) {
-                previousQuestion();
-            } else if (deltaY < 0 && currentIndex < carouselPages.length - 1) {
-                nextQuestion();
+            if (carouselPages != null) {
+                if (deltaY > 0 && currentIndex > 0) {
+                    previousQuestion();
+                } else if (deltaY < 0 && currentIndex < carouselPages.length - 1) {
+                    nextQuestion();
+                }
             }
         });
     }

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+
+<AnchorPane prefHeight="800.0" prefWidth="1200.0" stylesheets="@Profil.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Utilisateur.ProfilController">
+    <VBox spacing="0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+
+        <!-- Include Navbar -->
+        <fx:include source="../../forumUI/navbar.fxml" />
+
+        <!-- Main Content -->
+        <ScrollPane fitToWidth="true" styleClass="content-scroll">
+            <HBox styleClass="main-container">
+                <!-- Left Side - Profile Summary -->
+                <VBox styleClass="left-panel">
+                    <StackPane fx:id="profileImageContainer" styleClass="profile-image-container">
+                        <Circle fx:id="profileCircle" radius="50" styleClass="profile-circle" />
+                        <ImageView fx:id="profileImage" fitHeight="100" fitWidth="100" preserveRatio="true" />
+                    </StackPane>
+
+                    <Label fx:id="userNameLabel" styleClass="user-name" />
+                    <Label fx:id="userNicknameLabel" styleClass="user-title" />
+
+                    <Button fx:id="btnChangePhoto" styleClass="view-profile-btn" text="Modifier photo" />
+                </VBox>
+
+                <!-- Right Side - Profile Details -->
+                <VBox styleClass="right-panel" VBox.vgrow="ALWAYS">
+                    <!-- Tabs -->
+                    <TabPane styleClass="profile-tabs">
+                        <tabs>
+                            <Tab closable="false" styleClass="tab-header" text="Compte">
+                                <content>
+                                    <VBox styleClass="tab-content">
+                                        <!-- Profile Form -->
+                                        <GridPane styleClass="form-grid">
+                                            <columnConstraints>
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="150" />
+                                                <ColumnConstraints hgrow="SOMETIMES" minWidth="150" />
+                                            </columnConstraints>
+
+                                            <!-- First Name -->
+                                            <VBox styleClass="form-group" GridPane.columnIndex="0">
+                                                <Label styleClass="field-label" text="Prénom" />
+                                                <TextField fx:id="txtNom" styleClass="form-field" />
+                                            </VBox>
+
+                                            <!-- Last Name -->
+                                            <VBox styleClass="form-group" GridPane.columnIndex="1">
+                                                <Label styleClass="field-label" text="Nom" />
+                                                <TextField fx:id="txtPrenom" styleClass="form-field" />
+                                            </VBox>
+
+                                            <!-- Nickname -->
+                                            <VBox styleClass="form-group" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                                <Label styleClass="field-label" text="Nickname" />
+                                                <TextField fx:id="txtNickname" styleClass="form-field" />
+                                            </VBox>
+
+                                            <!-- Password Section -->
+                                            <VBox styleClass="form-group" GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="2">
+                                                <Label styleClass="field-label" text="Mot de passe actuel" />
+                                                <PasswordField fx:id="txtOldPassword" promptText="Entrez le mot de passe actuel" styleClass="form-field" />
+
+                                                <Label styleClass="field-label" text="Nouveau mot de passe" />
+                                                <PasswordField fx:id="txtPassword" promptText="Entrez un nouveau mot de passe" styleClass="form-field" />
+
+                                                <Label fx:id="lblPasswordRequirements" styleClass="password-requirements" text="Le mot de passe doit contenir au moins 8 caractères, dont des majuscules, des minuscules, des chiffres et des caractères spéciaux" wrapText="true" />
+                                            </VBox>
+                                            <rowConstraints>
+                                                <RowConstraints />
+                                                <RowConstraints />
+                                                <RowConstraints />
+                                            </rowConstraints>
+                                        </GridPane>
+
+                                        <!-- Message Label -->
+                                        <Label fx:id="lblMessage" managed="false" styleClass="message-label" visible="false" />
+
+                                        <!-- Edit Button -->
+                                        <HBox styleClass="button-container">
+                                            <Button fx:id="btnUpdateInfo" styleClass="edit-button" text="MODIFIER" />
+                                        </HBox>
+                                    </VBox>
+                                </content>
+                            </Tab>
+                        </tabs>
+                    </TabPane>
+                </VBox>
+            </HBox>
+        </ScrollPane>
+    </VBox>
+</AnchorPane>
