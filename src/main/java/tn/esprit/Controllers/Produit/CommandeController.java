@@ -7,6 +7,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -17,6 +18,7 @@ import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import tn.esprit.Models.Commande;
 import tn.esprit.Models.Produit;
 import tn.esprit.Services.CommandeService;
@@ -26,8 +28,6 @@ import tn.esprit.utils.SessionManager;
 public class CommandeController {
     @FXML private VBox commandeContainer;
     @FXML private TextField searchField;
-    @FXML private TextField txtId;
-    @FXML private TextField txtUtilisateur;
     @FXML private TextField txtProduit;
     @FXML private TextField txtStatus;
     @FXML private VBox editForm;
@@ -37,7 +37,7 @@ public class CommandeController {
     private List<Commande> commandes;
     private Commande selectedCommande;
     private final int DEFAULT_USER_ID = SessionManager.getInstance().getUserId();
-
+    String userRole= SessionManager.getInstance().getRole().name();
     @FXML
     public void initialize() {
         commandeService = new CommandeService();
@@ -68,41 +68,29 @@ public class CommandeController {
         gridPane.setHgap(10);
         gridPane.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
+        // Updated column constraints for better layout
         ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(10);
+        col1.setPercentWidth(40); // Product name column
         ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(20);
+        col2.setPercentWidth(30); // Status column
         ColumnConstraints col3 = new ColumnConstraints();
-        col3.setPercentWidth(20);
-        ColumnConstraints col4 = new ColumnConstraints();
-        col4.setPercentWidth(15);
-        ColumnConstraints col5 = new ColumnConstraints();
-        col5.setPercentWidth(15);
-        ColumnConstraints col6 = new ColumnConstraints();
-        col6.setPercentWidth(20);
+        col3.setPercentWidth(30); // Actions column
 
-        gridPane.getColumnConstraints().addAll(col1, col2, col3, col4, col5, col6);
+        gridPane.getColumnConstraints().addAll(col1, col2, col3);
 
-        Label idLabel = new Label(String.valueOf(commande.getId()));
-        idLabel.getStyleClass().addAll("info-value", "cell");
-        idLabel.setMaxWidth(Double.MAX_VALUE);
-
-        Label userLabel = new Label(String.valueOf(commande.getUtilisateurId()));
-        userLabel.getStyleClass().addAll("info-value", "cell");
-        userLabel.setMaxWidth(Double.MAX_VALUE);
-        userLabel.setWrapText(true);
-
+        // Get product name and create label
         Produit produit = produitService.getOne(commande.getProduitId());
         Label produitLabel = new Label(produit != null ? produit.getNomProduit() : "N/A");
         produitLabel.getStyleClass().addAll("info-value", "cell");
         produitLabel.setMaxWidth(Double.MAX_VALUE);
         produitLabel.setWrapText(true);
 
+        // Status label
         Label statusLabel = new Label(commande.getStatus());
         statusLabel.getStyleClass().addAll("info-value", "cell");
         statusLabel.setMaxWidth(Double.MAX_VALUE);
 
-
+        // Action buttons
         Button editButton = new Button("Modifier");
         editButton.getStyleClass().add("buy-now-button");
         editButton.setOnAction(event -> updateCommande(commande));
@@ -115,11 +103,10 @@ public class CommandeController {
         actionsBox.getStyleClass().add("action-buttons");
         actionsBox.setAlignment(javafx.geometry.Pos.CENTER);
 
-        gridPane.add(idLabel, 0, 0);
-        gridPane.add(userLabel, 1, 0);
-        gridPane.add(produitLabel, 2, 0);
-        gridPane.add(statusLabel, 3, 0);
-        gridPane.add(actionsBox, 5, 0);
+        // Add components to grid
+        gridPane.add(produitLabel, 0, 0);
+        gridPane.add(statusLabel, 1, 0);
+        gridPane.add(actionsBox, 2, 0);
 
         gridPane.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(gridPane, javafx.scene.layout.Priority.ALWAYS);
@@ -135,9 +122,7 @@ public class CommandeController {
 
         for (Commande commande : commandes) {
             Produit produit = produitService.getOne(commande.getProduitId());
-            if (String.valueOf(commande.getId()).contains(searchText) ||
-                    String.valueOf(commande.getUtilisateurId()).contains(searchText) ||
-                    (produit != null && produit.getNomProduit().toLowerCase().contains(searchText)) ||
+            if ((produit != null && produit.getNomProduit().toLowerCase().contains(searchText)) ||
                     commande.getStatus().toLowerCase().contains(searchText)) {
                 commandeContainer.getChildren().add(createCommandeRow(commande));
             }
@@ -147,8 +132,7 @@ public class CommandeController {
     @FXML
     public void updateCommande(Commande commande) {
         this.selectedCommande = commande;
-        txtId.setText(String.valueOf(commande.getId()));
-        txtUtilisateur.setText(String.valueOf(commande.getUtilisateurId()));
+        // ID and user fields removed
 
         Produit produit = produitService.getOne(commande.getProduitId());
         txtProduit.setText(produit != null ? produit.getNomProduit() : "");
@@ -200,9 +184,8 @@ public class CommandeController {
     }
     @FXML
     private void ButtonAjouterCommande() {
-        selectedCommande = null; //
+        selectedCommande = null;
         clearFields();
-        txtUtilisateur.setText(String.valueOf(DEFAULT_USER_ID));
         editForm.setVisible(true);
     }
 
@@ -221,11 +204,8 @@ public class CommandeController {
     }
 
     private void clearFields() {
-        txtId.clear();
-        txtUtilisateur.clear();
         txtProduit.clear();
         txtStatus.clear();
-
     }
 
     private boolean validateForm() {
@@ -262,43 +242,36 @@ public class CommandeController {
     }
 
     @FXML
-    private void navigateToHome() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
-            BorderPane mainView = loader.load();
-            BorderPane currentRoot = (BorderPane) commandeContainer.getScene().getRoot();
-            currentRoot.setCenter(mainView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+    private void handleBack() {
+        if(userRole.equals ("ADMIN"))  {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/sidebarAdmin.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+
+                Stage window = (Stage) commandeContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
+        } else {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+
+                Stage window = (Stage) commandeContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
         }
     }
 
-    @FXML
-    private void navigateToShop() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/shop-page.fxml"));
-            Parent shopView = loader.load();
-            BorderPane currentRoot = (BorderPane) commandeContainer.getScene().getRoot();
-            currentRoot.setCenter(shopView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers le magasin");
-        }
-    }
-
-    @FXML
-    private void navigateToProducts() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/produit_view.fxml"));
-            Parent productsView = loader.load();
-            BorderPane currentRoot = (BorderPane) commandeContainer.getScene().getRoot();
-            currentRoot.setCenter(productsView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers les produits");
-        }
-    }
     @FXML
     private void cancelEdit(){
         editForm.setVisible(false);

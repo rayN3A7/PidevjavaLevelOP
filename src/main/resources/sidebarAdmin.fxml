@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.collections.FXCollections?>
+<VBox styleClass="sidebar" spacing="10" stylesheets="@assets/style/stylesheet.css"
+      xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="tn.esprit.Controllers.SidebarAdminController">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <Label alignment="CENTER" styleClass="sidebar-title">
+        <graphic>
+            <ImageView fitHeight="60" fitWidth="150">
+                <Image url="@assets/image/logo.png"/>
+            </ImageView>
+        </graphic>
+    </Label>
+
+    <VBox styleClass="nav-menu" spacing="5">
+        <Button text="🏠 Home" styleClass="nav-item,nav-item-active"/>
+        <Button text="👥 Utilisateurs" styleClass="nav-item"/>
+        <MenuButton fx:id="produitMenu" text="🛒 Produit" styleClass="nav-item">
+            <items>
+                <MenuItem text="Les Statistiques du Boutiques" styleClass="nav-item" onAction="#ButtonStats" />
+                <MenuItem text="Gérer Produits" styleClass="nav-item" onAction="#ButtonGererProd" />
+                <MenuItem text="Gérer Stock" styleClass="nav-item" onAction="#ButtonGererStock" />
+                <MenuItem text="Gérer Commandes" styleClass="nav-item" onAction="#ButtonGererCommande"/>
+            </items>
+        </MenuButton>
+        <MenuButton fx:id="evenementMenu" text="🎉 Événement" styleClass="menu-button">
+            <items>
+                <MenuItem text="Créer un événement" styleClass="menu-item" onAction="#ButtonAjouterEvenement" />
+                <MenuItem text="Liste des événements" styleClass="nav-item" onAction="#ButtonEvenement" />
+                <MenuItem text="Ajouter une Catégorie" styleClass="nav-item" onAction="#ButtonAjouterCategorie"/>
+                <MenuItem text="Liste des Catégories" styleClass="nav-item" onAction="#ButtonListeCategorie"/>
+            </items>
+        </MenuButton>
+        <Button text="🧑‍🏫 Événement" styleClass="nav-item"/>
+        <Button text="📋 Forum Admin" styleClass="nav-item" onAction="#navigateToForumAdmin"/>
+        <Button text="🎮 Admin Dashboard" styleClass="nav-item" onAction="#navigateToAdminDashboard"/>
+        <Button fx:id="logoutButton" text="🔓 Déconnexion" styleClass="nav-item" onAction="#logout"/>
+    </VBox>
+    <Button fx:id="chatbotButton" onAction="#openChatbot" styleClass="chatbot-btn">
+        <graphic>
+            <ImageView fitHeight="30" fitWidth="30">
+                <image>
+                    <Image url="@assets/image/chatbot-icon.png" />
+                </image>
+            </ImageView>
+        </graphic>
+    </Button>
+</VBox>

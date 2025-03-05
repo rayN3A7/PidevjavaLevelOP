@@ -7,21 +7,20 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
 import tn.esprit.Models.Produit;
 import tn.esprit.Models.Stock;
 import tn.esprit.Services.ProduitService;
 import tn.esprit.Services.StockService;
+import tn.esprit.utils.SessionManager;
 
 public class ProduitController {
 
@@ -40,7 +39,7 @@ public class ProduitController {
     private StockService stockService;
     private List<Produit> produits;
     private Produit selectedProduit;
-
+    String userRole= SessionManager.getInstance().getRole().name();
     @FXML
     public void initialize() {
         produitService = new ProduitService();
@@ -79,27 +78,21 @@ public class ProduitController {
         gridPane.setHgap(10);
         gridPane.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-        // Set the same column constraints as the header
+        // Set column constraints without ID column
         ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(10);
+        col1.setPercentWidth(25);
         ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(20);
+        col2.setPercentWidth(25);
         ColumnConstraints col3 = new ColumnConstraints();
-        col3.setPercentWidth(20);
+        col3.setPercentWidth(15);
         ColumnConstraints col4 = new ColumnConstraints();
         col4.setPercentWidth(15);
         ColumnConstraints col5 = new ColumnConstraints();
-        col5.setPercentWidth(15);
-        ColumnConstraints col6 = new ColumnConstraints();
-        col6.setPercentWidth(20);
+        col5.setPercentWidth(20);
 
-        gridPane.getColumnConstraints().addAll(col1, col2, col3, col4, col5, col6);
+        gridPane.getColumnConstraints().addAll(col1, col2, col3, col4, col5);
 
-        // Create and style the labels
-        Label idLabel = new Label(String.valueOf(produit.getId()));
-        idLabel.getStyleClass().addAll("info-value", "cell");
-        idLabel.setMaxWidth(Double.MAX_VALUE);
-
+        // Create and style the labels without ID
         Label nameLabel = new Label(produit.getNomProduit());
         nameLabel.getStyleClass().addAll("info-value", "cell");
         nameLabel.setMaxWidth(Double.MAX_VALUE);
@@ -132,13 +125,12 @@ public class ProduitController {
         actionsBox.getStyleClass().add("action-buttons");
         actionsBox.setAlignment(javafx.geometry.Pos.CENTER);
 
-        // Add all components to the GridPane
-        gridPane.add(idLabel, 0, 0);
-        gridPane.add(nameLabel, 1, 0);
-        gridPane.add(descLabel, 2, 0);
-        gridPane.add(priceLabel, 3, 0);
-        gridPane.add(platformLabel, 4, 0);
-        gridPane.add(actionsBox, 5, 0);
+        // Add components to the GridPane without ID column
+        gridPane.add(nameLabel, 0, 0);
+        gridPane.add(descLabel, 1, 0);
+        gridPane.add(priceLabel, 2, 0);
+        gridPane.add(platformLabel, 3, 0);
+        gridPane.add(actionsBox, 4, 0);
 
         // Make the GridPane fill the entire width
         gridPane.setMaxWidth(Double.MAX_VALUE);
@@ -329,41 +321,33 @@ public class ProduitController {
     }
 
     @FXML
-    private void navigateToHome() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
-            BorderPane mainView = loader.load();
-            BorderPane currentRoot = (BorderPane) productContainer.getScene().getRoot();
-            currentRoot.setCenter(mainView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
-        }
-    }
+    private void handleBack() {
+        if(userRole.equals ("ADMIN")) {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/sidebarAdmin.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
 
-    @FXML
-    private void navigateToShop() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/shop-page.fxml"));
-            ScrollPane shopView = loader.load();
-            BorderPane currentRoot = (BorderPane) productContainer.getScene().getRoot();
-            currentRoot.setCenter(shopView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers le magasin");
-        }
-    }
+                Stage window = (Stage) productContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
+        } else {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
 
-    @FXML
-    private void navigateToOrders() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/commandes-view.fxml"));
-            Parent ordersView = loader.load();
-            BorderPane currentRoot = (BorderPane) productContainer.getScene().getRoot();
-            currentRoot.setCenter(ordersView);
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers les commandes");
+                Stage window = (Stage) productContainer.getScene().getWindow();
+                window.setScene(scene);
+                window.show();
+            } catch (IOException e) {
+                e.printStackTrace();
+                showAlert(AlertType.ERROR, "Erreur", "Erreur lors de la navigation vers l'accueil");
+            }
         }
     }
 }

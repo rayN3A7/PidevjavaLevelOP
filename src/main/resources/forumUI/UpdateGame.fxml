@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+<?import java.net.URL?>
+
+<VBox spacing="15" alignment="CENTER" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="tn.esprit.Controllers.forum.UpdateGameController"
+      style="-fx-background-color: linear-gradient(to bottom, #1a1a2e, #16213e); -fx-border-color: #ff007f; -fx-border-width: 2; -fx-border-radius: 10;">
+    <padding>
+        <Insets top="25" right="25" bottom="25" left="25"/>
+    </padding>
+
+    <Label text="Modifier un Jeu"
+           style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #ff007f; -fx-font-family: 'Arial'; " />
+
+    <TextField fx:id="gameNameField" promptText="Nom du jeu"
+               style="-fx-background-color: #2a2a4e; -fx-text-fill: #ffffff; -fx-prompt-text-fill: #aaaaaa; -fx-font-size: 14px; -fx-padding: 10; -fx-border-radius: 5;" />
+
+    <ComboBox fx:id="gameTypeComboBox" promptText="Type de jeu"
+              style="-fx-background-color: #2a2a4e; -fx-text-fill: #ffffff; -fx-font-size: 14px; -fx-padding: 10; -fx-border-radius: 5;" />
+
+    <Button fx:id="uploadImageButton" text="Upload Image" onAction="#handleUploadImage"
+            styleClass="game-button"
+            style="-fx-font-size: 14px; -fx-font-weight: bold;" />
+
+    <ImageView fx:id="gameImageView" fitWidth="220" fitHeight="165" preserveRatio="true"
+               style="-fx-border-radius: 10; -fx-effect: dropshadow(gaussian, #ff007f, 2, 0.5, 0, 0);" />
+
+    <Button text="Mettre à jour le jeu" onAction="#handleUpdateGame"
+            styleClass="game-button"
+            style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+    <stylesheets>
+        <URL value="@gameForm.css" />
+    </stylesheets>
+</VBox>

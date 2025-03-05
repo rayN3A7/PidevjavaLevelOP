@@ -1,12 +1,12 @@
 package tn.esprit.Controllers.Evenement;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import tn.esprit.Models.Evenement.Evenement;
 import tn.esprit.Services.EmailService;
@@ -21,7 +21,9 @@ public class EvenementCardController {
     @FXML
     private Label nomLabel, dateLabel, lieuLabel, categorieLabel, placesLabel;
     @FXML
-    private Button reserverButton, modifierButton, supprimerButton, detailsButton;
+    private Button detailsButton;
+    @FXML
+    private HBox eventActions;
 
     private Evenement event;
     private EvenementService es = new EvenementService();
@@ -36,14 +38,25 @@ public class EvenementCardController {
         lieuLabel.setText(event.getLieu_event());
         categorieLabel.setText(ces.getNomCategorieEvent(event.getCategorie_id()));
         placesLabel.setText("Places restantes: " + event.getMax_places_event());
-        if (userRole.equals("CLIENT") || userRole.equals("COACH")) {
-            modifierButton.setDisable(true);
-            supprimerButton.setDisable(true);
+        if(userRole.equals("CLIENT")||userRole.equals("COACH")){
+            Button reserverButton = new Button("Réserver");
+            reserverButton.getStyleClass().add("view-button");
+            reserverButton.setOnAction(e -> reserverPlace(event));
+            eventActions.getChildren().add(reserverButton);
+        }
+        if ("ADMIN".equals(userRole)) {
+            Button modifierButton = new Button("Modifier");
+            modifierButton.getStyleClass().add("edit-button");
+            modifierButton.setOnAction(e -> updateForm());
+
+            Button supprimerButton = new Button("Supprimer");
+            supprimerButton.getStyleClass().add("delete-button");
+            supprimerButton.setOnAction(e -> deleteEvent());
+
+            // Ajouter les boutons au conteneur HBox
+            eventActions.getChildren().addAll(modifierButton, supprimerButton);
         }
 
-        reserverButton.setOnAction(e -> reserverPlace(event));
-        modifierButton.setOnAction(e -> updateForm());
-        supprimerButton.setOnAction(e -> deleteEvent());
         detailsButton.setOnAction(e -> showDetails());
     }
 
@@ -97,7 +110,7 @@ public class EvenementCardController {
             Parent root = loader.load();
             ModifierEvenementController controller = loader.getController();
             controller.initData(event);
-            Stage stage = (Stage) modifierButton.getScene().getWindow();
+            Stage stage = (Stage) eventActions.getScene().getWindow();
             stage.getScene().setRoot(root);
         } catch (IOException e) {
             e.printStackTrace();
@@ -119,15 +132,28 @@ public class EvenementCardController {
     }
 
     private void showDetails() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/DetailsEvenement.fxml"));
-            Parent root = loader.load();
-            DetailsEvenementController controller = loader.getController();
-            controller.initData(event);
-            Stage stage = (Stage) detailsButton.getScene().getWindow();
-            stage.getScene().setRoot(root);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (userRole.equals("ADMIN")) {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/DetailsEvenementAdmin.fxml"));
+                Parent root = loader.load();
+                DetailsEvenementController controller = loader.getController();
+                controller.initData(event);
+                Stage stage = (Stage) detailsButton.getScene().getWindow();
+                stage.getScene().setRoot(root);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/DetailsEvenement.fxml"));
+                Parent root = loader.load();
+                DetailsEvenementController controller = loader.getController();
+                controller.initData(event);
+                Stage stage = (Stage) detailsButton.getScene().getWindow();
+                stage.getScene().setRoot(root);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

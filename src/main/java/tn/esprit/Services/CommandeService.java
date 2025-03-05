@@ -7,7 +7,7 @@ import tn.esprit.utils.MyDatabase;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-
+import tn.esprit.Models.Produit;
 public class CommandeService implements IService<Commande> {
     private Connection connection;
     private Statement statement;
@@ -58,7 +58,6 @@ public class CommandeService implements IService<Commande> {
         }
         return commandes;
     }
-
     @Override
     public void update(Commande commande) {
         String query = "UPDATE commande SET utilisateur_id = ?, produit_id = ?, status = ? WHERE id = ?";

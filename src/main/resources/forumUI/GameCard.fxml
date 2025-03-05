@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.geometry.Insets?>
+
+<?import java.net.URL?>
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.forum.GameCardController" styleClass="game-card" spacing="15" prefWidth="300" alignment="CENTER">
+    <padding>
+        <Insets top="15" right="15" bottom="15" left="15"/>
+    </padding>
+    <children>
+        <ImageView fx:id="gameImage" fitWidth="250" fitHeight="150" preserveRatio="true" styleClass="game-image"/>
+        <Label fx:id="gameNameLabel" styleClass="game-name" wrapText="true" maxWidth="250"/>
+        <Label fx:id="gameTypeLabel" styleClass="game-type" wrapText="true" maxWidth="250"/>
+        <HBox spacing="10" alignment="CENTER">
+            <Button fx:id="updateButton" text="Update" onAction="#handleUpdate" styleClass="card-button"/>
+            <Button fx:id="deleteButton" text="Delete" onAction="#handleDelete" styleClass="card-button"/>
+        </HBox>
+    </children>
+    <stylesheets>
+        <URL value="@gamecard.css" />
+    </stylesheets>
+</VBox>

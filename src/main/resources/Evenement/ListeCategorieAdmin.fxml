@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="tn.esprit.Controllers.Evenement.ListeCategorieController"
+            stylesheets="@../assets/style/style.css"
+            prefHeight="400.0" prefWidth="600.0">
+    <left>
+        <fx:include source="../sidebarAdmin.fxml"/>
+    </left>
+    <center>
+        <VBox spacing="20" styleClass="content-container" GridPane.rowIndex="1">
+            <HBox alignment="CENTER_LEFT" spacing="20" styleClass="list-header">
+                <VBox spacing="5">
+                    <Label text="Catégories" styleClass="page-title"/>
+                    <Label text="Gérez vos catégories d'événements" styleClass="page-subtitle"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <TextField fx:id="searchField" promptText="Rechercher une catégorie..."
+                               styleClass="search-field" onKeyReleased="#Search"/>
+                </HBox>
+            </HBox>
+            <!-- List Content -->
+            <FlowPane fx:id="eventContainer" alignment="CENTER" hgap="20" vgap="20" styleClass="list-content"/>
+        </VBox>
+    </center>
+
+</BorderPane>

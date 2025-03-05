@@ -48,7 +48,7 @@ public class AjouterCategorieController {
     }
     @FXML
     private void ButtonListeCategories(ActionEvent event)throws Exception{
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/ListeCategorie.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Evenement/ListeCategorieAdmin.fxml"));
         Parent signInRoot = loader.load();
         Scene signInScene = new Scene(signInRoot);
 

@@ -55,3 +55,10 @@
     -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
 }
+.crown-icon {
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.5), 5, 0, 0, 2);
+}
+
+.comment-author .text-flow {
+    -fx-font-weight: bold;
+}
