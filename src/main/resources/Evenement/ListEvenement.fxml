@@ -51,9 +51,6 @@
                         </Button>
                     </HBox>
                 </HBox>
-
-
-                <!-- List Content -->
                 <FlowPane fx:id="eventContainer" alignment="CENTER" styleClass="list-content"/>
             </VBox>
 
