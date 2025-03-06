@@ -26,9 +26,9 @@ public class CoachSearchController {
     @FXML
     private Label resultLabel;
 
-    private final List<Utilisateur> Coach = new ArrayList<>(); // Marqué comme final pour éviter les modifications accidentelles
+    private final List<Utilisateur> Coach = new ArrayList<>();
     private final ServiceSession serviceSession = new ServiceSession();
-    private final UtilisateurService us = new UtilisateurService(); // Marqué comme final
+    private final UtilisateurService us = new UtilisateurService();
 
     @FXML
     public void initialize() {
@@ -36,9 +36,9 @@ public class CoachSearchController {
     }
 
     public void GetCoach() {
-        Coach.addAll(us.getByRole("coach")); // Utilisation de addAll pour éviter une réassignation
+        Coach.addAll(us.getByRole("coach"));
         List<String> lcoach = Coach.stream()
-                .map(Utilisateur::getNom) // Méthode reference au lieu de lambda
+                .map(Utilisateur::getNom)
                 .toList();
         coachIdField.getItems().setAll(lcoach);
     }
@@ -59,7 +59,7 @@ public class CoachSearchController {
                 if (sessions.isEmpty()) {
                     resultLabel.setText("Aucune session trouvée pour ce coach.");
                 } else {
-                    // Clear previous content
+
                     resultLabel.setText("");
 
                     VBox sessionsContainer = new VBox(15);
@@ -79,8 +79,7 @@ public class CoachSearchController {
             }
         } catch (Exception e) {
             resultLabel.setText("Une erreur s'est produite lors de la recherche.");
-            // Remplacer printStackTrace() par un logger (exemple avec SLF4J)
-            // logger.error("Erreur lors de la recherche des sessions par coach : ", e);
+
             e.printStackTrace(); // Temporairement conservé
         }
     }
@@ -114,7 +113,7 @@ public class CoachSearchController {
                 "-fx-padding: 8 15; " +
                 "-fx-background-radius: 20;");
 
-        button.setOnAction(this::navigateToVerification); // Méthode reference
+        button.setOnAction(this::navigateToVerification);
         return button;
     }
 
@@ -127,7 +126,7 @@ public class CoachSearchController {
             stage.setScene(scene);
             stage.show();
         } catch (Exception e) {
-            e.printStackTrace(); // Temporairement conservé
+            e.printStackTrace();
         }
     }
 
@@ -141,7 +140,7 @@ public class CoachSearchController {
             stage.setScene(scene);
             stage.show();
         } catch (Exception e) {
-            e.printStackTrace(); // Temporairement conservé
+            e.printStackTrace();
         }
     }
 }

@@ -8,9 +8,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import tn.esprit.Models.Session_game;
 import tn.esprit.Services.ServiceSession;
@@ -33,39 +33,39 @@ public class SessionUpdateController {
             double newPrice = Double.parseDouble(updatePriceField.getText());
             String newDuration = updateDurationField.getText();
 
-            // Récupérer la session existante depuis la base de données
+
             Session_game existingSession = serviceSession.getSessionById(id);
             if (existingSession == null) {
-                showAlert("Erreur", "Session introuvable", Alert.AlertType.ERROR);
+                showAlert("Erreur", "Session introuvable");
                 return;
             }
 
             // Validation des champs
             if (newGame.isEmpty() || newDuration.isEmpty()) {
-                showAlert("Erreur", "Tous les champs doivent être remplis", Alert.AlertType.ERROR);
+                showAlert("Erreur", "Tous les champs doivent être remplis");
                 return;
             }
 
             if (newPrice <= 0) {
-                showAlert("Erreur", "Le prix doit être supérieur à 0", Alert.AlertType.ERROR);
+                showAlert("Erreur", "Le prix doit être supérieur à 0");
                 return;
             }
 
-            // Mise à jour des champs de l'objet existant
+
             existingSession.setprix(newPrice);
             existingSession.setduree_session(newDuration);
             existingSession.setGame(newGame);
 
-            // Appel du service pour mettre à jour en base
+
             serviceSession.update(existingSession);
 
-            showAlert("Succès", "Session mise à jour avec succès", Alert.AlertType.INFORMATION);
+            showSuccessAlert("Succès", "Session mise à jour avec succès");
 
-            // Retourner à la page de gestion
+
             ManagementSesssion(event);
 
         } catch (NumberFormatException e) {
-            showAlert("Erreur", "Veuillez entrer des valeurs valides", Alert.AlertType.ERROR);
+            showAlert("Erreur", "Veuillez entrer des valeurs valides");
         } catch (Exception e) {
             System.out.println("Erreur détaillée : " + e.getMessage());
             e.printStackTrace();
@@ -73,10 +73,34 @@ public class SessionUpdateController {
     }
 
 
-    private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
+    private void showAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/alert.png", "/forumUI/icons/alert.png", "OK", 80, 80);
+    }
+
+    private void showSuccessAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/sucessalert.png", "/forumUI/icons/sucessalert.png", "OK", 60, 80);
+    }
+    private void showStyledAlert (String title, String message, String iconPath, String stageIconPath,
+                                  String buttonText, double iconHeight, double iconWidth) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle(title);
+        alert.setHeaderText(null);
         alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource(iconPath).toExternalForm()));
+        icon.setFitHeight(iconHeight);
+        icon.setFitWidth(iconWidth);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource(stageIconPath).toExternalForm()));
+
+        ButtonType okButton = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
         alert.showAndWait();
     }
 

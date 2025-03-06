@@ -16,7 +16,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import tn.esprit.Controllers.SidebarAdminController;
 import tn.esprit.Controllers.forum.AdminSidebarController;
 import tn.esprit.Models.Role;
 import tn.esprit.Models.Session_game;
@@ -43,7 +42,7 @@ public class AnalyticsController implements Initializable {
     @FXML private ComboBox<String> filterCoach;
     @FXML private ComboBox<String> filterSessionType;
     @FXML private VBox dataContainer;
-    @FXML private SidebarAdminController sidebarController;
+    @FXML private AdminSidebarController sidebarController;
     @FXML private BorderPane mainLayout;
 
     private ServiceSession sessionService;
@@ -89,7 +88,7 @@ public class AnalyticsController implements Initializable {
 
     private void loadAdminSidebar() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/sidebarAdmin.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/sidebarAdmin.fxml"));
             VBox adminSidebar = loader.load();
             sidebarController = loader.getController();
             mainLayout.setLeft(adminSidebar);

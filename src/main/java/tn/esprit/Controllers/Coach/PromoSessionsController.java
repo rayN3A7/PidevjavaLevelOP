@@ -23,7 +23,7 @@ import java.util.List;
 public class PromoSessionsController {
 
     @FXML
-    private FlowPane promoSessionsVBox; // Changé de VBox à FlowPane
+    private FlowPane promoSessionsVBox;
 
     private final ServiceSession serviceSession = new ServiceSession();
     private static final String IMAGE_BASE_URL = "http://localhost/img/games/";
@@ -64,8 +64,8 @@ public class PromoSessionsController {
                 "-fx-padding: 20; " +
                 "-fx-background-radius: 12; " +
                 "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5); " +
-                "-fx-pref-width: 250; " + // Largeur fixe pour uniformité dans FlowPane
-                "-fx-max-width: 250;");   // Limite la largeur pour éviter l'étirement
+                "-fx-pref-width: 250; " +
+                "-fx-max-width: 250;");
 
         ImageView gameImage = new ImageView();
         gameImage.setFitWidth(250);

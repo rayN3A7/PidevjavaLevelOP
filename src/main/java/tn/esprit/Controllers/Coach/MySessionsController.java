@@ -13,9 +13,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -44,8 +44,7 @@ public class MySessionsController {
         } catch (Exception e) {
             e.printStackTrace();
             showAlert("Erreur d'initialisation",
-                    "Impossible de charger les réservations : " + e.getMessage(),
-                    Alert.AlertType.ERROR);
+                    "Impossible de charger les réservations : " + e.getMessage());
         }
     }
 
@@ -53,7 +52,7 @@ public class MySessionsController {
         try {
             int clientId = SessionManager.getInstance().getUserId();
             if (clientId <= 0) {
-                showAlert("Erreur", "Utilisateur non connecté", Alert.AlertType.WARNING);
+                showAlert("Erreur", "Utilisateur non connecté");
                 return;
             }
 
@@ -110,7 +109,7 @@ public class MySessionsController {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Erreur", "Erreur lors du chargement des réservations : " + e.getMessage(), Alert.AlertType.ERROR);
+            showAlert("Erreur", "Erreur lors du chargement des réservations : " + e.getMessage());
         }
     }
 
@@ -128,23 +127,16 @@ public class MySessionsController {
             stage.show();
         } catch (Exception e) {
             e.printStackTrace();
-            showAlert("Erreur", "Impossible de retourner aux sessions : " + e.getMessage(), Alert.AlertType.ERROR);
+            showAlert("Erreur", "Impossible de retourner aux sessions : " + e.getMessage());
         }
     }
 
-    private void showAlert(String title, String content, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.showAndWait();
-    }
 
     private void handlePayPalPayment(int reservationId, double amount) {
         try {
 
             String baseUrl = "https://www.sandbox.paypal.com/cgi-bin/webscr";
-            String business = "votre_email_business_sandbox@test.com"; // Email PayPal sandbox
+            String business = "votre_email_business_sandbox@test.com";
             String itemName = "Session de coaching #" + reservationId;
             String returnUrl = "http://localhost:8080/success";
             String cancelUrl = "http://localhost:8080/cancel";
@@ -160,18 +152,18 @@ public class MySessionsController {
             // Ouvrir le navigateur par défaut avec l'URL PayPal
             Desktop.getDesktop().browse(new URI(paypalUrl));
 
-            showAlert(
+            showSuccessAlert(
                     "Redirection PayPal",
-                    "Vous allez être redirigé vers PayPal pour effectuer le paiement de " + amount + " €",
-                    Alert.AlertType.INFORMATION
+                    "Vous allez être redirigé vers PayPal pour effectuer le paiement de " + amount + " €"
+
             );
 
         } catch (Exception e) {
             e.printStackTrace();
             showAlert(
                     "Erreur",
-                    "Erreur lors de la redirection vers PayPal. Veuillez réessayer plus tard.",
-                    Alert.AlertType.ERROR
+                    "Erreur lors de la redirection vers PayPal. Veuillez réessayer plus tard."
+
             );
         }
     }
@@ -181,11 +173,11 @@ public class MySessionsController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/stripe_payment_form.fxml"));
             Parent root = loader.load();
 
-            // Get the controller and initialize data
+
             StripePaymentFormController controller = loader.getController();
             controller.initData(reservationId, amount);
 
-            // Create and configure the new stage
+
             Stage stage = new Stage();
             stage.setTitle("Paiement Stripe");
             Scene scene = new Scene(root);
@@ -195,20 +187,20 @@ public class MySessionsController {
         } catch (Exception e) {
             e.printStackTrace();
             showAlert("Erreur",
-                    "Erreur lors de l'ouverture du formulaire de paiement : " + e.getMessage(),
-                    Alert.AlertType.ERROR);
+                    "Erreur lors de l'ouverture du formulaire de paiement : " + e.getMessage()
+            );
         }
     }
 
     private void handleCancellation(Reservation reservation) {
         try {
-            // Récupérer les informations du coach
+
             Session_game session = reservation.getSession();
             int coachId = session.getCoach_id();
             Utilisateur coach = utilisateurService.getOne(coachId);
 
             if (coach != null) {
-                // Préparer le contenu de l'email
+
                 String subject = "Annulation de réservation de session";
                 String additionalInfo = String.format(
                         "La réservation pour la session de %s a été annulée par le client.\n\n" +
@@ -222,29 +214,59 @@ public class MySessionsController {
                         session.getduree_session()
                 );
 
-                // Utiliser EmailService pour envoyer l'email automatiquement
+
                 EmailService.sendEmail(
                         coach.getEmail(),
                         subject,
-                        "custom", // Nouveau type pour message personnalisé
+                        "custom",
                         additionalInfo
                 );
 
-                // Supprimer la réservation
+
                 serviceReservation.delete(reservation);
 
-                // Recharger la liste des réservations
+
                 loadMyReservations();
 
-                showAlert("Succès",
-                        "La réservation a été annulée et le coach a été notifié par email.",
-                        Alert.AlertType.INFORMATION);
+                showSuccessAlert("Succès",
+                        "La réservation a été annulée et le coach a été notifié par email."
+                );
             }
         } catch (Exception e) {
             showAlert("Erreur",
-                    "Erreur lors de l'annulation : " + e.getMessage(),
-                    Alert.AlertType.ERROR);
+                    "Erreur lors de l'annulation : " + e.getMessage()
+            );
             e.printStackTrace();
         }
+    }
+    private void showAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/alert.png", "/forumUI/icons/alert.png", "OK", 80, 80);
+    }
+
+    private void showSuccessAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/sucessalert.png", "/forumUI/icons/sucessalert.png", "OK", 60, 80);
+    }
+    private void showStyledAlert (String title, String message, String iconPath, String stageIconPath,
+                                  String buttonText, double iconHeight, double iconWidth) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource(iconPath).toExternalForm()));
+        icon.setFitHeight(iconHeight);
+        icon.setFitWidth(iconWidth);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource(stageIconPath).toExternalForm()));
+
+        ButtonType okButton = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
+        alert.showAndWait();
     }
 }

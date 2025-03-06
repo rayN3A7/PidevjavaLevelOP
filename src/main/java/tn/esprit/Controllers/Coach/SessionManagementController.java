@@ -13,9 +13,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
@@ -142,8 +140,8 @@ public class SessionManagementController {
         if (defaultImage != null) {
             imageView.setImage(defaultImage);
         } else {
-            // Utiliser une image codée en dur ou une couleur de fond
-            imageView.setImage(new Image("/images/fallback-image.jpg")); // Assurez-vous que cette image existe
+
+            imageView.setImage(new Image("/images/fallback-image.jpg"));
             System.err.println("Utilisation de l'image de secours : /images/fallback-image.jpg");
         }
     }
@@ -154,7 +152,7 @@ public class SessionManagementController {
             return new Image(getClass().getResourceAsStream(DEFAULT_IMAGE_PATH));
         } catch (Exception e) {
             System.err.println("Erreur lors du chargement de l'image par défaut : " + DEFAULT_IMAGE_PATH);
-            return null; // Ou utilisez une image codée en dur si nécessaire
+            return null;
         }
     }
 
@@ -179,7 +177,7 @@ public class SessionManagementController {
         try {
             Session_game session = serviceSession.getSessionById(sessionId);
             if (session.getCoach_id() != currentCoachId) {
-                showAlert("Erreur", "Vous ne pouvez pas modifier une session qui ne vous appartient pas", Alert.AlertType.ERROR);
+                showAlert("Erreur", "Vous ne pouvez pas modifier une session qui ne vous appartient pas");
                 return;
             }
 
@@ -194,7 +192,7 @@ public class SessionManagementController {
             stage.setScene(scene);
             stage.show();
         } catch (Exception e) {
-            showAlert("Erreur", "Erreur lors de la navigation vers la mise à jour", Alert.AlertType.ERROR);
+            showAlert("Erreur", "Erreur lors de la navigation vers la mise à jour");
             e.printStackTrace();
         }
     }
@@ -202,22 +200,46 @@ public class SessionManagementController {
     private void deleteSession(Session_game session) {
         try {
             if (session.getCoach_id() != currentCoachId) {
-                showAlert("Erreur", "Vous ne pouvez pas supprimer une session qui ne vous appartient pas", Alert.AlertType.ERROR);
+                showAlert("Erreur", "Vous ne pouvez pas supprimer une session qui ne vous appartient pas");
                 return;
             }
 
             serviceSession.delete(session);
             showSessions();
-            showAlert("Succès", "Session supprimée avec succès", Alert.AlertType.INFORMATION);
+            showSuccessAlert("Succès", "Session supprimée avec succès");
         } catch (Exception e) {
-            showAlert("Erreur", "Erreur lors de la suppression", Alert.AlertType.ERROR);
+            showAlert("Erreur", "Erreur lors de la suppression");
         }
     }
 
-    private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
+    private void showAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/alert.png", "/forumUI/icons/alert.png", "OK", 80, 80);
+    }
+
+    private void showSuccessAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/sucessalert.png", "/forumUI/icons/sucessalert.png", "OK", 60, 80);
+    }
+    private void showStyledAlert (String title, String message, String iconPath, String stageIconPath,
+                                  String buttonText, double iconHeight, double iconWidth) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle(title);
+        alert.setHeaderText(null);
         alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource(iconPath).toExternalForm()));
+        icon.setFitHeight(iconHeight);
+        icon.setFitWidth(iconWidth);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource(stageIconPath).toExternalForm()));
+
+        ButtonType okButton = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
         alert.showAndWait();
     }
 

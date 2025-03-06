@@ -132,7 +132,7 @@ public class SearchSessionController {
             return image;
         } catch (Exception e) {
             System.err.println("Échec du chargement de l'image par défaut : " + e.getMessage());
-            // Fallback vers une URL placeholder
+
             return new Image("https://via.placeholder.com/250x150.png?text=Image+Introuvable");
         }
     }

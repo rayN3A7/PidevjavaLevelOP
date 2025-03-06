@@ -9,9 +9,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import tn.esprit.Models.Reservation;
 import tn.esprit.Models.Session_game;
@@ -110,9 +110,33 @@ public class ReservationController {
     }
 
     private void showAlert(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        showStyledAlert(title, message, "/forumUI/icons/alert.png", "/forumUI/icons/alert.png", "OK", 80, 80);
+    }
+
+    private void showSuccessAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/sucessalert.png", "/forumUI/icons/sucessalert.png", "OK", 60, 80);
+    }
+    private void showStyledAlert (String title, String message, String iconPath, String stageIconPath,
+                                  String buttonText, double iconHeight, double iconWidth) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle(title);
+        alert.setHeaderText(null);
         alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource(iconPath).toExternalForm()));
+        icon.setFitHeight(iconHeight);
+        icon.setFitWidth(iconWidth);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource(stageIconPath).toExternalForm()));
+
+        ButtonType okButton = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
         alert.showAndWait();
     }
 
@@ -131,7 +155,7 @@ public class ReservationController {
     }
 
     public void initData(int sessionId) {
-        this.sessionId = sessionId; // Stocker l'ID de session
+        this.sessionId = sessionId;
     }
 
     @FXML

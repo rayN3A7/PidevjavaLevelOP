@@ -33,21 +33,17 @@ import org.slf4j.LoggerFactory;
 import tn.esprit.Controllers.Evenement.DetailsEvenementController;
 import tn.esprit.Controllers.Produit.ProductDetailsController;
 import tn.esprit.Controllers.forum.QuestionDetailsController;
-import tn.esprit.Models.Commande;
+import tn.esprit.Models.*;
 import tn.esprit.Models.Evenement.Evenement;
-import tn.esprit.Models.Produit;
-import tn.esprit.Models.Question;
-import tn.esprit.Models.Stock;
-import tn.esprit.Services.CommandeService;
+import tn.esprit.Services.*;
 import tn.esprit.Services.Evenement.EvenementService;
-import tn.esprit.Services.ProduitService;
-import tn.esprit.Services.QuestionService;
-import tn.esprit.Services.StockService;
 import tn.esprit.utils.SessionManager;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -78,6 +74,11 @@ public class HomeController {
     @FXML private Label title2Label;
     @FXML private HBox productContainer; // Added for dynamic product cards
     @FXML private HBox eventContainer;
+    @FXML private HBox promoSessionsContainer;
+    private static final String IMAGE_BASE_URL = "http://localhost/img/games/";
+    private static final String DEFAULT_IMAGE_PATH = "/images/default-game.jpg";
+    private List<Session_game> promoSessions;
+    private final ServiceSession serviceSession = new ServiceSession();
     String path;
     String userRole = SessionManager.getInstance().getRole().name();
     private final ProduitService produitService = new ProduitService();
@@ -96,6 +97,7 @@ public class HomeController {
         addDragSupport();
         loadTopProducts();
         loadEvents();
+        loadPromoSessions();
     }
     private void loadTopProducts() {
         try {
@@ -621,6 +623,124 @@ public class HomeController {
         Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
         window.setScene(signInScene);
         window.show();
+    }
+    private void loadPromoSessions() {
+        try {
+            promoSessions = serviceSession.getSessionsInPromo();
+            if (promoSessions != null && !promoSessions.isEmpty()) {
+                displayPromoSessions();
+            } else {
+                Label noSessionsLabel = new Label("Aucune session en promotion trouvée.");
+                noSessionsLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 16px;");
+                promoSessionsContainer.getChildren().add(noSessionsLabel);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error loading promo sessions: ", e);
+            Label errorLabel = new Label("Erreur lors du chargement des sessions en promotion.");
+            errorLabel.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 16px;");
+            promoSessionsContainer.getChildren().add(errorLabel);
+        }
+    }
+
+    private void displayPromoSessions() {
+        promoSessionsContainer.getChildren().clear();
+        for (Session_game session : promoSessions) {
+            VBox sessionCard = createSessionCard(session);
+            promoSessionsContainer.getChildren().add(sessionCard);
+        }
+    }
+
+    private VBox createSessionCard(Session_game session) {
+        VBox sessionCard = new VBox(10);
+        sessionCard.setStyle("-fx-background-color: #162942; " +
+                "-fx-padding: 20; " +
+                "-fx-background-radius: 12; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5); " +
+                "-fx-pref-width: 250; " +
+                "-fx-max-width: 250;");
+
+        ImageView gameImage = new ImageView();
+        gameImage.setFitWidth(250);
+        gameImage.setFitHeight(150);
+        gameImage.setPreserveRatio(true);
+
+        loadSessionImage(gameImage, session);
+
+        Label gameLabel = new Label(session.getGame());
+        gameLabel.setStyle("-fx-text-fill: white; " +
+                "-fx-font-size: 20px; " +
+                "-fx-font-weight: bold; " +
+                "-fx-padding: 10 0 5 0;");
+
+        Label priceLabel = new Label("Prix: " + session.getprix() + " DT");
+        priceLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
+
+        Label durationLabel = new Label("Durée: " + session.getduree_session());
+        durationLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
+
+        Button checkAvailabilityButton = createCheckAvailabilityButton(session.getId());
+
+        sessionCard.getChildren().addAll(gameImage, gameLabel, priceLabel, durationLabel, checkAvailabilityButton);
+        return sessionCard;
+    }
+
+    private void loadSessionImage(ImageView imageView, Session_game session) {
+        if (session.getImageName() != null && !session.getImageName().isEmpty()) {
+            String encodedImageName = URLEncoder.encode(session.getImageName(), StandardCharsets.UTF_8).replace("+", "%20");
+            String imageUrl = IMAGE_BASE_URL + encodedImageName;
+            try {
+                Image image = new Image(imageUrl, true);
+                image.errorProperty().addListener((obs, oldVal, newVal) -> {
+                    if (newVal) {
+                        LOGGER.error("Error loading image from " + imageUrl);
+                        setDefaultImage(imageView);
+                    }
+                });
+                image.progressProperty().addListener((obs, oldVal, newVal) -> {
+                    if (newVal.doubleValue() == 1.0 && !image.isError()) {
+                        imageView.setImage(image);
+                    }
+                });
+            } catch (Exception e) {
+                LOGGER.error("Exception loading image from " + imageUrl, e);
+                setDefaultImage(imageView);
+            }
+        } else {
+            setDefaultImage(imageView);
+        }
+    }
+
+    private void setDefaultImage(ImageView imageView) {
+        try {
+            Image defaultImage = new Image(getClass().getResourceAsStream(DEFAULT_IMAGE_PATH));
+            imageView.setImage(defaultImage);
+        } catch (Exception e) {
+            LOGGER.error("Failed to load default image", e);
+            imageView.setImage(new Image("https://via.placeholder.com/250x150.png?text=Image+Introuvable"));
+        }
+    }
+
+    private Button createCheckAvailabilityButton(int sessionId) {
+        Button button = new Button("Voir disponibilité");
+        button.setStyle("-fx-background-color: #0585e6; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-size: 14px; " +
+                "-fx-padding: 10 20; " +
+                "-fx-background-radius: 20;");
+
+        button.setOnAction(event -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/verifier_reservation.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+                Stage stage = (Stage) button.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            } catch (Exception e) {
+                LOGGER.error("Error opening reservation verification", e);
+            }
+        });
+        return button;
     }
     @FXML
     public void openChatbotDialog() {

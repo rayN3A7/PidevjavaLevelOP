@@ -5,10 +5,9 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
 public class StripePaymentFormController {
@@ -44,10 +43,10 @@ public class StripePaymentFormController {
         }
 
         try {
-            // Initialize Stripe with your secret key
+
             Stripe.apiKey = "sk_test_51QwnFBQo8eHPYc0vBA9m5i0nBxdhefRpQrwYyk8VAPRg21d2UKSRiUJsR7T7VIFAlyeiDuQaZRwSCeQveeOETK9q00BDEThZIx";
 
-            // Create a PaymentIntent with customer and payment method details
+
             PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
                     .setAmount((long) (amount * 100))
                     .setCurrency("eur")
@@ -61,18 +60,18 @@ public class StripePaymentFormController {
 
             PaymentIntent paymentIntent = PaymentIntent.create(params);
 
-            // Show success message
-            showAlert("Paiement réussi", 
-                    "Le paiement a été traité avec succès.", 
-                    Alert.AlertType.INFORMATION);
 
-            // Close the payment form
+            showAlert("Paiement réussi",
+                    "Le paiement a été traité avec succès."
+            );
+
+
             closeWindow();
 
         } catch (StripeException e) {
-            showAlert("Erreur de paiement", 
-                    "Une erreur est survenue lors du traitement du paiement : " + e.getMessage(), 
-                    Alert.AlertType.ERROR);
+            showAlert("Erreur de paiement",
+                    "Une erreur est survenue lors du traitement du paiement : " + e.getMessage()
+            );
         }
     }
 
@@ -83,48 +82,71 @@ public class StripePaymentFormController {
 
     private boolean validateFields() {
         if (cardNumberField.getText().isEmpty() ||
-            expiryDateField.getText().isEmpty() ||
-            cvvField.getText().isEmpty() ||
-            nameOnCardField.getText().isEmpty()) {
-            
-            showAlert("Champs manquants", 
-                    "Veuillez remplir tous les champs.", 
-                    Alert.AlertType.WARNING);
+                expiryDateField.getText().isEmpty() ||
+                cvvField.getText().isEmpty() ||
+                nameOnCardField.getText().isEmpty()) {
+
+            showAlert("Champs manquants",
+                    "Veuillez remplir tous les champs."
+            );
             return false;
         }
 
-        // Validate card number (should be 16 digits)
+
         if (!cardNumberField.getText().matches("\\d{16}")) {
-            showAlert("Numéro de carte invalide", 
-                    "Le numéro de carte doit contenir 16 chiffres.", 
-                    Alert.AlertType.WARNING);
+            showAlert("Numéro de carte invalide",
+                    "Le numéro de carte doit contenir 16 chiffres."
+            );
             return false;
         }
 
-        // Validate expiry date (should be MM/YY format)
+
         if (!expiryDateField.getText().matches("\\d{2}/\\d{2}")) {
-            showAlert("Date d'expiration invalide", 
-                    "La date d'expiration doit être au format MM/YY.", 
-                    Alert.AlertType.WARNING);
+            showAlert("Date d'expiration invalide",
+                    "La date d'expiration doit être au format MM/YY."
+            );
             return false;
         }
 
-        // Validate CVV (should be 3 or 4 digits)
+
         if (!cvvField.getText().matches("\\d{3,4}")) {
-            showAlert("CVV invalide", 
-                    "Le CVV doit contenir 3 ou 4 chiffres.", 
-                    Alert.AlertType.WARNING);
+            showAlert("CVV invalide",
+                    "Le CVV doit contenir 3 ou 4 chiffres."
+            );
             return false;
         }
 
         return true;
     }
 
-    private void showAlert(String title, String content, Alert.AlertType type) {
-        Alert alert = new Alert(type);
+    private void showAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/alert.png", "/forumUI/icons/alert.png", "OK", 80, 80);
+    }
+
+    private void showSuccessAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/sucessalert.png", "/forumUI/icons/sucessalert.png", "OK", 60, 80);
+    }
+    private void showStyledAlert (String title, String message, String iconPath, String stageIconPath,
+                                  String buttonText, double iconHeight, double iconWidth) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
         alert.setTitle(title);
         alert.setHeaderText(null);
-        alert.setContentText(content);
+        alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource(iconPath).toExternalForm()));
+        icon.setFitHeight(iconHeight);
+        icon.setFitWidth(iconWidth);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource(stageIconPath).toExternalForm()));
+
+        ButtonType okButton = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
         alert.showAndWait();
     }
 

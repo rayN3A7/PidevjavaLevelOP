@@ -6,9 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.FileChooser;
@@ -45,7 +43,7 @@ public class AddSessionController {
             String game = gameField.getText();
             String priceText = priceField.getText();
             if (priceText.isEmpty()) {
-                showAlert("Erreur", "Le prix ne peut pas être vide", Alert.AlertType.ERROR);
+                showAlert("Erreur", "Le prix ne peut pas être vide");
                 return;
             }
             double price = Double.parseDouble(priceText);
@@ -53,21 +51,21 @@ public class AddSessionController {
 
             if (roleuser.equals("COACH")) {
                 if (selectedImageName != null && !selectedImageName.isEmpty()) {
-                    // Sauvegarder l'image dans htdocs/ima
+
                     saveImageToServer();
                 }
                 Session_game session = new Session_game(price, new Date(), duration, game, currentCoachId, selectedImageName);
                 serviceSession.add(session);
                 clearFields();
-                showAlert("Succès", "Session ajoutée avec succès", Alert.AlertType.INFORMATION);
+                showSuccessAlert("Succès", "Session ajoutée avec succès");
                 backToManagement(null);
             } else {
-                showAlert("Erreur", "Seul un coach peut ajouter une session", Alert.AlertType.WARNING);
+                showAlert("Erreur", "Seul un coach peut ajouter une session");
             }
         } catch (NumberFormatException e) {
-            showAlert("Erreur", "Veuillez entrer un prix valide", Alert.AlertType.ERROR);
+            showAlert("Erreur", "Veuillez entrer un prix valide");
         } catch (IOException e) {
-            showAlert("Erreur", "Erreur lors de la sauvegarde de l'image", Alert.AlertType.ERROR);
+            showAlert("Erreur", "Erreur lors de la sauvegarde de l'image");
             e.printStackTrace();
         }
     }
@@ -87,12 +85,6 @@ public class AddSessionController {
         selectedImageName = null;
     }
 
-    private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
 
     @FXML
     private void backToManagement(ActionEvent event) {
@@ -120,13 +112,43 @@ public class AddSessionController {
         if (selectedFile != null) {
             try {
                 selectedImageName = selectedFile.getName();
-                imageUrlField.setText(selectedFile.getAbsolutePath()); // Afficher le chemin complet temporairement
+                imageUrlField.setText(selectedFile.getAbsolutePath());
                 Image image = new Image(selectedFile.toURI().toString());
                 imagePreview.setImage(image);
             } catch (Exception e) {
-                showAlert("Erreur", "Impossible de lire le fichier image sélectionné", Alert.AlertType.ERROR);
+                showAlert("Erreur", "Impossible de lire le fichier image sélectionné");
                 e.printStackTrace();
             }
         }
+    }
+    private void showAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/alert.png", "/forumUI/icons/alert.png", "OK", 80, 80);
+    }
+
+    private void showSuccessAlert(String title, String message) {
+        showStyledAlert(title, message, "/forumUI/icons/sucessalert.png", "/forumUI/icons/sucessalert.png", "OK", 60, 80);
+    }
+    private void showStyledAlert (String title, String message, String iconPath, String stageIconPath,
+                                  String buttonText, double iconHeight, double iconWidth) {
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+
+        ImageView icon = new ImageView(new Image(getClass().getResource(iconPath).toExternalForm()));
+        icon.setFitHeight(iconHeight);
+        icon.setFitWidth(iconWidth);
+        alert.setGraphic(icon);
+
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/forumUI/alert.css").toExternalForm());
+        alert.getDialogPane().getStyleClass().add("gaming-alert");
+
+        Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
+        stage.getIcons().add(new Image(getClass().getResource(stageIconPath).toExternalForm()));
+
+        ButtonType okButton = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
+        alert.getButtonTypes().setAll(okButton);
+
+        alert.showAndWait();
     }
 }
