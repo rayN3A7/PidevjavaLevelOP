@@ -1,5 +1,6 @@
 package tn.esprit.Controllers.Produit;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,20 +44,17 @@ public class ProductDetailsController {
     @FXML private TextArea productDescription;
     @FXML private StackPane imagePreviewOverlay;
     @FXML private ImageView previewImage;
-
-    // Platform info fields
+    @FXML private Label stockStatus;
     @FXML private Label platformLabel;
     @FXML private Label regionLabel;
     @FXML private Label typeLabel;
     @FXML private Label activationRegionLabel;
 
-    // System specs fields
     @FXML private Label cpuLabel;
     @FXML private Label ramLabel;
     @FXML private Label osLabel;
     @FXML private VBox gpuVBox;
 
-    // FPS estimation fields
     @FXML private VBox fpsVBox;
 
     private final Dotenv dotenv = Dotenv.configure().load();
@@ -65,12 +63,13 @@ public class ProductDetailsController {
     private Produit currentProduct;
     private ProduitService produitService = new ProduitService();
 
-    // OpenAI API configuration
     private String OPENAI_API_KEY = dotenv.get("OPENAI_API_KEY");
     private String OPENAI_API_URL = dotenv.get("OPENAI_API_URL");
     private static final String OPENAI_MODEL = "gpt-3.5-turbo";
     private final OkHttpClient client = new OkHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final String IMAGE_DIR = "C:\\xampp\\htdocs\\img\\";
 
     @FXML
     public void initialize() {
@@ -96,13 +95,24 @@ public class ProductDetailsController {
         this.currentProduct = product;
         productName.setText(product.getNomProduit() != null ? product.getNomProduit() : "N/A");
         productPrice.setText(stock != null && stock.getPrixProduit() > 0 ? stock.getPrixProduit() + " DNT" : "N/A");
+        if (stock != null) {
+            if (stock.getQuantity() > 0) {
+                stockStatus.setText("En Stock");
+                stockStatus.getStyleClass().setAll("stock-status", "in-stock");
+            } else {
+                stockStatus.setText("Hors Stock");
+                stockStatus.getStyleClass().setAll("stock-status", "out-of-stock");
+            }
+        } else {
+            stockStatus.setText("Non Disponible");
+            stockStatus.getStyleClass().setAll("stock-status", "unavailable");
+        }
         productDescription.setText(product.getDescription() != null ? product.getDescription() : "No description available");
         platformLabel.setText(product.getPlatform() != null ? product.getPlatform() : "Non disponible");
         regionLabel.setText(product.getRegion() != null ? product.getRegion() : "Mondial");
         typeLabel.setText(product.getType() != null ? product.getType() : "Clé numérique");
         activationRegionLabel.setText(product.getActivation_region() != null ? product.getActivation_region() : "Aucune restriction");
 
-        // Load the main image from stock
         if (stock != null && stock.getImage() != null && !stock.getImage().isEmpty()) {
             loadMainImage(stock.getImage());
         } else {
@@ -241,49 +251,64 @@ public class ProductDetailsController {
         }
     }
 
-    private void loadMainImage(String imagePath) {
-        String basePath = "/assets/image/";
+    private void loadMainImage(String imageFileName) {
         try {
-            if (imagePath != null && !imagePath.trim().isEmpty()) {
-                Image image = new Image(getClass().getResourceAsStream(basePath + imagePath.trim()));
+            if (imageFileName != null && !imageFileName.trim().isEmpty()) {
+                String imagePath = IMAGE_DIR + imageFileName.trim();
+                Image image = new Image(new File(imagePath).toURI().toString());
                 if (image != null && !image.isError()) {
                     productImage.setImage(image);
                     return;
                 }
-                System.err.println("Error loading main image: " + imagePath);
+                System.err.println("Error loading main image: " + imagePath + " - Image file not found or invalid");
+            } else {
+                System.err.println("Error loading main image: Image file name is null or empty");
             }
         } catch (Exception e) {
-            System.err.println("Error loading main image: " + imagePath + " - " + e.getMessage());
+            System.err.println("Error loading main image: " + imageFileName + " - " + e.getMessage());
         }
         loadDefaultImage();
     }
 
     private void loadDefaultImage() {
         try {
-            Image defaultImage = new Image(getClass().getResourceAsStream("/assets/image/default-product.png"));
+            String defaultImagePath = IMAGE_DIR + "default-product.png";
+            Image defaultImage = new Image(new File(defaultImagePath).toURI().toString());
             if (defaultImage != null && !defaultImage.isError()) {
                 productImage.setImage(defaultImage);
             } else {
-                System.err.println("Error loading default image");
+                System.err.println("Error loading default image: " + defaultImagePath + " - Default image not found or invalid");
+                Image fallbackImage = new Image(getClass().getResourceAsStream("/assets/image/default-product.png"));
+                if (fallbackImage != null && !fallbackImage.isError()) {
+                    productImage.setImage(fallbackImage);
+                } else {
+                    System.err.println("Error loading fallback default image from resources");
+                }
             }
         } catch (Exception e) {
             System.err.println("Error loading default image: " + e.getMessage());
         }
     }
 
-    private void showImagePreview(Image image) {
-        previewImage.setImage(image);
-        imagePreviewOverlay.setVisible(true);
-        imagePreviewOverlay.setOpacity(0);
-        imagePreviewOverlay.setScaleX(0.9);
-        imagePreviewOverlay.setScaleY(0.9);
-        FadeTransition fadeIn = new FadeTransition(Duration.millis(200), imagePreviewOverlay);
-        fadeIn.setToValue(1);
-        ScaleTransition scaleIn = new ScaleTransition(Duration.millis(200), imagePreviewOverlay);
-        scaleIn.setToX(1);
-        scaleIn.setToY(1);
-        fadeIn.play();
-        scaleIn.play();
+    @FXML
+    private void handleImageClick() {
+        if (imagePreviewOverlay != null && previewImage != null) {
+            previewImage.setImage(productImage.getImage());
+            imagePreviewOverlay.setVisible(true);
+
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(200), imagePreviewOverlay);
+            fadeIn.setFromValue(0);
+            fadeIn.setToValue(1);
+
+            ScaleTransition scaleIn = new ScaleTransition(Duration.millis(200), previewImage);
+            scaleIn.setFromX(0.9);
+            scaleIn.setFromY(0.9);
+            scaleIn.setToX(1);
+            scaleIn.setToY(1);
+
+            fadeIn.play();
+            scaleIn.play();
+        }
     }
 
     private void hideImagePreview() {
@@ -303,10 +328,26 @@ public class ProductDetailsController {
     @FXML
     private void handleBackToShop() {
         try {
+            // Load the shop-page.fxml
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/shop-page.fxml"));
-            ScrollPane shopContent = loader.load();
-            BorderPane root = (BorderPane) productImage.getScene().getRoot();
-            root.setCenter(shopContent);
+            Parent shopContent = loader.load();
+
+            // Get the current stage
+            Stage stage = (Stage) productImage.getScene().getWindow();
+
+            // Load the main.fxml (which contains the navbar and dynamic content)
+            FXMLLoader mainLoader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
+            Parent mainRoot = mainLoader.load();
+
+            // Cast the main root to BorderPane (main.fxml is a BorderPane)
+            BorderPane mainBorderPane = (BorderPane) mainRoot;
+
+            // Set the shop content as the center of the main BorderPane
+            mainBorderPane.setCenter(shopContent);
+
+            // Set the scene to the main root
+            stage.setScene(new javafx.scene.Scene(mainRoot));
+            stage.show();
         } catch (IOException e) {
             System.err.println("Erreur lors du chargement de shop-page.fxml: " + e.getMessage());
             showAlert(Alert.AlertType.ERROR, "Erreur", "Erreur lors du retour à la boutique: " + e.getMessage());

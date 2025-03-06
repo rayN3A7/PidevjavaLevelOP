@@ -52,36 +52,9 @@
                 <children>
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <Label styleClass="section-title" text="Événements en cours" />
-                        <Button text="VOIR TOUS" styleClass="voir-tous-button"/>
+                        <Button text="VOIR TOUS" styleClass="voir-tous-button" onAction="#ButtonListeEvenements"/>
                     </HBox>
-                    <HBox spacing="20" style="-fx-padding: 20;" alignment="CENTER">
-                        <children>
-                            <VBox styleClass="event-card">
-                                <ImageView fitHeight="200" fitWidth="250">
-                                    <image>
-                                        <Image url="@assets/image/event1.png" />
-                                    </image>
-                                </ImageView>
-                                <Label styleClass="event-title" text="Tournoi Valorant" />
-                            </VBox>
-                            <VBox styleClass="event-card">
-                                <ImageView fitHeight="200" fitWidth="250">
-                                    <image>
-                                        <Image url="@assets/image/event2.jpg" />
-                                    </image>
-                                </ImageView>
-                                <Label styleClass="event-title" text="Apex Legends Clash" />
-                            </VBox>
-                            <VBox styleClass="event-card">
-                                <ImageView fitHeight="200" fitWidth="250">
-                                    <image>
-                                        <Image url="@assets/image/event3.png" />
-                                    </image>
-                                </ImageView>
-                                <Label styleClass="event-title" text="CS:GO Championship" />
-                            </VBox>
-                        </children>
-                    </HBox>
+                    <HBox fx:id="eventContainer" spacing="20" style="-fx-padding: 20;" alignment="CENTER"/>
                 </children>
             </VBox>
 
@@ -93,7 +66,7 @@
                 <children>
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <Label styleClass="section-title" text="Questions Populaires" />
-                        <Button text="VOIR TOUS" styleClass="voir-tous-button"/>
+                        <Button text="VOIR TOUS" styleClass="voir-tous-button" onAction="#navigateToForum"/>
                     </HBox>
                     <StackPane fx:id="carouselContainer" style="-fx-padding: 20;">
                         <HBox fx:id="questionCarousel" spacing="20" alignment="CENTER">
@@ -111,44 +84,17 @@
             <!-- Delimiter -->
             <HBox styleClass="delimiter" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
 
+
             <!-- Section Entraîneurs -->
-            <VBox styleClass="trainer-section" GridPane.columnIndex="0" GridPane.rowIndex="7">
+            <!-- Section Sessions en Promotion -->
+            <VBox styleClass="promo-sessions-section" GridPane.columnIndex="0" GridPane.rowIndex="7">
                 <children>
                     <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Label styleClass="section-title" text="Meilleurs entraîneurs" />
+                        <Label styleClass="section-title" text="Sessions en Promotion" />
                         <Button text="VOIR TOUS" styleClass="voir-tous-button"/>
                     </HBox>
-                    <HBox spacing="20" style="-fx-padding: 20;" alignment="CENTER">
-                        <children>
-                            <VBox styleClass="trainer-card">
-                                <ImageView fitHeight="200" fitWidth="200">
-                                    <image>
-                                        <Image url="@assets/image/coach1.png" />
-                                    </image>
-                                </ImageView>
-                            </VBox>
-                            <VBox styleClass="trainer-card">
-                                <ImageView fitHeight="200" fitWidth="200">
-                                    <image>
-                                        <Image url="@assets/image/coach1.png" />
-                                    </image>
-                                </ImageView>
-                            </VBox>
-                            <VBox styleClass="trainer-card">
-                                <ImageView fitHeight="200" fitWidth="200">
-                                    <image>
-                                        <Image url="@assets/image/coach1.png" />
-                                    </image>
-                                </ImageView>
-                            </VBox>
-                            <VBox styleClass="trainer-card">
-                                <ImageView fitHeight="200" fitWidth="200">
-                                    <image>
-                                        <Image url="@assets/image/coach1.png" />
-                                    </image>
-                                </ImageView>
-                            </VBox>
-                        </children>
+                    <HBox fx:id="promoSessionsContainer" spacing="20" style="-fx-padding: 20;" alignment="CENTER">
+                        <!-- Promo sessions will be added here dynamically -->
                     </HBox>
                 </children>
             </VBox>
@@ -156,52 +102,14 @@
             <!-- Delimiter -->
             <HBox styleClass="delimiter" GridPane.columnIndex="0" GridPane.rowIndex="8"/>
 
-            <!-- Section Produits -->
             <VBox styleClass="section-produits" GridPane.columnIndex="0" GridPane.rowIndex="9">
                 <children>
                     <HBox alignment="CENTER_LEFT" spacing="10">
-                        <Label styleClass="section-title" text="Produits en soldes" />
-                        <Button text="VOIR TOUS" styleClass="voir-tous-button"/>
+                        <Label styleClass="section-title" text="Nos Produits" />
+                        <Button text="VOIR TOUS" styleClass="voir-tous-button" onAction="#goToShop"/> <!-- Updated to use goToShop -->
                     </HBox>
-                    <HBox spacing="20" style="-fx-padding: 20;" alignment="CENTER">
-                        <children>
-                            <VBox styleClass="product-card">
-                                <ImageView fitHeight="200" fitWidth="140">
-                                    <image>
-                                        <Image url="@assets/image/cardValorant.jpg" />
-                                    </image>
-                                </ImageView>
-                                <Label styleClass="product-name" text="League of Legends" />
-                                <Label styleClass="product-price" text="25€" />
-                            </VBox>
-                            <VBox styleClass="product-card">
-                                <ImageView fitHeight="200" fitWidth="140">
-                                    <image>
-                                        <Image url="@assets/image/cardValorant.jpg" />
-                                    </image>
-                                </ImageView>
-                                <Label styleClass="product-name" text="Apex Legends" />
-                                <Label styleClass="product-price" text="20€" />
-                            </VBox>
-                            <VBox styleClass="product-card">
-                                <ImageView fitHeight="200" fitWidth="140">
-                                    <image>
-                                        <Image url="@assets/image/cardValorant.jpg" />
-                                    </image>
-                                </ImageView>
-                                <Label styleClass="product-name" text="Counter Strike" />
-                                <Label styleClass="product-price" text="15€" />
-                            </VBox>
-                            <VBox styleClass="product-card">
-                                <ImageView fitHeight="200" fitWidth="140">
-                                    <image>
-                                        <Image url="@assets/image/steam.jpg" />
-                                    </image>
-                                </ImageView>
-                                <Label styleClass="product-name" text="World of Warcraft" />
-                                <Label styleClass="product-price" text="40€" />
-                            </VBox>
-                        </children>
+                    <HBox fx:id="productContainer" spacing="20" style="-fx-padding: 20;" alignment="CENTER">
+                        <!-- Product cards will be added dynamically -->
                     </HBox>
                 </children>
             </VBox>

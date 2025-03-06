@@ -6,9 +6,11 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -17,6 +19,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -27,16 +30,28 @@ import javafx.util.Duration;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tn.esprit.Controllers.Evenement.DetailsEvenementController;
+import tn.esprit.Controllers.Produit.ProductDetailsController;
 import tn.esprit.Controllers.forum.QuestionDetailsController;
-import tn.esprit.Models.Question;
-import tn.esprit.Services.QuestionService;
+import tn.esprit.Models.*;
+import tn.esprit.Models.Evenement.Evenement;
+import tn.esprit.Services.*;
+import tn.esprit.Services.Evenement.EvenementService;
 import tn.esprit.utils.SessionManager;
 
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class HomeController {
     private static final Logger LOGGER = LoggerFactory.getLogger(HomeController.class);
@@ -57,6 +72,19 @@ public class HomeController {
     @FXML private Button nextButton;
     @FXML private Label titleLabel;
     @FXML private Label title2Label;
+    @FXML private HBox productContainer; // Added for dynamic product cards
+    @FXML private HBox eventContainer;
+    @FXML private HBox promoSessionsContainer;
+    private static final String IMAGE_BASE_URL = "http://localhost/img/games/";
+    private static final String DEFAULT_IMAGE_PATH = "/images/default-game.jpg";
+    private List<Session_game> promoSessions;
+    private final ServiceSession serviceSession = new ServiceSession();
+    String path;
+    String userRole = SessionManager.getInstance().getRole().name();
+    private final ProduitService produitService = new ProduitService();
+    private final EvenementService es = new EvenementService();
+    private final CommandeService commandeService = new CommandeService();
+    private final StockService stockService = new StockService(); // Add StockService
 
     @FXML
     public void initialize() {
@@ -67,6 +95,156 @@ public class HomeController {
         addPulsatingGlow(titleLabel, "#FFFFFF");
         addPulsatingGlow(title2Label, "#FF4081");
         addDragSupport();
+        loadTopProducts();
+        loadEvents();
+        loadPromoSessions();
+    }
+    private void loadTopProducts() {
+        try {
+            // Get all products
+            List<Produit> allProducts = produitService.getAll();
+
+            // Calculate sales counts for each product based on completed orders
+            Map<Integer, Integer> productSales = new HashMap<>();
+            List<Commande> commandes = commandeService.getAll();
+            for (Commande commande : commandes) {
+                if ("terminé".equals(commande.getStatus())) { // Only count completed orders
+                    int produitId = commande.getProduitId();
+                    productSales.put(produitId, productSales.getOrDefault(produitId, 0) + 1);
+                }
+            }
+            // Sort products by sales count (descending) and limit to top 4 (matching the screenshot)
+            List<Produit> topProducts = allProducts.stream()
+                    .sorted((p1, p2) -> Integer.compare(
+                            productSales.getOrDefault(p2.getId(), 0),
+                            productSales.getOrDefault(p1.getId(), 0)))
+                    .limit(4)
+                    .collect(Collectors.toList());
+
+            if (productContainer != null) {
+                productContainer.getChildren().clear();
+                for (Produit product : topProducts) {
+                    // Fetch the corresponding stock for this product to get image and price
+                    Stock stock = stockService.getByProduitId(product.getId());
+                    if (stock != null) {
+                        VBox productCard = createProductCard(product, stock, productSales.getOrDefault(product.getId(), 0));
+                        productContainer.getChildren().add(productCard);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error loading top products", e);
+            showAlert(Alert.AlertType.ERROR, "Error", "Failed to load top products");
+        }
+    }
+    private VBox createProductCard(Produit product, Stock stock, int salesCount) {
+        VBox card = new VBox(15); // Spacing to match the event card layout
+        card.getStyleClass().add("event-card"); // Use the event-card style from CSS
+        card.setMaxWidth(160); // Reduced width to match the screenshot
+        card.setMaxHeight(280); // Reduced height to match the screenshot
+
+        ImageView imageView = new ImageView();
+        imageView.setFitHeight(200); // Match FXML static example height
+        imageView.setFitWidth(140);  // Match FXML static example width
+        imageView.setPreserveRatio(true); // Maintain aspect ratio for sharper images
+        try {
+            // Prepend the directory where images are stored (assuming the same path as in your static FXML)
+            String imagePath = "file:///C:/xampp/htdocs/img/" + stock.getImage();
+            Image image = new Image(imagePath);
+            imageView.setImage(image);
+        } catch (Exception e) {
+            LOGGER.error("Error loading product image", e);
+        }
+
+        Label nameLabel = new Label(product.getNomProduit());
+        nameLabel.getStyleClass().add("event-title"); // Use the event-title style from CSS for consistency
+        nameLabel.setStyle("-fx-wrap-text: true; -fx-text-alignment: CENTER; -fx-alignment: CENTER;"); // Ensure text wraps and is centered
+
+        // Fixed to show price in TND with proper formatting
+        Label priceLabel = new Label(String.format("%.2f TND", (double) stock.getPrixProduit()));
+        priceLabel.getStyleClass().add("event-info"); // Use the event-info style from CSS for consistency
+        priceLabel.setStyle("-fx-alignment: CENTER; -fx-text-alignment: CENTER;"); // Center the price
+
+        card.setAlignment(Pos.CENTER); // Center-align all content in the card
+        card.getChildren().addAll(imageView, nameLabel, priceLabel);
+
+        // Make the card clickable to navigate to product details
+        card.setOnMouseClicked(event -> {
+            navigateToProductDetails(product, stock);
+            event.consume();
+        });
+
+        return card; // No inline style needed, as CSS will handle it via .event-card
+    }
+    private void navigateToProductDetails(Produit product, Stock stock) {
+        try {
+            // Load the main.fxml (which contains the navbar)
+            FXMLLoader mainLoader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
+            Parent mainRoot = mainLoader.load();
+
+            // Load the product details FXML
+            FXMLLoader detailsLoader = new FXMLLoader(getClass().getResource("/Produit/product-details.fxml"));
+            Parent detailsContent = detailsLoader.load();
+
+            // Get the main controller
+            ProductDetailsController controller = detailsLoader.getController();
+            controller.setProductData(product, stock); // Pass product data
+
+            // Insert product details into the center of main.fxml
+            BorderPane mainLayout = (BorderPane) mainRoot;
+            mainLayout.setCenter(detailsContent);
+
+            // Get the current stage and set the updated scene
+            Stage stage = (Stage) productContainer.getScene().getWindow();
+            stage.setScene(new Scene(mainRoot));
+            stage.show();
+
+            LOGGER.info("Navigated to product details with navbar for product: {}", product.getNomProduit());
+        } catch (IOException e) {
+            LOGGER.error("Error loading product details page: " + e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible de charger la page des détails du produit.");
+        }
+    }
+    @FXML
+    private void goToShop() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/main.fxml"));
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+            Stage stage = (Stage) productContainer.getScene().getWindow();
+            stage.setScene(scene);
+            stage.show();
+        } catch (IOException e) {
+            LOGGER.error("Error loading shop page: " + e.getMessage(), e);
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Navigation Error");
+            alert.setContentText("Could not load the shop page. Please try again.");
+            alert.showAndWait();
+        }
+    }
+    @FXML
+    private void navigateToForum(ActionEvent event) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/forumUI/Forum.fxml"));
+            if (loader.getLocation() == null) {
+                LOGGER.error("Forum.fxml not found at /forumUI/Forum.fxml");
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Forum page not found.");
+                return;
+            }
+
+            Parent root = loader.load();
+            Scene forumScene = new Scene(root);
+
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            stage.setScene(forumScene);
+            stage.show();
+
+            LOGGER.info("Successfully navigated to Forum.fxml");
+        } catch (IOException e) {
+            LOGGER.error("Error loading Forum.fxml: " + e.getMessage(), e);
+            showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible de charger la page du forum : " + e.getMessage());
+        }
     }
 
     private void loadTopQuestions() {
@@ -352,7 +530,218 @@ public class HomeController {
         glowTimeline.setCycleCount(Timeline.INDEFINITE);
         glowTimeline.play();
     }
+    private void loadEvents() {
+        List<Evenement> evenements = es.getEvenementsProches();
 
+        eventContainer.getChildren().clear();
+
+        for (Evenement event : evenements) {
+            VBox eventCard = createEventCard(event);
+            eventContainer.getChildren().add(eventCard);
+        }
+    }
+
+    private VBox createEventCard(Evenement event) {
+        VBox card = new VBox();
+        card.getStyleClass().add("event-card");
+
+        ImageView imageView = new ImageView();
+        imageView.setImage(new Image(getClass().getResourceAsStream("/assets/image/event2.jpg")));
+        imageView.setFitHeight(200);
+        imageView.setFitWidth(250);
+
+        Label title = new Label(event.getNom_event());
+        title.getStyleClass().add("event-title");
+
+        Timestamp timestamp = event.getDate_event();
+        LocalDateTime localDateTime = timestamp.toLocalDateTime();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        String formattedDate = localDateTime.format(formatter);
+
+        Label date = new Label(formattedDate);
+        date.getStyleClass().add("event-date");
+        date.setStyle("-fx-text-fill: white;");
+
+        card.getChildren().addAll(imageView, title, date);
+        card.setOnMouseClicked(eventClick -> {
+            try {
+                String pathuser = "/Evenement/DetailsEvenement.fxml";
+                String pathadmin = "/Evenement/DetailsEvenementAdmin.fxml";
+                if(userRole.equals("ADMIN")){
+                    path = pathadmin;
+                }else {
+                    path = pathuser;
+                }
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
+                if (loader.getLocation() == null) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "DetailsEvenement.fxml not found.");
+                    return;
+                }
+
+                Parent root = loader.load();
+                DetailsEvenementController controller = loader.getController();
+                if (controller == null) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "Unable to initialize DetailsEvenementController.");
+                    return;
+                }
+
+                controller.initData(event);
+
+                Stage stage = (Stage) card.getScene().getWindow();
+                if (stage == null) {
+                    showAlert(Alert.AlertType.ERROR, "Erreur", "Unable to find the application stage.");
+                    return;
+                }
+
+                Scene newScene = new Scene(root, stage.getWidth(), stage.getHeight());
+                stage.setScene(newScene);
+                stage.show();
+            } catch (IOException e) {
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Impossible de charger la page des détails de l'événement : " + e.getMessage());
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Erreur", "Une erreur inattendue s'est produite : " + e.getMessage());
+            }
+        });
+
+        return card;
+    }
+    @FXML
+    private void ButtonListeEvenements(ActionEvent event)throws Exception{
+        String pathuser = "/Evenement/ListEvenement.fxml";
+        String pathadmin = "/Evenement/ListeEvenementAdmin.fxml";
+        if(userRole.equals("ADMIN")){
+            path= pathadmin;
+        }else{
+            path = pathuser;
+        }
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
+        Parent signInRoot = loader.load();
+        Scene signInScene = new Scene(signInRoot);
+
+
+        Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        window.setScene(signInScene);
+        window.show();
+    }
+    private void loadPromoSessions() {
+        try {
+            promoSessions = serviceSession.getSessionsInPromo();
+            if (promoSessions != null && !promoSessions.isEmpty()) {
+                displayPromoSessions();
+            } else {
+                Label noSessionsLabel = new Label("Aucune session en promotion trouvée.");
+                noSessionsLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 16px;");
+                promoSessionsContainer.getChildren().add(noSessionsLabel);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error loading promo sessions: ", e);
+            Label errorLabel = new Label("Erreur lors du chargement des sessions en promotion.");
+            errorLabel.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 16px;");
+            promoSessionsContainer.getChildren().add(errorLabel);
+        }
+    }
+
+    private void displayPromoSessions() {
+        promoSessionsContainer.getChildren().clear();
+        for (Session_game session : promoSessions) {
+            VBox sessionCard = createSessionCard(session);
+            promoSessionsContainer.getChildren().add(sessionCard);
+        }
+    }
+
+    private VBox createSessionCard(Session_game session) {
+        VBox sessionCard = new VBox(10);
+        sessionCard.setStyle("-fx-background-color: #162942; " +
+                "-fx-padding: 20; " +
+                "-fx-background-radius: 12; " +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 10, 0, 0, 5); " +
+                "-fx-pref-width: 250; " +
+                "-fx-max-width: 250;");
+
+        ImageView gameImage = new ImageView();
+        gameImage.setFitWidth(250);
+        gameImage.setFitHeight(150);
+        gameImage.setPreserveRatio(true);
+
+        loadSessionImage(gameImage, session);
+
+        Label gameLabel = new Label(session.getGame());
+        gameLabel.setStyle("-fx-text-fill: white; " +
+                "-fx-font-size: 20px; " +
+                "-fx-font-weight: bold; " +
+                "-fx-padding: 10 0 5 0;");
+
+        Label priceLabel = new Label("Prix: " + session.getprix() + " DT");
+        priceLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
+
+        Label durationLabel = new Label("Durée: " + session.getduree_session());
+        durationLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
+
+        Button checkAvailabilityButton = createCheckAvailabilityButton(session.getId());
+
+        sessionCard.getChildren().addAll(gameImage, gameLabel, priceLabel, durationLabel, checkAvailabilityButton);
+        return sessionCard;
+    }
+
+    private void loadSessionImage(ImageView imageView, Session_game session) {
+        if (session.getImageName() != null && !session.getImageName().isEmpty()) {
+            String encodedImageName = URLEncoder.encode(session.getImageName(), StandardCharsets.UTF_8).replace("+", "%20");
+            String imageUrl = IMAGE_BASE_URL + encodedImageName;
+            try {
+                Image image = new Image(imageUrl, true);
+                image.errorProperty().addListener((obs, oldVal, newVal) -> {
+                    if (newVal) {
+                        LOGGER.error("Error loading image from " + imageUrl);
+                        setDefaultImage(imageView);
+                    }
+                });
+                image.progressProperty().addListener((obs, oldVal, newVal) -> {
+                    if (newVal.doubleValue() == 1.0 && !image.isError()) {
+                        imageView.setImage(image);
+                    }
+                });
+            } catch (Exception e) {
+                LOGGER.error("Exception loading image from " + imageUrl, e);
+                setDefaultImage(imageView);
+            }
+        } else {
+            setDefaultImage(imageView);
+        }
+    }
+
+    private void setDefaultImage(ImageView imageView) {
+        try {
+            Image defaultImage = new Image(getClass().getResourceAsStream(DEFAULT_IMAGE_PATH));
+            imageView.setImage(defaultImage);
+        } catch (Exception e) {
+            LOGGER.error("Failed to load default image", e);
+            imageView.setImage(new Image("https://via.placeholder.com/250x150.png?text=Image+Introuvable"));
+        }
+    }
+
+    private Button createCheckAvailabilityButton(int sessionId) {
+        Button button = new Button("Voir disponibilité");
+        button.setStyle("-fx-background-color: #0585e6; " +
+                "-fx-text-fill: white; " +
+                "-fx-font-size: 14px; " +
+                "-fx-padding: 10 20; " +
+                "-fx-background-radius: 20;");
+
+        button.setOnAction(event -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/verifier_reservation.fxml"));
+                Parent root = loader.load();
+                Scene scene = new Scene(root);
+                Stage stage = (Stage) button.getScene().getWindow();
+                stage.setScene(scene);
+                stage.show();
+            } catch (Exception e) {
+                LOGGER.error("Error opening reservation verification", e);
+            }
+        });
+        return button;
+    }
     @FXML
     public void openChatbotDialog() {
         if (SessionManager.getInstance().isLoggedIn()) {

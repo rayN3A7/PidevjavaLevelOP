@@ -2,6 +2,8 @@ package tn.esprit.Models;
 
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.time.LocalDateTime;
+
 public class Utilisateur  {
     public int getId() {
         return id;
@@ -20,6 +22,78 @@ public class Utilisateur  {
     private String prenom;
     private Role role;
     private String privilege = "regular";
+    private boolean ban;
+    private LocalDateTime banTime;
+    private int countRep;
+    private String photo;
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public Utilisateur(String email, String motPasse, String nickname, String nom, int numero, String prenom, Role role, String photo) {
+        this.email = email;
+        this.motPasse = motPasse;
+        this.nickname = nickname;
+        this.nom = nom;
+        this.numero = numero;
+        this.prenom = prenom;
+        this.role = role;
+        this.photo = photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+
+    public int getCountRep() {
+        return countRep;
+    }
+
+    public void setCountRep(int countRep) {
+        this.countRep = countRep;
+    }
+
+    public LocalDateTime getBanTime() {
+        return banTime;
+    }
+
+    public void setBanTime(LocalDateTime banTime) {
+        this.banTime = banTime;
+    }
+
+    public Utilisateur(int id, String email, String nickname, String nom, int numero, String prenom, Role role, String privilege, boolean ban, LocalDateTime banTime) {
+        this.id = id;
+        this.email = email;
+        this.nickname = nickname;
+        this.nom = nom;
+        this.numero = numero;
+        this.prenom = prenom;
+        this.role = role;
+        this.privilege = privilege;
+        this.ban = ban;
+        this.banTime = banTime;
+    }
+
+    public Utilisateur(int id, String email, String nickname, String nom, int numero, String prenom, Role role, String privilege, boolean ban) {
+        this.id = id;
+        this.email = email;
+        this.nickname = nickname;
+        this.nom = nom;
+        this.numero = numero;
+        this.prenom = prenom;
+        this.role = role;
+        this.privilege = privilege;
+        this.ban = ban;
+    }
+
+    public boolean isBan() {
+        return ban;
+    }
+
+    public void setBan(boolean ban) {
+        this.ban = ban;
+    }
 
     public Utilisateur(int id, String email, String motPasse, String nickname, String nom, int numero, String prenom, Role role) {
         this.id = id;
@@ -140,13 +214,14 @@ public class Utilisateur  {
         return "Utilisateur{" +
                 "id=" + id +
                 ", email='" + email + '\'' +
-                ", motPasse='" + motPasse + '\'' +
                 ", nickname='" + nickname + '\'' +
                 ", nom='" + nom + '\'' +
                 ", numero=" + numero +
                 ", prenom='" + prenom + '\'' +
                 ", role=" + role +
                 ", privilege='" + privilege + '\'' +
+                ", ban=" + ban +
+                ", banTime=" + banTime +
                 '}';
     }
 }

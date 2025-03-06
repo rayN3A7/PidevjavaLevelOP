@@ -7,6 +7,7 @@
 <?import javafx.scene.image.*?>
 
 <AnchorPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Produit.CommandeStatistiqueController" style="-fx-background-color: #091221;">
+
     <children>
         <VBox spacing="20" AnchorPane.topAnchor="20" AnchorPane.leftAnchor="20" AnchorPane.rightAnchor="20" AnchorPane.bottomAnchor="20">
             <children>

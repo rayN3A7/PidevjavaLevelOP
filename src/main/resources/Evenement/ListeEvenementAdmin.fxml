@@ -45,7 +45,7 @@
 
 
                 <!-- List Content -->
-                <FlowPane fx:id="eventContainer" alignment="CENTER" styleClass="list-content"/>
+                <FlowPane fx:id="eventContainer" alignment="CENTER"/>
             </VBox>
 
             <!-- Footer -->

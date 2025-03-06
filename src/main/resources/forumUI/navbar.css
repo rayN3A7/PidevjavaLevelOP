@@ -5,16 +5,30 @@
     -fx-pref-height: 60px;
 }
 
-/* Search bar */
-.search-bar {
-    -fx-background-color: black;
+/* Profile Container Styles */
+.profile-container {
+    -fx-cursor: hand;
+}
+
+.profile-circle {
+    -fx-fill: transparent;
+    -fx-stroke: white;
+    -fx-stroke-width: 2;
+}
+
+.profile-container:hover {
+    -fx-effect: dropshadow(gaussian, rgba(255,255,255,0.3), 10, 0, 0, 0);
+}
+
+/* Profile Image Clip */
+.profile-image-view {
+    -fx-background-color: transparent;
+}
+
+/* Nickname label */
+.nickname-label {
     -fx-text-fill: white;
-    -fx-prompt-text-fill: grey;
-    -fx-border-color: transparent;
-    -fx-border-radius: 20;
-    -fx-padding: 5 15;
-    -fx-min-width: 150px;
-    -fx-pref-width: 25%;
+    -fx-font-size: 14px;
 }
 
 /* Navigation buttons */

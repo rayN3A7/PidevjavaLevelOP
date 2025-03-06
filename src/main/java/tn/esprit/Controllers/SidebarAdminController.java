@@ -15,6 +15,8 @@ import java.io.IOException;
 public class SidebarAdminController {
     @FXML
     private MenuButton evenementMenu;
+    @FXML
+    private MenuButton produitMenu;
 
     @FXML
     public void ButtonEvenement(ActionEvent event) throws IOException {
@@ -89,6 +91,34 @@ public class SidebarAdminController {
     }
 
     @FXML
+    private void BtnUser(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/gestion Utilisateur/Dashboard/Dashboard.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage window = (Stage) produitMenu.getScene().getWindow();
+        window.setScene(scene);
+        window.show();
+    }
+    @FXML
+    private void btnCoach(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/gestion Utilisateur/Dashboard/DisplayCoach.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage window = (Stage) produitMenu.getScene().getWindow();
+        window.setScene(scene);
+        window.show();
+    }
+    @FXML
+    private void btnDemande(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/gestion Utilisateur/addCoach/displayDemand.fxml"));
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        Stage window = (Stage) produitMenu.getScene().getWindow();
+        window.setScene(scene);
+        window.show();
+    }
+
+    @FXML
     private void ButtonStats(ActionEvent event) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/Produit/CommandeStatistique.fxml"));
         Parent root = loader.load();
@@ -139,6 +169,27 @@ public class SidebarAdminController {
         Scene scene = new Scene(root);
         Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
         window.setScene(scene);
+        window.show();
+    }
+    @FXML
+    private void ButtonEntraineur(ActionEvent event) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Coach/analytics.fxml"));
+        Parent signInRoot = loader.load();
+        Scene signInScene = new Scene(signInRoot);
+
+        Stage window = (Stage) evenementMenu.getScene().getWindow();
+        window.setScene(signInScene);
+        window.show();
+    }
+    @FXML
+    private void ButtonHome(ActionEvent event)throws Exception{
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/Home.fxml"));
+        Parent signInRoot = loader.load();
+        Scene signInScene = new Scene(signInRoot);
+
+
+        Stage window = (Stage) ((Node) event.getSource()).getScene().getWindow();
+        window.setScene(signInScene);
         window.show();
     }
 }

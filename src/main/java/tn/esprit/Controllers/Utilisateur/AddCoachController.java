@@ -19,6 +19,7 @@ import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.io.File;
 import java.net.URL;
 import java.sql.Timestamp;
@@ -27,51 +28,46 @@ import java.util.ResourceBundle;
 
 public class AddCoachController {
 
+    private static final String UPLOAD_DIR = "C:\\xampp\\htdocs\\img\\";
+
     @FXML
     private Button btnGoToLogin;
     @FXML
     private Label lblCVStatus;
-
+    @FXML
+    private Label lblError;
     @FXML
     private Button btnUploadCV;
-
     @FXML
     private ComboBox<String> cbgames;
-
     @FXML
     private Button btnGoToHome;
-
-
-
     @FXML
     private TextArea txtDescription;
 
     private File selectedFile;
-
 
     private GamesService gm = new GamesService();
     private DemandeService demandeService = new DemandeService();
 
     @FXML
     public void initialize() {
-        // Call the method to populate the ComboBox
         populateGamesComboBox();
         btnGoToHome.setOnAction(event -> navigateToHome2());
+
+        // Initialize error label
+        if (lblError != null) {
+            lblError.setVisible(false);
+            lblError.setStyle("-fx-text-fill: #ff4444; -fx-font-size: 12px;");
+        }
     }
 
     private void populateGamesComboBox() {
-        // Retrieve the list of games from the database
         List<Games> gamesList = gm.getAll();
-
-        // Clear the ComboBox (in case it already has items)
         cbgames.getItems().clear();
-
-        // Add each game's name to the ComboBox
         for (Games game : gamesList) {
             cbgames.getItems().add(game.getGame_name());
         }
-
-        // Optionally, set a default selection
         if (!cbgames.getItems().isEmpty()) {
             cbgames.getSelectionModel().selectFirst();
         }
@@ -89,48 +85,80 @@ public class AddCoachController {
         if (selectedFile != null) {
             lblCVStatus.setText("Fichier sélectionné : " + selectedFile.getName());
             lblCVStatus.setStyle("-fx-text-fill: green;");
+            hideError();
         } else {
             lblCVStatus.setText("Aucun fichier sélectionné");
+            lblCVStatus.setStyle("-fx-text-fill: #ff4444;");
+        }
+    }
+
+    private boolean validateFields() {
+        if (txtDescription.getText().trim().isEmpty() && selectedFile == null) {
+            showError("Veuillez remplir la description et télécharger votre CV");
+            return false;
+        }
+        if (txtDescription.getText().trim().isEmpty()) {
+            showError("Veuillez remplir la description");
+            return false;
+        }
+        if (selectedFile == null) {
+            showError("Veuillez télécharger votre CV");
+            return false;
+        }
+        return true;
+    }
+
+    private void showError(String message) {
+        if (lblError != null) {
+            lblError.setText(message);
+            lblError.setVisible(true);
+        }
+    }
+
+    private void hideError() {
+        if (lblError != null) {
+            lblError.setVisible(false);
         }
     }
 
     @FXML
     void handleSubmit(ActionEvent event) {
-        if (selectedFile != null) {
-            try {
-                // Read the file content into a byte array
-                byte[] fileContent = Files.readAllBytes(selectedFile.toPath());
+        if (!validateFields()) {
+            return;
+        }
 
-                // Create a new Demande object
-                Demande demande = new Demande(
-                        SessionManager.getInstance().getUserId(),
-                        cbgames.getValue(),
-                        txtDescription.getText(),
-                        fileContent
-                );
-                demande.setDate(new Timestamp(System.currentTimeMillis()));
+        try {
+            // Generate unique filename with timestamp
+            String uniqueFileName = System.currentTimeMillis() + "_" + selectedFile.getName();
+            String filePath = UPLOAD_DIR + uniqueFileName;
 
-                // Add the demande to the database
-                demandeService.add(demande);
+            // Create Demande object with the file path
+            Demande demande = new Demande(
+                    SessionManager.getInstance().getUserId(),
+                    cbgames.getValue(),
+                    txtDescription.getText().trim(),
+                    uniqueFileName // Store only the filename, not full path
+            );
+            demande.setDate(new Timestamp(System.currentTimeMillis()));
 
+            // Copy file to destination and add demande
+            byte[] fileData = Files.readAllBytes(selectedFile.toPath());
+            demandeService.add(demande, fileData);
 
-
-                System.out.println("Demande submitted successfully!");
-                navigateToHome();
-            } catch (IOException e) {
-                System.out.println("Error reading file: " + e.getMessage());
-            }
-        } else {
-            System.out.println("No file selected!");
+            System.out.println("Demande submitted successfully!");
+            navigateToHome();
+        } catch (IOException e) {
+            showError("Error saving file: " + e.getMessage());
+            System.out.println("Error saving file: " + e.getMessage());
         }
     }
 
     private void navigateToHome() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/Home.fxml"));
-            Stage stage = (Stage) ((btnGoToLogin != null && btnGoToLogin.getScene() != null) ?
-                    btnGoToLogin.getScene().getWindow() :
-                    Stage.getWindows().stream().filter(Window::isShowing).findFirst().orElse(null));
+            Stage stage = (Stage) ((btnGoToLogin != null && btnGoToLogin.getScene() != null)
+                    ? btnGoToLogin.getScene().getWindow()
+                    : Stage.getWindows().stream().filter(Window::isShowing).findFirst().orElse(null));
 
             if (stage == null) {
                 System.out.println("Error: Could not determine the active stage.");
@@ -156,5 +184,4 @@ public class AddCoachController {
             e.printStackTrace();
         }
     }
-
 }

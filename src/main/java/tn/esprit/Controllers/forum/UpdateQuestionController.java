@@ -15,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
 import tn.esprit.utils.ProfanityChecker;
+import tn.esprit.utils.SessionManager;
 
 import java.io.IOException;
 import java.net.URL;
@@ -33,8 +34,8 @@ public class UpdateQuestionController implements Initializable {
 
     private GamesService gamesService = new GamesService();
     private QuestionService questionService = new QuestionService();
-
     private Question currentQuestion;
+    private final int userId = SessionManager.getInstance().getUserId(); // Add userId from SessionManager
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -56,13 +57,11 @@ public class UpdateQuestionController implements Initializable {
     }
 
     private void loadGames() {
-
-            List<Games> gamesList = gamesService.getAll();
-            gameComboBox.getItems().clear(); // Ensure no duplication
-            for (Games game : gamesList) {
-                gameComboBox.getItems().add(game.getGame_name());
-            }
-
+        List<Games> gamesList = gamesService.getAll();
+        gameComboBox.getItems().clear(); // Ensure no duplication
+        for (Games game : gamesList) {
+            gameComboBox.getItems().add(game.getGame_name());
+        }
     }
 
     @FXML
@@ -93,13 +92,19 @@ public class UpdateQuestionController implements Initializable {
             currentQuestion.setContent(content);
             currentQuestion.setGame(selectedGameObj);
 
-            questionService.update(currentQuestion);
+            questionService.update(currentQuestion, userId);
+
             showAlert("Succès", "Question mise à jour avec succès !");
             navigateToForumPage();
         } catch (IOException e) {
             showProfanityWarningAlert("Erreur", "Erreur lors de la vérification du contenu: " + e.getMessage());
+        } catch (SecurityException e) {
+            showAlert("Erreur", e.getMessage()); // Handle permission errors
+        } catch (RuntimeException e) {
+            showAlert("Erreur", "Erreur lors de la mise à jour de la question: " + e.getMessage()); // Handle database errors
         }
     }
+
     private boolean showProfanityWarningAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle(title);

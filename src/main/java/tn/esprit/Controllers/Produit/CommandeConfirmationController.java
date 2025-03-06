@@ -27,7 +27,7 @@ public class CommandeConfirmationController {
     private Stock stock;
     private CommandeService commandeService;
     private StockService stockService;
-    private UtilisateurService utilisateurService; // Add UtilisateurService
+    private UtilisateurService utilisateurService;
     private Stage dialogStage;
     private boolean validateClicked = false;
     private final int DEFAULT_USER_ID = SessionManager.getInstance().getUserId();
@@ -37,7 +37,7 @@ public class CommandeConfirmationController {
     public void initialize() {
         commandeService = new CommandeService();
         stockService = new StockService();
-        utilisateurService = new UtilisateurService(); // Initialize UtilisateurService
+        utilisateurService = new UtilisateurService();
     }
 
     public void setDialogStage(Stage dialogStage) {
@@ -51,7 +51,6 @@ public class CommandeConfirmationController {
         productNameLabel.setText(produit.getNomProduit());
         priceLabel.setText(stock.getPrixProduit() + " DNT");
 
-        // Create a new order with initial status
         createInitialCommande();
     }
 
@@ -112,7 +111,6 @@ public class CommandeConfirmationController {
                 stockService.update(stock);
                 validateClicked = true;
 
-                // Fetch email and nickname using UtilisateurService
                 String userEmail = utilisateurService.getEmail(DEFAULT_USER_ID);
                 if (userEmail == null) {
                     throw new Exception("Email not found for user ID: " + DEFAULT_USER_ID);
@@ -122,8 +120,7 @@ public class CommandeConfirmationController {
                     throw new Exception("Nickname not found for user ID: " + DEFAULT_USER_ID);
                 }
 
-                // Send purchase confirmation email
-                String platform = "PC"; // Replace with dynamic platform if available
+                String platform = "PC";
                 EmailService.sendPurchaseConfirmationEmail(userEmail, nickname, produit.getNomProduit(), platform);
                 showAlert(AlertType.INFORMATION, "Succès", "Paiement effectué ! Clé d'activation envoyée à " + userEmail);
 

@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
@@ -15,7 +13,7 @@
                         <VBox spacing="20" styleClass="product-details-left" HBox.hgrow="ALWAYS">
                             <VBox alignment="CENTER" styleClass="image-container" VBox.vgrow="ALWAYS">
                                 <HBox alignment="CENTER" HBox.hgrow="ALWAYS">
-                                    <ImageView fx:id="productImage" fitHeight="450" fitWidth="400" preserveRatio="true" styleClass="product-image" />
+                                    <ImageView fx:id="productImage" fitHeight="600" fitWidth="550" preserveRatio="true" styleClass="product-image" onMouseClicked="#handleImageClick" />
                                 </HBox>
                             </VBox>
                             <VBox spacing="15" styleClass="description-section">
@@ -66,7 +64,10 @@
                                 <VBox fx:id="fpsVBox" spacing="10" styleClass="fps-container" />
                             </VBox>
                             <VBox spacing="10" styleClass="price-section">
-                                <Label fx:id="productPrice" styleClass="price-tag" text="Loading..." />
+                                <HBox spacing="10" alignment="CENTER_LEFT">
+                                    <Label fx:id="productPrice" styleClass="price-tag" text="Loading..." />
+                                    <Label fx:id="stockStatus" styleClass="stock-status" />
+                                </HBox>
                                 <Button onAction="#handleBuyNow" styleClass="buy-now-button" text="Passer une commande" />
                                 <Button onAction="#handleBackToShop" styleClass="back-button" text="Retour au shop" />
                             </VBox>

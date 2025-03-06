@@ -13,27 +13,26 @@ import tn.esprit.utils.MyDatabase;
 import tn.esprit.utils.PrivilegeEvent;
 import tn.esprit.utils.SessionManager;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class UtilisateurService implements IService<Utilisateur> {
 
-    private Connection cnx;
+    private Connection cnx ;
+    private ReportService reportService=new ReportService();
     private Node eventTarget;
-    private final ReportService reportService;
-    public UtilisateurService() {
+    public UtilisateurService(){
         cnx = MyDatabase.getInstance().getCnx();
-        reportService = new ReportService(); // Initialize ReportService
     }
 
     @Override
     public void add(Utilisateur utilisateur) {
         String query = "INSERT INTO utilisateur (email, mot_passe, nickname, nom, numero, prenom, role) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try {
+        try{
 
             PreparedStatement stmt = cnx.prepareStatement(query);
             stmt.setString(1, utilisateur.getEmail());
@@ -50,7 +49,7 @@ public class UtilisateurService implements IService<Utilisateur> {
                 PreparedStatement clientStmt = cnx.prepareStatement(clientQuery);
                 clientStmt.setInt(1, getLastInsertedId());
                 clientStmt.executeUpdate();
-            } else if (utilisateur.getRole().equals(Role.COACH)) {
+            }else if (utilisateur.getRole().equals(Role.COACH)) {
                 String coachQuery = "INSERT INTO coach (id) VALUES (?)";
                 PreparedStatement coachStmt = cnx.prepareStatement(coachQuery);
                 coachStmt.setInt(1, getLastInsertedId());
@@ -58,11 +57,13 @@ public class UtilisateurService implements IService<Utilisateur> {
             }
 
 
-        } catch (SQLException e) {
+        }catch (SQLException e) {
             System.out.println(e.getMessage());
         }
 
     }
+
+
 
 
     private int getLastInsertedId() throws SQLException {
@@ -76,25 +77,39 @@ public class UtilisateurService implements IService<Utilisateur> {
     }
 
 
+
+
+
     @Override
     public List<Utilisateur> getAll() {
 
         List<Utilisateur> utilisateurs = new ArrayList<>();
-        String query = "SELECT email, nickname, nom, numero, prenom, role FROM utilisateur";
+        String query = "SELECT id, email, nickname, nom, numero, prenom, role, privilege, ban, banTime FROM utilisateur";
 
-        try {
-            PreparedStatement stmt = cnx.prepareStatement(query);
-            ResultSet rs = stmt.executeQuery();
+        try (PreparedStatement stmt = cnx.prepareStatement(query);
+                ResultSet rs = stmt.executeQuery()) {
 
             while (rs.next()) {
+                Timestamp banTimestamp = rs.getTimestamp("banTime");
+                // System.out.println("Fetched banTime for user ID " + rs.getInt("id") + ": " +
+                // banTimestamp);
+
+                LocalDateTime banTime = (banTimestamp != null && banTimestamp.getTime() != 0)
+                        ? banTimestamp.toLocalDateTime()
+                        : null;
+
                 Utilisateur utilisateur = new Utilisateur(
+                        rs.getInt("id"),
                         rs.getString("email"),
                         rs.getString("nickname"),
                         rs.getString("nom"),
                         rs.getInt("numero"),
                         rs.getString("prenom"),
-                        Role.valueOf(rs.getString("role"))
-                );
+                        Role.valueOf(rs.getString("role")),
+                        rs.getString("privilege"),
+                        rs.getBoolean("ban"),
+                        banTime);
+
                 utilisateurs.add(utilisateur);
             }
 
@@ -106,9 +121,11 @@ public class UtilisateurService implements IService<Utilisateur> {
     }
 
 
+
+
     @Override
     public void update(Utilisateur utilisateur) {
-        String query = "UPDATE utilisateur SET nickname = ?, nom = ?, numero = ?, prenom = ?, role = ? WHERE email = ?";
+        String query = "UPDATE utilisateur SET nickname = ?, nom = ?, numero = ?, prenom = ?, role = ?, mot_passe = ?, photo = ? WHERE id = ?";
 
         try {
             PreparedStatement stmt = cnx.prepareStatement(query);
@@ -117,11 +134,26 @@ public class UtilisateurService implements IService<Utilisateur> {
             stmt.setInt(3, utilisateur.getNumero());
             stmt.setString(4, utilisateur.getPrenom());
             stmt.setString(5, utilisateur.getRole().name());
-            stmt.setString(6, utilisateur.getEmail());
+            stmt.setString(6, utilisateur.getMotPasse());
 
-            stmt.executeUpdate();
+            // Handle photo (can be null)
+            if (utilisateur.getPhoto() != null) {
+                stmt.setString(7, utilisateur.getPhoto());
+            } else {
+                stmt.setNull(7, Types.VARCHAR);
+            }
+
+            stmt.setInt(8, utilisateur.getId());
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("User updated successfully: " + utilisateur.getId());
+            } else {
+                System.out.println("No user found with ID: " + utilisateur.getId());
+            }
         } catch (SQLException e) {
-            System.out.println("Erreur lors de la mise à jour : " + e.getMessage());
+            System.out.println("Error updating user: " + e.getMessage());
+            e.printStackTrace();
         }
 
 
@@ -173,9 +205,8 @@ public class UtilisateurService implements IService<Utilisateur> {
 
         return utilisateurs;
     }
-
-    public Utilisateur getBynickname(String nickname) {
-        Utilisateur utilisateur = null;
+    public Utilisateur getBynickname(String nickname){
+        Utilisateur utilisateur=null;
         String query = "SELECT * FROM utilisateur WHERE nickname = ?";
 
         try {
@@ -207,7 +238,7 @@ public class UtilisateurService implements IService<Utilisateur> {
 
 
     public Utilisateur getByEmail(String email) {
-        Utilisateur utilisateur = null;
+        Utilisateur utilisateur=null;
         String query = "SELECT * FROM utilisateur WHERE email = ?";
 
         try {
@@ -227,7 +258,12 @@ public class UtilisateurService implements IService<Utilisateur> {
                         rs.getString("prenom"),
                         Role.valueOf(rs.getString("role"))
                 );
-
+                // Set additional fields
+                utilisateur.setPrivilege(rs.getString("privilege"));
+                utilisateur.setBan(rs.getBoolean("ban"));
+                utilisateur.setBanTime(rs.getTimestamp("banTime") != null ? rs.getTimestamp("banTime").toLocalDateTime() : null);
+                utilisateur.setCountRep(rs.getInt("countRep"));
+                utilisateur.setPhoto(rs.getString("photo"));
             }
 
         } catch (SQLException e) {
@@ -275,7 +311,6 @@ public class UtilisateurService implements IService<Utilisateur> {
 
         return false;
     }
-
     @Override
     public Utilisateur getOne(int id) {
         String query = "SELECT * FROM Utilisateur WHERE id = ?";
@@ -291,9 +326,9 @@ public class UtilisateurService implements IService<Utilisateur> {
                         rs.getString("nom"),
                         rs.getInt("numero"),
                         rs.getString("prenom"),
-                        Role.valueOf(rs.getString("role"))
-                );
+                        Role.valueOf(rs.getString("role")));
                 user.setPrivilege(rs.getString("privilege") != null ? rs.getString("privilege") : "regular");
+                user.setPhoto(rs.getString("photo"));
                 return user;
             }
         } catch (SQLException e) {
@@ -427,11 +462,12 @@ public class UtilisateurService implements IService<Utilisateur> {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to count comments: " + e.getMessage(), e);
         }
+
         return count;
     }
-
     public int getUserVoteCount(int userId) {
         int totalVotes = 0;
+
         String questionVoteQuery = "SELECT SUM(Votes) FROM Questions WHERE Utilisateur_id = ?";
         try (PreparedStatement ps = cnx.prepareStatement(questionVoteQuery)) {
             ps.setInt(1, userId);
@@ -453,8 +489,17 @@ public class UtilisateurService implements IService<Utilisateur> {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to count comment votes: " + e.getMessage(), e);
         }
+
         return totalVotes;
     }
+
+
+
+
+
+
+
+
 
     public static class PrivilegeChange {
         private final String oldPrivilege;
@@ -472,9 +517,6 @@ public class UtilisateurService implements IService<Utilisateur> {
 
     public PrivilegeChange updateUserPrivilege(int userId) {
         Utilisateur user = getOne(userId);
-        if (user == null) {
-            throw new RuntimeException("User not found for ID: " + userId);
-        }
         String oldPrivilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
         int activityCount = getUserActivityCount(userId);
         int voteCount = getUserVoteCount(userId);
@@ -500,26 +542,47 @@ public class UtilisateurService implements IService<Utilisateur> {
             }
             user.setPrivilege(newPrivilege);
 
-            if ("top_contributor".equals(newPrivilege) || "top_fan".equals(newPrivilege)) {
-                List<Report> reports = reportService.getReportsByReportedUserId(userId);
-                if (!reports.isEmpty()) {
-                    int reportsToDelete = "top_contributor".equals(newPrivilege) ? 1 : 3;
-                    int deletedCount = Math.min(reportsToDelete, reports.size());
-                    for (int i = 0; i < deletedCount; i++) {
-                        Report reportToDelete = reports.get(i);
-                        reportService.deleteReport(reportToDelete.getReportId());
-                        System.out.println("Deleted a report for user " + userId + " (ID: " + reportToDelete.getReportId() + ") due to privilege change to " + newPrivilege + ".");
-                    }
-                    System.out.println("Total reports deleted: " + deletedCount + " for user " + userId);
-                }
+            // Fire PrivilegeEvent if an event target is set
+            if (eventTarget != null) {
+                Platform.runLater(() -> {
+                    PrivilegeEvent event = new PrivilegeEvent(userId, newPrivilege);
+                    Event.fireEvent(eventTarget, event);
+                });
             }
-
-            EventBus.getInstance().fireEvent(new PrivilegeEvent(userId, newPrivilege));
         }
 
         return new PrivilegeChange(oldPrivilege, newPrivilege);
     }
+    public void setEventTarget(Node eventTarget) {
+        this.eventTarget = eventTarget;
+    }
+
+    public void updateBanStatus(int userId, boolean isBanned, LocalDateTime banTime) {
+        String query = "UPDATE utilisateur SET ban = ?, banTime = ? WHERE id = ?";
+
+        try {
+            PreparedStatement stmt = cnx.prepareStatement(query);
+            stmt.setBoolean(1, isBanned);
+
+            // Handle banTime (can be null for permanent ban)
+            if (banTime != null) {
+                stmt.setTimestamp(2, Timestamp.valueOf(banTime));
+            } else {
+                stmt.setNull(2, Types.TIMESTAMP);
+            }
+
+            stmt.setInt(3, userId);
+
+            int rowsUpdated = stmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("Ban status updated successfully for user: " + userId);
+            } else {
+                System.out.println("No user found with ID: " + userId);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error updating ban status: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 }
-
-
-

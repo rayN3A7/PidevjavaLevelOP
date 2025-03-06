@@ -4,31 +4,55 @@
 <?import javafx.scene.image.*?>
 <?import javafx.geometry.*?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" stylesheets="@navbar.css" fx:controller="tn.esprit.Controllers.forum.NavbarController">
-    <HBox fx:id="navbar" spacing="20" alignment="CENTER_LEFT" styleClass="navbar" AnchorPane.topAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Circle?>
+
+<AnchorPane stylesheets="@navbar.css" xmlns="http://javafx.com/javafx/23.0.1"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.forum.NavbarController">
+    <HBox fx:id="navbar" alignment="CENTER" spacing="20" styleClass="navbar"
+          AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
         <ImageView fx:id="logo" fitHeight="40" fitWidth="120">
             <Image url="@level.png" />
         </ImageView>
 
-        <Region fx:id="leftSpacer" HBox.hgrow="ALWAYS"/>
+        <Region minWidth="40" />
 
-        <TextField fx:id="searchBar" promptText="Search by game name" styleClass="search-bar" HBox.hgrow="ALWAYS"/>
-
-        <Region fx:id="rightSpacer" HBox.hgrow="ALWAYS"/>
-
-        <HBox fx:id="navButtons" spacing="15" alignment="CENTER_RIGHT">
-            <Button fx:id="homeButton" text="Acceuil" styleClass="nav-button"/>
-            <Button fx:id="eventButton" text="Evenement" styleClass="nav-button"/>
-            <Button fx:id="shopButton" text="Boutique" styleClass="nav-button"/>
-            <Button fx:id="forumButton" text="Forum" styleClass="nav-button"/>
-            <Button fx:id="coachingButton" text="Entraineur" styleClass="nav-button"/>
-            <Button fx:id="joinUs" text="Join us" styleClass="nav-button"/>
-        </HBox>
-        <HBox fx:id="userBox" spacing="15" alignment="CENTER">
-            <Label fx:id="nicknameLabel" text="" styleClass="nickname-label" visible="false"/>
-            <Button fx:id="logoutButton" text="Logout" styleClass="login-button" visible="false"/>
+        <HBox fx:id="navButtons" alignment="CENTER" spacing="15">
+            <Button fx:id="homeButton" styleClass="nav-button" text="Acceuil" />
+            <Button fx:id="eventButton" styleClass="nav-button" text="Evenement" />
+            <Button fx:id="shopButton" styleClass="nav-button" text="Boutique" />
+            <Button fx:id="forumButton" styleClass="nav-button" text="Forum" />
+            <Button fx:id="coachingButton" styleClass="nav-button" text="Entraineur" />
+            <Button fx:id="joinUs" styleClass="nav-button" text="Rejoignez-nous" />
         </HBox>
 
-        <Button fx:id="loginButton" text="Login" styleClass="login-button"/>
+        <Region HBox.hgrow="ALWAYS" minWidth="20" />
+
+        <HBox alignment="CENTER" spacing="15">
+            <Button fx:id="loginButton" styleClass="login-button" text="Login" />
+            <HBox fx:id="userBox" alignment="CENTER" spacing="15">
+                <Label fx:id="nicknameLabel" styleClass="nickname-label" text="" visible="false" />
+                <StackPane fx:id="profileContainer" onMouseClicked="#handleProfileClick"
+                           styleClass="profile-container">
+                    <Circle fx:id="profileCircle" radius="20" styleClass="profile-circle" />
+                    <ImageView fx:id="profileImage" fitHeight="40" fitWidth="40"
+                               preserveRatio="true"
+                               styleClass="profile-image-view">
+                        <clip>
+                            <Circle centerX="20" centerY="20" radius="20" />
+                        </clip>
+                    </ImageView>
+                </StackPane>
+                <Button fx:id="logoutButton" styleClass="login-button" text="Logout" visible="false" />
+            </HBox>
+        </HBox>
     </HBox>
 </AnchorPane>

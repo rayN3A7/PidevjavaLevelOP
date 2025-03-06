@@ -9,24 +9,13 @@
            fx:controller="tn.esprit.Controllers.Produit.CommandeController"
            style="-fx-background-color: #091221;">
 
-    <!-- Main Content -->
     <BorderPane stylesheets="@/assets/style/produit.css">
-        <top>
-            <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 20 30 0 30;">
-                <Button fx:id="backButton" onAction="#handleBack" styleClass="back-button">
-                    <graphic>
-                        <ImageView fitHeight="20" fitWidth="20">
-                            <Image url="@/assets/image/retour.png"/>
-                        </ImageView>
-                    </graphic>
-                </Button>
-            </HBox>
-        </top>
-
+        <left>
+            <fx:include source="../sidebarAdmin.fxml"/>
+        </left>
         <center>
             <ScrollPane fitToWidth="true" styleClass="main-scroll-pane">
                 <VBox spacing="20" style="-fx-background-color: #091221;">
-                    <!-- Commande Title at the top -->
                     <HBox alignment="CENTER_LEFT" spacing="20" styleClass="list-header">
                         <VBox spacing="5">
                             <Label text="Commandes" style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;"/>
@@ -49,7 +38,6 @@
                         </HBox>
                     </HBox>
 
-                    <!-- Table Header -->
                     <GridPane styleClass="platform-info" style="-fx-background-color: rgba(255, 255, 255, 0.05);">
                         <columnConstraints>
                             <ColumnConstraints percentWidth="10"/>
@@ -69,10 +57,8 @@
                         <Label text="Actions" style="-fx-text-fill: #fe0369;" GridPane.columnIndex="5"/>
                     </GridPane>
 
-                    <!-- Commande List -->
                     <VBox fx:id="commandeContainer" spacing="10" styleClass="list-content"/>
 
-                    <!-- Edit Form -->
                     <VBox fx:id="editForm" spacing="15" style="-fx-background-color: rgba(255, 255, 255, 0.05); -fx-padding: 20;">
                         <Label text="Modifier la Commande" style="-fx-text-fill: #fe0369; -fx-font-size: 18px; -fx-font-weight: bold;"/>
                         <GridPane hgap="15" vgap="15">

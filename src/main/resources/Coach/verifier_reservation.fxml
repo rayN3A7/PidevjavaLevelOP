@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
 
 <BorderPane prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: #091221;" xmlns="http://javafx.com/javafx/20.0.2" xmlns:fx="http://javafx.com/fxml/1" fx:controller="tn.esprit.Controllers.Coach.VerifierReservationController">
 
@@ -11,50 +17,23 @@
 
     <center>
         <VBox spacing="40" style="-fx-padding: 50;">
-
             <HBox alignment="CENTER_LEFT" spacing="30">
                 <VBox>
-                    <Label style="-fx-font-size: 42px;
-                                 -fx-font-weight: bold;
-                                 -fx-text-fill: white;
-                                 -fx-effect: dropshadow(gaussian, #fe0369, 10, 0.5, 0, 0);"
-                           text="Vérification des Réservations" />
-                    <Label style="-fx-font-size: 18px;
-                                 -fx-text-fill: #8899A6;"
-                           text="Consultez la disponibilité des sessions" />
+                    <Label style="-fx-font-size: 42px;                                   -fx-font-weight: bold;                                   -fx-text-fill: white;                                   -fx-effect: dropshadow(gaussian, #fe0369, 10, 0.5, 0, 0);" text="Vérification des Réservations" />
+                    <Label style="-fx-font-size: 18px;                                   -fx-text-fill: #8899A6;" text="Consultez la disponibilité des sessions" />
                 </VBox>
             </HBox>
 
-            <ScrollPane fitToWidth="true"
-                        style="-fx-background-color: transparent;
-                              -fx-background: transparent;">
-                <VBox fx:id="sessionsContainer"
-                      spacing="15"
-                      style="-fx-background-color: #0D1D36;
-                             -fx-padding: 30;
-                             -fx-background-radius: 20;
-                             -fx-min-width: 800;
-                             -fx-effect: dropshadow(gaussian, rgba(5,133,230,0.2), 20, 0.5, 0, 5);" />
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                <FlowPane fx:id="sessionsContainer" alignment="CENTER" hgap="30" style="-fx-background-color: transparent;                                  -fx-padding: 30;" vgap="30" />
             </ScrollPane>
 
             <HBox alignment="CENTER" spacing="20">
-                <Button onAction="#hazem"
-                        text="← Retour aux Réservations"
-                        style="-fx-background-color: transparent;
-                               -fx-text-fill: white;
-                               -fx-border-color: #0585e6;
-                               -fx-border-radius: 20;
-                               -fx-padding: 10 20;" />
+
+                <Button onAction="#mmmm" style="-fx-background-color: #0585e6;                                -fx-text-fill: white;                                -fx-font-size: 16px;                                -fx-padding: 12 25;                                -fx-background-radius: 25;" text="← Chercher une Session " />
 
                 <Region HBox.hgrow="ALWAYS" />
-
-                <Button onAction="#mmmm"
-                        text="Chercher une Session →"
-                        style="-fx-background-color: #0585e6;
-                               -fx-text-fill: white;
-                               -fx-font-size: 16px;
-                               -fx-padding: 12 25;
-                               -fx-background-radius: 25;" />
+                <Button onAction="#hazem" style="-fx-background-color: transparent;                                -fx-text-fill: white;                                -fx-border-color: #0585e6;                                -fx-border-radius: 20;                                -fx-padding: 10 20;" text="Allez aux Réservations" />
             </HBox>
         </VBox>
     </center>

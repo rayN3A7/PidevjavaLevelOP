@@ -8,7 +8,6 @@
         <fx:include source="/forumUI/navbar.fxml" />
     </top>
     <center>
-        <!-- Dynamic content (updated by controllers) -->
         <fx:include source="/Produit/shop-page.fxml" />
     </center>
 </BorderPane>

@@ -1,6 +1,5 @@
 package tn.esprit.Models;
 
-
 import java.util.Date;
 
 public class Session_game {
@@ -9,26 +8,32 @@ public class Session_game {
     private Date date_creation;
     private String duree_session;
     private String game;
-    private int coach_id; // Nouvel attribut
+    private int coach_id;
+    private String imageName; // Nouveau champ pour le nom de l'image
 
     public Session_game() {
     }
 
-    public Session_game(int id, double prix, Date date_creation, String duree_session, String game, int coach_id) {
+    public Session_game(int id, double prix, Date date_creation, String duree_session, String game, int coach_id, String imageName) {
         this.id = id;
         this.prix = prix;
         this.date_creation = date_creation;
         this.duree_session = duree_session;
         this.game = game;
         this.coach_id = coach_id;
+        this.imageName = imageName;
     }
 
-    public Session_game(double prix, Date date_creation, String duree_session, String game, int coach_id) {
+    public Session_game(double prix, Date date_creation, String duree_session, String game, int coach_id, String imageName) {
         this.prix = prix;
         this.date_creation = date_creation;
         this.duree_session = duree_session;
         this.game = game;
-        this.coach_id = coach_id; // Initialisation du coach_id
+        this.coach_id = coach_id;
+        this.imageName = imageName;
+    }
+
+    public Session_game(int id, double newPrice, Date date, String newDuration, String newGame, int i) {
     }
 
     // Getters et Setters
@@ -39,6 +44,7 @@ public class Session_game {
     public void setCoach_id(int coach_id) {
         this.coach_id = coach_id;
     }
+
     public int getId() {
         return id;
     }
@@ -79,6 +85,14 @@ public class Session_game {
         this.game = game;
     }
 
+    public String getImageName() {
+        return imageName;
+    }
+
+    public void setImageName(String imageName) {
+        this.imageName = imageName;
+    }
+
     @Override
     public String toString() {
         return "Session{" +
@@ -87,6 +101,8 @@ public class Session_game {
                 ", dateCreation=" + date_creation +
                 ", dureeSession=" + duree_session +
                 ", game='" + game + '\'' +
+                ", coach_id=" + coach_id +
+                ", imageName='" + imageName + '\'' +
                 '}';
     }
 }

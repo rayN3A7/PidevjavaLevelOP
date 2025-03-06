@@ -1,0 +1,125 @@
+/* Main Styles */
+.root {
+    -fx-background-color: #f5f5f5;
+    -fx-font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+/* Header Styles */
+.header {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 2);
+}
+
+.back-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #2196F3;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 8 12;
+    -fx-border-radius: 4;
+}
+
+.back-button:hover {
+    -fx-background-color: #E3F2FD;
+}
+
+.user-name-label {
+    -fx-text-fill: #212121;
+}
+
+.report-count-label {
+    -fx-text-fill: #757575;
+}
+
+/* Reports Container */
+.reports-container {
+    -fx-background-color: transparent;
+}
+
+/* Report Card Styles */
+.report-card {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 2);
+    -fx-border-radius: 8;
+}
+
+.report-id {
+    -fx-font-weight: bold;
+    -fx-text-fill: #212121;
+    -fx-font-size: 14;
+}
+
+.report-date {
+    -fx-text-fill: #757575;
+    -fx-font-size: 12;
+}
+
+.reporter-name {
+    -fx-font-weight: bold;
+    -fx-text-fill: #424242;
+    -fx-padding: 5 0;
+}
+
+.report-reason {
+    -fx-text-fill: #D32F2F;
+    -fx-font-weight: bold;
+    -fx-padding: 5 0;
+}
+
+.evidence-title {
+    -fx-font-weight: bold;
+    -fx-text-fill: #424242;
+    -fx-padding: 5 0 2 0;
+}
+
+.evidence-area {
+    -fx-background-color: #F5F5F5;
+    -fx-border-color: #E0E0E0;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.status-title {
+    -fx-font-weight: bold;
+    -fx-text-fill: #424242;
+}
+
+.status-combo {
+    -fx-background-color: white;
+    -fx-border-color: #E0E0E0;
+    -fx-border-radius: 4;
+}
+
+.update-status-btn {
+    -fx-background-color: #4CAF50;
+    -fx-text-fill: white;
+    -fx-cursor: hand;
+    -fx-background-radius: 4;
+}
+
+.update-status-btn:hover {
+    -fx-background-color: #43A047;
+}
+
+.ban-button {
+    -fx-background-color: #F44336;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-background-radius: 4;
+    -fx-padding: 10 15;
+    -fx-alignment: center;
+}
+
+.ban-button:hover {
+    -fx-background-color: #E53935;
+}
+
+/* No Reports Label */
+.no-reports-label {
+    -fx-text-fill: #757575;
+    -fx-font-size: 16;
+    -fx-alignment: center;
+    -fx-padding: 50 0;
+}

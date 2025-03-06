@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.image.*?>
 
 <BorderPane prefHeight="800.0" prefWidth="1200.0"
             style="-fx-background-color: #091221;"
@@ -15,7 +17,6 @@
 
     <center>
         <VBox spacing="40" style="-fx-padding: 50;">
-            <!-- En-tête -->
             <HBox alignment="CENTER_LEFT" spacing="30">
                 <VBox>
                     <Label text="Gestion des Sessions"
@@ -29,71 +30,32 @@
                 </VBox>
             </HBox>
 
-            <HBox spacing="30" alignment="CENTER">
+            <HBox spacing="10">
+                <Button onAction="#navigateToAddSession"
+                        text="Ajouter une Session"
+                        style="-fx-background-color: #fe0369;
+                               -fx-text-fill: white;
+                               -fx-font-size: 16px;
+                               -fx-padding: 12 25;
+                               -fx-background-radius: 25;" />
 
-                <VBox spacing="20" style="-fx-background-color: #0D1D36;
-                                        -fx-background-radius: 20;
-                                        -fx-padding: 30;
-                                        -fx-min-width: 400;
-                                        -fx-effect: dropshadow(gaussian, rgba(254,3,105,0.2), 20, 0.5, 0, 5);">
-
-                    <Label text="Ajouter une Session"
-                           style="-fx-font-size: 24px;
-                                  -fx-font-weight: bold;
-                                  -fx-text-fill: white;" />
-
-                    <TextField fx:id="gameField"
-                               promptText="Nom du jeu"
-                               style="-fx-background-color: #162942;
-                                    -fx-text-fill: white;
-                                    -fx-font-size: 14px;
-                                    -fx-background-radius: 8;" />
-
-                    <TextField fx:id="priceField"
-                               promptText="Prix"
-                               style="-fx-background-color: #162942;
-                                    -fx-text-fill: white;
-                                    -fx-font-size: 14px;
-                                    -fx-background-radius: 8;" />
-
-                    <TextField fx:id="durationField"
-                               promptText="Durée"
-                               style="-fx-background-color: #162942;
-                                    -fx-text-fill: white;
-                                    -fx-font-size: 14px;
-                                    -fx-background-radius: 8;" />
-
-                    <Button onAction="#addSession"
-                            text="Ajouter la Session"
-                            style="-fx-background-color: #fe0369;
-                                   -fx-text-fill: white;
-                                   -fx-font-size: 16px;
-                                   -fx-padding: 12 25;
-                                   -fx-background-radius: 25;
-                                   " />
-                </VBox>
-
-
-                <ScrollPane fitToWidth="true"
-                            style="-fx-background-color: transparent;
-                                 -fx-background: transparent;">
-                    <VBox fx:id="sessionsContainer"
-                          spacing="10"
-                          style="-fx-background-color: #0D1D36;
-                                 -fx-padding: 30;
-                                 -fx-background-radius: 20;
-                                 -fx-min-width: 500;
-                                 -fx-effect: dropshadow(gaussian, rgba(5,133,230,0.2), 20, 0.5, 0, 5);" />
-                </ScrollPane>
+                <Button onAction="#viewReservedSessions"
+                        text="Voir les Réservations"
+                        style="-fx-background-color: #0585e6;
+                               -fx-text-fill: white;
+                               -fx-font-size: 16px;
+                               -fx-padding: 12 25;
+                               -fx-background-radius: 25;" />
             </HBox>
 
-            <Button onAction="#viewReservedSessions"
-                    text="Voir les Réservations"
-                    style="-fx-background-color: #0585e6;
-                           -fx-text-fill: white;
-                           -fx-font-size: 16px;
-                           -fx-padding: 12 25;
-                           -fx-background-radius: 25;" />
+            <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;">
+                <FlowPane fx:id="sessionsContainer" alignment="CENTER" hgap="30" prefWrapLength="1100"
+                          style="-fx-background-color: transparent; -fx-padding: 30;" vgap="30">
+                    <padding>
+                        <Insets bottom="20" left="20" right="20" top="20" />
+                    </padding>
+                </FlowPane>
+            </ScrollPane>
         </VBox>
     </center>
 </BorderPane>
