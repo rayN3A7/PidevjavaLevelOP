@@ -9,6 +9,7 @@ import javafx.scene.text.Text;
 import tn.esprit.Models.Utilisateur;
 import tn.esprit.Services.UtilisateurService;
 import java.net.URL;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
@@ -208,15 +209,15 @@ public class DashboardController implements Initializable {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("User Ban Status");
             alert.setHeaderText(null);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            String formattedDate = banEndTime.format(formatter);
             alert.setContentText("L'utilisateur a été banni jusqu'à " +
-                    (banEndTime != null ? banEndTime.toString() : "permanently"));
+                    (formattedDate != null ? formattedDate.toString() : "permanently"));
             alert.showAndWait();
 
-            // Refresh the user list to update the UI
             loadUsers();
 
         } catch (Exception e) {
-            // Show error alert
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText(null);
@@ -227,25 +228,20 @@ public class DashboardController implements Initializable {
 
     private void unbanUser(Utilisateur user) {
         try {
-            // Update ban status and ban end time in database using the dedicated method
             utilisateurService.updateBanStatus(user.getId(), false, null);
 
-            // Update the local user object to reflect changes
             user.setBan(false);
             user.setBanTime(null);
 
-            // Show confirmation alert
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("User Ban Status");
             alert.setHeaderText(null);
             alert.setContentText("User has been unbanned.");
             alert.showAndWait();
 
-            // Refresh the user list to update the UI
             loadUsers();
 
         } catch (Exception e) {
-            // Show error alert
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText(null);
@@ -256,16 +252,13 @@ public class DashboardController implements Initializable {
 
     private void checkUserReports(Utilisateur user) {
         try {
-            // Load the DisplayReport.fxml file
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/gestion Utilisateur/Dashboard/DisplayReport.fxml"));
             Parent root = loader.load();
 
-            // Get the controller and pass the user data
             DisplayReportController controller = loader.getController();
             controller.initData(user);
 
-            // Create a new scene and show it
             Scene scene = new Scene(root);
             Stage stage = new Stage();
             stage.setTitle("Reports for " + user.getPrenom() + " " + user.getNom());

@@ -410,17 +410,19 @@ public class ForumController implements Initializable {
         Optional<ButtonType> result = confirmationAlert.showAndWait();
         if (result.isPresent() && result.get() == deleteButton) {
             CompletableFuture.runAsync(() -> questionService.delete(question.getQuestion_id(), userId), EXECUTOR_SERVICE)
-                    .thenAcceptAsync(v -> {
-                        Parent card = questionCardMap.get(question);
-                        if (card != null) {
-                            questionCardContainer.getChildren().remove(card);
-                            questionCardMap.remove(question);
-                            allQuestions.remove(question);
-                            currentQuestionCount--;
-                            loadMoreButton.setDisable(currentQuestionCount >= allQuestions.size());
-
-                        }
-                    }, Platform::runLater)
+                    .thenRunAsync(() -> {
+                        Platform.runLater(() -> {
+                            Parent card = questionCardMap.get(question);
+                            if (card != null) {
+                                questionCardContainer.getChildren().remove(card);
+                                questionCardMap.remove(question);
+                                allQuestions.remove(question);
+                                currentQuestionCount--;
+                                loadMoreButton.setDisable(currentQuestionCount >= allQuestions.size());
+                            }
+                            updatePrivilegeUI(question.getUser().getId());
+                        });
+                    }, EXECUTOR_SERVICE)
                     .exceptionally(t -> {
                         Platform.runLater(() -> showAlert("Erreur", "Erreur lors de la suppression: " + t.getMessage()));
                         return null;
