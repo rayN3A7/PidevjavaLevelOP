@@ -91,8 +91,7 @@
                 <children>
                     <HBox alignment="CENTER_LEFT" spacing="10">
                         <Label styleClass="section-title" text="Sessions en Promotion" />
-                        <Button text="VOIR TOUS" styleClass="voir-tous-button"/>
-                    </HBox>
+                        <Button text="VOIR TOUS" styleClass="voir-tous-button" onAction="#navigateToForum"/>                    </HBox>
                     <HBox fx:id="promoSessionsContainer" spacing="20" style="-fx-padding: 20;" alignment="CENTER">
                         <!-- Promo sessions will be added here dynamically -->
                     </HBox>

@@ -69,7 +69,7 @@
                      </font>
                   </Button>
 
-                  <Button fx:id="btnGoToHome" styleClass="link-button" text="Déjà enregistré ?"
+                  <Button fx:id="btnGoToHome" styleClass="link-button" text="acceuil "
                      AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="30.0" />
 
                </children>

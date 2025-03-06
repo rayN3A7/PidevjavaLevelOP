@@ -24,8 +24,8 @@ public class Main {
 
        //us.updatePassword("luffy@gmail.com","luffy@1235");
        // System.out.println(us.getByEmail("luffy@gmail.com"));
-       System.out.println(us.loginUser("luffy@gmail.com","luffy@1235",true));
-        //SessionManager.getInstance().logout();
+      // System.out.println(us.loginUser("luffy@gmail.com","luffy@1235",true));
+        SessionManager.getInstance().logout();
 
        // us.loginUser("luffy@gmail.com","luffy@1235",true);
        // System.out.println(us.getByRole("COACH"));
