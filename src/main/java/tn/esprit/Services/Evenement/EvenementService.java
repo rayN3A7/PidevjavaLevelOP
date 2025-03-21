@@ -20,7 +20,7 @@ public class EvenementService implements IService<Evenement> {
     }
     @Override
     public void add(Evenement evenement) {
-        String qry = "INSERT INTO `evenement`(`categorie_id`, `nom_event`, `max_places_event`, `date_event`, `lieu_event`) VALUES ("+evenement.getCategorie_id()+",'"+evenement.getNom_event()+"',"+evenement.getMax_places_event()+",'"+evenement.getDate_event()+"','"+evenement.getLieu_event()+"')";
+        String qry = "INSERT INTO `evenement`(`categorie_id`, `nom_event`, `max_places_event`, `date_event`, `lieu_event`,`photo_event`) VALUES ("+evenement.getCategorie_id()+",'"+evenement.getNom_event()+"',"+evenement.getMax_places_event()+",'"+evenement.getDate_event()+"','"+evenement.getLieu_event()+"','"+evenement.getPhoto_event()+"')";
         try{
             PreparedStatement st = cnx.prepareStatement(qry);
             st.executeUpdate();
@@ -72,6 +72,7 @@ public class EvenementService implements IService<Evenement> {
                 e.setLieu_event(rs.getString("lieu_event"));
                 e.setCategorie_id(rs.getInt("categorie_id"));
                 e.setDate_event(rs.getTimestamp("date_event"));
+                e.setPhoto_event(rs.getString("photo_event"));
                 return e;
             }
         } catch (SQLException e) {
@@ -95,6 +96,7 @@ public class EvenementService implements IService<Evenement> {
                 e.setLieu_event(rs.getString("lieu_event"));
                 e.setCategorie_id(rs.getInt("categorie_id"));
                 e.setDate_event(rs.getTimestamp("date_event"));
+                e.setPhoto_event(rs.getString("photo_event"));
                 evenements.add(e);
             }
         } catch (SQLException e) {
@@ -120,6 +122,7 @@ public class EvenementService implements IService<Evenement> {
                 e.setLieu_event(rs.getString("lieu_event"));
                 e.setCategorie_id(rs.getInt("categorie_id"));
                 e.setDate_event(rs.getTimestamp("date_event"));
+                e.setPhoto_event(rs.getString("photo_event"));
                 resultats.add(e);
             }
         } catch (SQLException e) {
@@ -186,6 +189,7 @@ public class EvenementService implements IService<Evenement> {
                 e.setLieu_event(rs.getString("lieu_event"));
                 e.setCategorie_id(rs.getInt("categorie_id"));
                 e.setDate_event(rs.getTimestamp("date_event"));
+                e.setPhoto_event(rs.getString("photo_event"));
                 resultats.add(e);
             }
         }catch(SQLException e){
@@ -208,6 +212,7 @@ public class EvenementService implements IService<Evenement> {
                 e.setLieu_event(rs.getString("lieu_event"));
                 e.setCategorie_id(rs.getInt("categorie_id"));
                 e.setDate_event(rs.getTimestamp("date_event"));
+                e.setPhoto_event(rs.getString("photo_event"));
                 resultats.add(e);
             }
         }catch(SQLException e){
@@ -259,6 +264,7 @@ public class EvenementService implements IService<Evenement> {
                 e.setLieu_event(rs.getString("lieu_event"));
                 e.setCategorie_id(rs.getInt("categorie_id"));
                 e.setDate_event(rs.getTimestamp("date_event"));
+                e.setPhoto_event(rs.getString("photo_event"));
                 evenementsProches.add(e);
             }
         } catch (SQLException e) {

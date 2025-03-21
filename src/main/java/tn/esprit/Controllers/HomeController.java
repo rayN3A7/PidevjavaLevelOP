@@ -546,7 +546,17 @@ public class HomeController {
         card.getStyleClass().add("event-card");
 
         ImageView imageView = new ImageView();
-        imageView.setImage(new Image(getClass().getResourceAsStream("/assets/image/event2.jpg")));
+        String imageBaseDir = "C:\\xampp\\htdocs\\img\\";
+        if (event.getPhoto_event() != null && !event.getPhoto_event().isEmpty()) {
+            String imagePath = imageBaseDir + event.getPhoto_event();
+            File imageFile = new File(imagePath);
+
+            if (imageFile.exists()) {
+                imageView.setImage(new Image(imageFile.toURI().toString()));
+            } else {
+                System.out.println("Image non trouvée : " + imagePath);
+            }
+        }
         imageView.setFitHeight(200);
         imageView.setFitWidth(250);
 

@@ -45,6 +45,13 @@
                         <!-- Right Side - Event Details Form -->
                         <VBox spacing="15" HBox.hgrow="ALWAYS" styleClass="form-section">
                             <VBox styleClass="input-group">
+                                <Label text="Image de l'événement" styleClass="input-label"/>
+                                <HBox spacing="10">
+                                    <Button text="Choisir une image" onAction="#choisirImage"/>
+                                    <Label fx:id="imageLabel" text="Aucune image sélectionnée" />
+                                </HBox>
+                            </VBox>
+                            <VBox styleClass="input-group">
                                 <Label text="Nom de l'événement" styleClass="input-label"/>
                                 <TextField fx:id="NomEvent" styleClass="input-field"
                                            promptText="Entrez le nom de l'événement"/>

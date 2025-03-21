@@ -3,6 +3,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import javafx.scene.image.ImageView?>
 <AnchorPane fx:controller="tn.esprit.Controllers.Evenement.EvenementCardController"
             xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -13,7 +14,7 @@
     <VBox spacing="12" alignment="CENTER" AnchorPane.topAnchor="0.0"
           AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
           AnchorPane.rightAnchor="0.0" styleClass="event-content">
-
+        <ImageView fx:id="eventImage" fitWidth="150" fitHeight="100" preserveRatio="true"/>
         <Label fx:id="nomLabel" styleClass="event-title" wrapText="true"/>
         <Label fx:id="dateLabel" styleClass="event-info"/>
         <Label fx:id="lieuLabel" styleClass="event-info"/>

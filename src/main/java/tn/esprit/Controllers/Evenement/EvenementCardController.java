@@ -6,6 +6,8 @@ import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import tn.esprit.Models.Evenement.Evenement;
@@ -14,6 +16,7 @@ import tn.esprit.Services.Evenement.CategorieEvService;
 import tn.esprit.Services.Evenement.EvenementService;
 import tn.esprit.utils.SessionManager;
 
+import java.io.File;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
@@ -21,9 +24,13 @@ public class EvenementCardController {
     @FXML
     private Label nomLabel, dateLabel, lieuLabel, categorieLabel, placesLabel;
     @FXML
+    private ImageView eventImage;
+    @FXML
     private Button detailsButton;
     @FXML
     private HBox eventActions;
+    private static final String IMAGE_DIR = "C:/xampp/htdocs/img/";
+
 
     private Evenement event;
     private EvenementService es = new EvenementService();
@@ -38,6 +45,16 @@ public class EvenementCardController {
         lieuLabel.setText(event.getLieu_event());
         categorieLabel.setText(ces.getNomCategorieEvent(event.getCategorie_id()));
         placesLabel.setText("Places restantes: " + event.getMax_places_event());
+        if (event.getPhoto_event() != null && !event.getPhoto_event().isEmpty()) {
+            String imagePath = IMAGE_DIR + event.getPhoto_event();
+            File imageFile = new File(imagePath);
+
+            if (imageFile.exists()) {
+                eventImage.setImage(new Image(imageFile.toURI().toString()));
+            } else {
+                System.out.println("Image non trouvée : " + imagePath);
+            }
+        }
         if(userRole.equals("CLIENT")||userRole.equals("COACH")){
             Button reserverButton = new Button("Réserver");
             reserverButton.getStyleClass().add("view-button");

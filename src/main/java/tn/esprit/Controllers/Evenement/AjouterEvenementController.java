@@ -7,17 +7,18 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import tn.esprit.Models.Evenement.Categorieevent;
 import tn.esprit.Models.Evenement.Evenement;
 import tn.esprit.Services.Evenement.CategorieEvService;
 import tn.esprit.Services.Evenement.EvenementService;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,12 +34,27 @@ public class AjouterEvenementController {
     private ComboBox<String> TimeEvent;
     @FXML
     private ComboBox<String> CatEvent;
+    @FXML
+    private Label imageLabel;
 
+    private File selectedFile;
+    private static final String IMAGE_DIR = "C:\\xampp\\htdocs\\img\\";
     @FXML
     private void initialize() {
         GetCategorie();
         fillTimeComboBox();
     }
+    @FXML
+    private void choisirImage() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"));
+        selectedFile = fileChooser.showOpenDialog(null);
+
+        if (selectedFile != null) {
+            imageLabel.setText(selectedFile.getName());
+        }
+    }
+
     private void GetCategorie(){
         List<Categorieevent> categorieList = ces.getAll();
         List<String> categories = categorieList.stream()
@@ -56,9 +72,8 @@ public class AjouterEvenementController {
         TimeEvent.getItems().setAll(timeOptions);
     }
     @FXML
-    private void AjouterEvenemnt(){
+    private void AjouterEvenemnt() {
         try {
-            // Vérifier que tous les champs sont remplis
             if (!validateFields()) {
                 return;
             }
@@ -72,7 +87,6 @@ public class AjouterEvenementController {
             String dateTimeString = selectedDate + " " + selectedTime;
             Timestamp dateTime = Timestamp.valueOf(dateTimeString);
 
-            // Vérifier que la date est dans le futur
             if (dateTime.before(new Timestamp(System.currentTimeMillis()))) {
                 showAlert(Alert.AlertType.ERROR, "Erreur", "La date de l'événement doit être dans le futur.");
                 return;
@@ -81,15 +95,24 @@ public class AjouterEvenementController {
             String categorie_event = CatEvent.getValue();
             int categorie_id = ces.getIdCategorieEvent(categorie_event);
 
-            Evenement evenement = new Evenement(categorie_id, max_places_event, nom_event, lieu_event, dateTime);
+            String imageName = null;
+            if (selectedFile != null) {
+                imageName = selectedFile.getName();
+                File destinationFile = new File(IMAGE_DIR + imageName);
+                Files.copy(selectedFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            Evenement evenement = new Evenement(categorie_id, max_places_event, nom_event, lieu_event, dateTime, imageName);
             es.add(evenement);
 
             showAlert(Alert.AlertType.INFORMATION, "Succès", "Événement ajouté avec succès");
 
         } catch (Exception e) {
+            e.printStackTrace();
             showAlert(Alert.AlertType.ERROR, "Erreur", "Veuillez vérifier les champs.");
         }
     }
+
     private boolean validateFields() {
         // Vérifier si le nom et le lieu sont vides
         if (NomEvent.getText().trim().isEmpty()) {

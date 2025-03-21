@@ -235,12 +235,14 @@ private String userRole = SessionManager.getInstance().getRole().name();
     }
     private void generateQRCode(Evenement event) {
         try {
+            String imageUrl = "C:/xampp/htdocs/img/" + URLEncoder.encode(event.getPhoto_event(), "UTF-8");
             String baseUrl = "https://feresad.github.io/event-qr-code/";
             String url = baseUrl + "?id=" + event.getId() +
                     "&nom=" + URLEncoder.encode(event.getNom_event(), "UTF-8") +
                     "&date=" + URLEncoder.encode(event.getDate_event().toString(), "UTF-8") +
                     "&lieu=" + URLEncoder.encode(event.getLieu_event(), "UTF-8") +
-                    "&places=" + event.getMax_places_event();
+                    "&places=" + event.getMax_places_event() +
+                    "&image=" + imageUrl;
             // Générer le QR Code avec l'URL
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
             BitMatrix bitMatrix = qrCodeWriter.encode(url, BarcodeFormat.QR_CODE, 200, 200);
