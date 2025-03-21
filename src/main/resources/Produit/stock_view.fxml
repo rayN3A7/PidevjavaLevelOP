@@ -70,23 +70,27 @@
                             <Label style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" text="Produit:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
                             <TextField fx:id="txtProduit" style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
-                            <Label style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" text="Quantité:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-                            <TextField fx:id="txtQuantity" style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                            <Label style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" text="Jeu:" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+                            <TextField fx:id="txtGame" style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
 
-                            <Label style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" text="Prix:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-                            <TextField fx:id="txtPrice" style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                            <Label style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" text="Quantité:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                            <TextField fx:id="txtQuantity" style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
-                            <Label style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" text="Image:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-                            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                            <Label style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" text="Prix:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                            <TextField fx:id="txtPrice" style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+
+                            <Label style="-fx-text-fill: #fe0369; -fx-font-size: 16px; -fx-font-weight: bold;" text="Image:" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+                            <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5">
                                 <TextField fx:id="txtImage" style="-fx-background-color: white; -fx-text-fill: black; -fx-font-size: 14px;" HBox.hgrow="ALWAYS" />
                                 <Button onAction="#browseImage" style="-fx-background-color: transparent; -fx-border-color: #fe0369; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 10 20; -fx-border-width: 2;" text="Parcourir" />
                             </HBox>
 
-                            <HBox alignment="CENTER_RIGHT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                            <HBox alignment="CENTER_RIGHT" spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="6">
                                 <Button onAction="#saveStockChanges" style="-fx-background-color: #fe0369; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 10 20;" text="Sauvegarder" />
                                 <Button onAction="#cancelEdit" style="-fx-background-color: transparent; -fx-border-color: #fe0369; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 10 20; -fx-border-width: 2;" text="Annuler" />
                             </HBox>
                             <rowConstraints>
+                                <RowConstraints />
                                 <RowConstraints />
                                 <RowConstraints />
                                 <RowConstraints />

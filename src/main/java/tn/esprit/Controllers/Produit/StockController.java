@@ -39,7 +39,7 @@ public class StockController {
     @FXML private TextField txtQuantity;
     @FXML private TextField txtPrice;
     @FXML private TextField txtImage;
-    @FXML private TextField txtGame;
+    @FXML private TextField txtGame;  // Ensure this matches fx:id in FXML
     @FXML private VBox editForm;
 
     private StockService stockService;
@@ -57,6 +57,12 @@ public class StockController {
         stockService = new StockService();
         produitService = new ProduitService();
         gamesService = new GamesService();
+
+        // Check if FXML elements are properly injected
+        if (txtProduit == null || txtQuantity == null || txtPrice == null || txtImage == null || txtGame == null || editForm == null) {
+            System.err.println("One or more @FXML elements are not injected properly. Check FXML file.");
+        }
+
         loadStocks();
         if (editForm != null) {
             editForm.setVisible(false);
@@ -66,6 +72,10 @@ public class StockController {
     }
 
     private void loadStocks() {
+        if (stockContainer == null) {
+            System.err.println("stockContainer is null. Cannot load stocks.");
+            return;
+        }
         stockContainer.getChildren().clear();
         stocks = stockService.getAll();
         for (Stock stock : stocks) {
@@ -151,6 +161,10 @@ public class StockController {
 
     @FXML
     public void searchStock() {
+        if (searchField == null) {
+            System.err.println("searchField is null.");
+            return;
+        }
         String searchText = searchField.getText().toLowerCase();
         stockContainer.getChildren().clear();
 
@@ -178,7 +192,9 @@ public class StockController {
         Games game = gamesService.getOne(stock.getGamesId());
         txtGame.setText(game != null ? game.getGame_name() : "");
 
-        editForm.setVisible(true);
+        if (editForm != null) {
+            editForm.setVisible(true);
+        }
     }
 
     @FXML
@@ -243,7 +259,9 @@ public class StockController {
 
             loadStocks();
             clearFields();
-            editForm.setVisible(false);
+            if (editForm != null) {
+                editForm.setVisible(false);
+            }
             selectedStock = null;
 
         } catch (Exception e) {
@@ -278,7 +296,9 @@ public class StockController {
 
     @FXML
     public void cancelEdit() {
-        editForm.setVisible(false);
+        if (editForm != null) {
+            editForm.setVisible(false);
+        }
         selectedStock = null;
         clearFields();
     }
@@ -287,7 +307,11 @@ public class StockController {
     public void ButtonAjouterStock() {
         selectedStock = null;
         clearFields();
-        editForm.setVisible(true);
+        if (editForm != null) {
+            editForm.setVisible(true);
+        } else {
+            System.err.println("editForm is null in ButtonAjouterStock.");
+        }
     }
 
     @FXML
@@ -336,19 +360,19 @@ public class StockController {
     }
 
     private void clearFields() {
-        txtProduit.clear();
-        txtQuantity.clear();
-        txtPrice.clear();
-        txtImage.clear();
-        txtGame.clear();
+        if (txtProduit != null) txtProduit.clear();
+        if (txtQuantity != null) txtQuantity.clear();
+        if (txtPrice != null) txtPrice.clear();
+        if (txtImage != null) txtImage.clear();
+        if (txtGame != null) txtGame.clear();
     }
 
     private boolean validateForm() {
-        return !txtProduit.getText().trim().isEmpty() &&
-                !txtQuantity.getText().trim().isEmpty() &&
-                !txtPrice.getText().trim().isEmpty() &&
-                !txtImage.getText().trim().isEmpty() &&
-                !txtGame.getText().trim().isEmpty();
+        return txtProduit != null && !txtProduit.getText().trim().isEmpty() &&
+                txtQuantity != null && !txtQuantity.getText().trim().isEmpty() &&
+                txtPrice != null && !txtPrice.getText().trim().isEmpty() &&
+                txtImage != null && !txtImage.getText().trim().isEmpty() &&
+                txtGame != null && !txtGame.getText().trim().isEmpty();
     }
 
     private void showAlert(AlertType alertType, String title, String content) {

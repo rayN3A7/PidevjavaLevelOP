@@ -517,6 +517,9 @@ public class UtilisateurService implements IService<Utilisateur> {
 
     public PrivilegeChange updateUserPrivilege(int userId) {
         Utilisateur user = getOne(userId);
+        if (user == null) {
+            throw new RuntimeException("User not found for ID: " + userId);
+        }
         String oldPrivilege = user.getPrivilege() != null ? user.getPrivilege() : "regular";
         int activityCount = getUserActivityCount(userId);
         int voteCount = getUserVoteCount(userId);
@@ -542,16 +545,25 @@ public class UtilisateurService implements IService<Utilisateur> {
             }
             user.setPrivilege(newPrivilege);
 
-            // Fire PrivilegeEvent if an event target is set
-            if (eventTarget != null) {
-                Platform.runLater(() -> {
-                    PrivilegeEvent event = new PrivilegeEvent(userId, newPrivilege);
-                    Event.fireEvent(eventTarget, event);
-                });
+            if ("top_contributor".equals(newPrivilege) || "top_fan".equals(newPrivilege)) {
+                List<Report> reports = reportService.getReportsByReportedUserId(userId);
+                if (!reports.isEmpty()) {
+                    int reportsToDelete = "top_contributor".equals(newPrivilege) ? 1 : 3;
+                    int deletedCount = Math.min(reportsToDelete, reports.size());
+                    for (int i = 0; i < deletedCount; i++) {
+                        Report reportToDelete = reports.get(i);
+                        reportService.deleteReport(reportToDelete.getReportId());
+                        System.out.println("Deleted a report for user " + userId + " (ID: " + reportToDelete.getReportId() + ") due to privilege change to " + newPrivilege + ".");
+                    }
+                    System.out.println("Total reports deleted: " + deletedCount + " for user " + userId);
+                }
             }
+
+            EventBus.getInstance().fireEvent(new PrivilegeEvent(userId, newPrivilege));
         }
 
         return new PrivilegeChange(oldPrivilege, newPrivilege);
+
     }
     public void setEventTarget(Node eventTarget) {
         this.eventTarget = eventTarget;

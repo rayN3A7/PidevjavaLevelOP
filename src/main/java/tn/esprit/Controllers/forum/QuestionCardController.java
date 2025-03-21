@@ -176,7 +176,10 @@ public class QuestionCardController {
             if (event.getUserId() == question.getUser().getId()) {
                 Utilisateur user = us.getOne(event.getUserId());
                 if (user != null) {
-                    updatePrivilegeUI(user);
+                    Platform.runLater(() -> {
+                        updatePrivilegeUI(user);
+                        animatePrivilegeChange(crownIcon, !"regular".equals(user.getPrivilege()));
+                    });
                 }
             }
         });

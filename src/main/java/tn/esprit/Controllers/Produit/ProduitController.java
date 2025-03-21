@@ -100,7 +100,7 @@ public class ProduitController {
         descLabel.setMaxWidth(Double.MAX_VALUE);
         descLabel.setWrapText(true);
 
-        Label priceLabel = new Label(stock != null ? stock.getPrixProduit() + " €" : "N/A");
+        Label priceLabel = new Label(stock != null ? stock.getPrixProduit() + " DT" : "N/A");
         priceLabel.getStyleClass().addAll("info-value", "cell");
         priceLabel.setMaxWidth(Double.MAX_VALUE);
 

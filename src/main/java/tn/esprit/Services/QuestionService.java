@@ -277,23 +277,46 @@ public class QuestionService implements IService<Question> {
         }
 
         try {
-            deleteRepliesForQuestion(new Question(questionId, "", "", 0, null, null)); // Dummy question for deletion
-            deleteCommentsForQuestion(new Question(questionId, "", "", 0, null, null)); // Dummy question for deletion
+            connexion.setAutoCommit(false);
+            Question question = getOne(questionId);
+            if (question == null) {
+                throw new RuntimeException("Question not found: " + questionId);
+            }
+            int ownerId = question.getUser().getId();
 
+            System.out.println("Before deletion: User " + ownerId + " activity count: " + us.getUserActivityCount(ownerId));
+
+            deleteRepliesForQuestion(new Question(questionId, "", "", 0, null, null));
+            deleteCommentsForQuestion(new Question(questionId, "", "", 0, null, null));
             String deleteQuestionQuery = "DELETE FROM Questions WHERE question_id = ?";
             try (PreparedStatement ps = connexion.prepareStatement(deleteQuestionQuery)) {
                 ps.setInt(1, questionId);
                 ps.executeUpdate();
             }
 
-            // Trigger privilege update for the user who deleted the question
-            Question question = getOne(questionId);
-            if (question != null) {
-                us.updateUserPrivilege(question.getUser().getId());
+            connexion.commit();
+
+            System.out.println("After deletion: User " + ownerId + " activity count: " + us.getUserActivityCount(ownerId));
+            UtilisateurService.PrivilegeChange ownerChange = us.updateUserPrivilege(ownerId);
+            System.out.println("Owner privilege change: " + ownerChange.getOldPrivilege() + " -> " + ownerChange.getNewPrivilege());
+            if (userId != ownerId) {
+                UtilisateurService.PrivilegeChange deleterChange = us.updateUserPrivilege(userId);
+                System.out.println("Deleter privilege change: " + deleterChange.getOldPrivilege() + " -> " + deleterChange.getNewPrivilege());
             }
 
         } catch (SQLException e) {
+            try {
+                connexion.rollback();
+            } catch (SQLException rollbackEx) {
+                System.err.println("Rollback failed: " + rollbackEx.getMessage());
+            }
             throw new RuntimeException("Failed to delete question: " + e.getMessage(), e);
+        } finally {
+            try {
+                connexion.setAutoCommit(true);
+            } catch (SQLException e) {
+                System.err.println("Failed to restore auto-commit: " + e.getMessage());
+            }
         }
     }
 
