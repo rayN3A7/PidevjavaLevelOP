@@ -31,7 +31,7 @@ public class EvenementService implements IService<Evenement> {
 
     @Override
     public void update(Evenement evenement) {
-        String qry = "UPDATE evenement SET categorie_id=?, nom_event=?, max_places_event=?, date_event=?, lieu_event=? WHERE id=?";
+        String qry = "UPDATE evenement SET categorie_id=?, nom_event=?, max_places_event=?, date_event=?, lieu_event=?,photo_event=? WHERE id=?";
         try {
             PreparedStatement st = cnx.prepareStatement(qry);
             st.setInt(1, evenement.getCategorie_id());
@@ -39,7 +39,8 @@ public class EvenementService implements IService<Evenement> {
             st.setInt(3, evenement.getMax_places_event());
             st.setTimestamp(4, evenement.getDate_event());
             st.setString(5, evenement.getLieu_event());
-            st.setInt(6, evenement.getId());
+            st.setString(6, evenement.getPhoto_event());
+            st.setInt(7, evenement.getId());
             st.executeUpdate();
         } catch (SQLException e) {
             e.getMessage();

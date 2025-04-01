@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -31,6 +33,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import tn.esprit.Models.Produit;
 import tn.esprit.Models.Stock;
 import tn.esprit.Services.HardwareSpecs;
@@ -57,14 +61,14 @@ public class ProductDetailsController {
 
     @FXML private VBox fpsVBox;
 
-    private final Dotenv dotenv = Dotenv.configure().load();
+    private static final Dotenv dotenv = Dotenv.load();
     private StockService stockService;
     private Stock currentStock;
     private Produit currentProduct;
     private ProduitService produitService = new ProduitService();
 
-    private String OPENAI_API_KEY = dotenv.get("OPENAI_API_KEY");
-    private String OPENAI_API_URL = dotenv.get("OPENAI_API_URL");
+    private static final String GEMINI_API_KEY = dotenv.get("GEMINI_API_KEY");
+    private static final String GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
     private static final String OPENAI_MODEL = "gpt-3.5-turbo";
     private final OkHttpClient client = new OkHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -165,7 +169,7 @@ public class ProductDetailsController {
         }
     }
 
-    private void estimateFPS(String cpu, String ram, List<String> gpus) {
+    public void estimateFPS(String cpu, String ram, List<String> gpus) {
         fpsVBox.getChildren().clear();
         try {
             String osInfo = System.getProperty("os.name") + " " + System.getProperty("os.arch");
@@ -177,21 +181,32 @@ public class ProductDetailsController {
             for (int i = 0; i < gpus.size(); i++) {
                 String systemSpecs = String.format("OS: %s, CPU: %s, RAM: %s, GPU: %s", osInfo, cpu, ram, gpus.get(i));
                 String prompt = String.format(
-                        "Estimate the expected FPS for the game '%s' on: %s. Assume anti-aliasing is disabled. " +
-                                "Provide three FPS values for Low, Medium, and High settings in the format: low,medium,high.",
+                        "Estimez les FPS attendus pour le jeu '%s' sur: %s. Supposez que l'anti-aliasing est désactivé. " +
+                                "Fournissez trois valeurs FPS pour les paramètres Bas, Moyen et Élevé au format : bas,moyen,élevé.",
                         gameName, systemSpecs);
 
-                String fpsResponse = callOpenAIApi(prompt);
+                String fpsResponse = callGeminiApi(prompt);
+
                 fpsResponse = fpsResponse.replaceAll("[^0-9,]", "").trim();
                 String[] fpsValues = fpsResponse.split(",");
+
+                // Vérification de la longueur de la réponse
                 if (fpsValues.length != 3) {
-                    throw new Exception("Invalid FPS response format for GPU " + gpus.get(i));
+                    throw new Exception("Invalid FPS response format for GPU " + gpus.get(i) + ": " + fpsResponse);
                 }
 
-                int lowFps = Integer.parseInt(fpsValues[0].trim());
-                int mediumFps = Integer.parseInt(fpsValues[1].trim());
-                int highFps = Integer.parseInt(fpsValues[2].trim());
+                int lowFps = 30, mediumFps = 45, highFps = 60;
 
+                try {
+                    // Tentative de parsing des FPS
+                    lowFps = Integer.parseInt(fpsValues[0].trim());
+                    mediumFps = Integer.parseInt(fpsValues[1].trim());
+                    highFps = Integer.parseInt(fpsValues[2].trim());
+                } catch (NumberFormatException e) {
+                    System.err.println("Format FPS invalide pour GPU " + gpus.get(i) + ", utilisation des valeurs par défaut.");
+                }
+
+                // Affichage des FPS estimés
                 Label gpuHeader = new Label("GPU " + (i + 1) + ": " + gpus.get(i));
                 gpuHeader.getStyleClass().add("fps-header");
                 Label lowLabel = new Label(String.format("Low Settings: %d FPS", lowFps));
@@ -200,7 +215,7 @@ public class ProductDetailsController {
                 mediumLabel.getStyleClass().add("fps-value");
                 Label highLabel = new Label(String.format("High Settings: %d FPS", highFps));
                 highLabel.getStyleClass().add("fps-value");
-                Label detailsLabel = new Label("Based on LevelOp AI estimates");
+                Label detailsLabel = new Label("Based on Gemini AI estimates");
                 detailsLabel.getStyleClass().add("fps-details");
 
                 VBox gpuFpsBox = new VBox(5, gpuHeader, lowLabel, mediumLabel, highLabel, detailsLabel);
@@ -215,41 +230,58 @@ public class ProductDetailsController {
         }
     }
 
-    private String callOpenAIApi(String prompt) throws IOException {
-        String requestBodyJson = String.format(
-                "{\"model\":\"%s\",\"messages\":[{\"role\":\"system\",\"content\":\"You are a gaming performance expert. Provide FPS estimates as a single number only.\"},{\"role\":\"user\",\"content\":\"%s\"}]}",
-                OPENAI_MODEL,
-                prompt.replace("\"", "\\\"")
-        );
+    private String callGeminiApi(String prompt) throws IOException {
+        JSONObject requestJson = new JSONObject();
+        JSONArray contents = new JSONArray();
+        JSONObject content = new JSONObject();
+        JSONArray parts = new JSONArray();
+        parts.put(new JSONObject().put("text", prompt));
+        content.put("parts", parts);
+        contents.put(content);
+        requestJson.put("contents", contents);
 
-        RequestBody body = RequestBody.create(requestBodyJson, MediaType.parse("application/json"));
+        RequestBody body = RequestBody.create(requestJson.toString(), MediaType.parse("application/json"));
         Request request = new Request.Builder()
-                .url(OPENAI_API_URL)
+                .url(GEMINI_API_URL)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("Authorization", "Bearer " + OPENAI_API_KEY)
                 .post(body)
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
             if (!response.isSuccessful()) {
-                throw new IOException("OpenAI API request failed: " + response.code());
+                throw new IOException("Gemini API request failed: " + response.code());
             }
             String responseBody = response.body().string();
-            return parseOpenAIResponse(responseBody);
+            return parseGeminiResponse(responseBody);
         }
     }
 
-    private String parseOpenAIResponse(String responseBody) throws IOException {
+    private String parseGeminiResponse(String responseBody) throws IOException {
         try {
-            return objectMapper.readTree(responseBody)
-                    .path("choices").get(0)
-                    .path("message")
-                    .path("content")
-                    .asText().trim();
+            // On recherche tous les nombres dans la réponse brute pour extraire les FPS
+            Pattern fpsPattern = Pattern.compile("\\d+");
+            Matcher matcher = fpsPattern.matcher(responseBody);
+
+            // Stocker tous les nombres extraits (qui devraient être des FPS)
+            List<String> fpsList = new ArrayList<>();
+            while (matcher.find()) {
+                fpsList.add(matcher.group());
+            }
+
+            // Vérifier si nous avons trois valeurs (pour bas, moyen, élevé)
+            if (fpsList.size() >= 3) {
+                String lowFps = fpsList.get(0);
+                String mediumFps = fpsList.get(1);
+                String highFps = fpsList.get(2);
+                return String.format("%s,%s,%s", lowFps, mediumFps, highFps);
+            } else {
+                throw new IOException("Pas assez de valeurs FPS extraites. Réponse peut être incorrecte.");
+            }
         } catch (Exception e) {
-            throw new IOException("Failed to parse OpenAI API response: " + e.getMessage());
+            throw new IOException("Erreur lors de l'extraction des FPS : " + e.getMessage());
         }
     }
+
 
     private void loadMainImage(String imageFileName) {
         try {
