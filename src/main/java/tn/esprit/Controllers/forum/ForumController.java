@@ -60,6 +60,7 @@ public class ForumController implements Initializable {
     private ObservableList<Question> allQuestions = FXCollections.observableArrayList();
     private int currentQuestionCount = 0;
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         loadInitialQuestions();
@@ -121,6 +122,7 @@ public class ForumController implements Initializable {
                     return null;
                 });
     }
+
     private void loadTrendingPosts() {
         CompletableFuture.supplyAsync(() -> fetchTrendingPosts(), EXECUTOR_SERVICE)
                 .thenAcceptAsync(posts -> {
@@ -202,6 +204,7 @@ public class ForumController implements Initializable {
             return List.of(Map.entry("Failed to load posts", "#"));
         }
     }
+
     @FXML
     private void loadMoreQuestions() {
         System.out.println("Loading more questions. Current count: " + currentQuestionCount + ", Total: " + allQuestions.size());
@@ -373,6 +376,7 @@ public class ForumController implements Initializable {
                     stage.show();
                 }, Platform::runLater);
     }
+
     public void deleteQuestion(Question question) {
         Utilisateur currentUser = us.getOne(userId);
         if (currentUser == null || (currentUser.getRole() != Role.ADMIN && question.getUser().getId() != userId)) {
@@ -461,19 +465,20 @@ public class ForumController implements Initializable {
         }, Platform::runLater);
     }
 
-    public void handleReaction(Question question, String emojiUrl) {
+    public void handleReaction(Question question, String emojiUnicode) {
         CompletableFuture.runAsync(() -> {
-            questionService.addReaction(question.getQuestion_id(), userId, emojiUrl);
+            questionService.addReaction(question.getQuestion_id(), userId, emojiUnicode);
             Map<String, Integer> updatedReactions = questionService.getReactions(question.getQuestion_id());
             question.setReactions(updatedReactions);
-            question.setUserReaction(emojiUrl);
+            question.setUserReaction(emojiUnicode);
             Platform.runLater(() -> {
                 questionCardContainer.getChildren().stream()
                         .filter(node -> node instanceof Parent)
                         .forEach(node -> {
                             QuestionCardController controller = (QuestionCardController) node.getUserData();
                             if (controller != null && controller.getQuestion().equals(question)) {
-                                // Reaction handling can be updated here if needed
+                                controller.displayReactions();
+                                controller.displayUserReaction();
                             }
                         });
             });
