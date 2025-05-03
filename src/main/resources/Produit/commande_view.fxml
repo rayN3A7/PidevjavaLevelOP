@@ -26,35 +26,21 @@
                             <TextField fx:id="searchField" promptText="Rechercher une commande..."
                                        style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white; -fx-prompt-text-fill: gray;"
                                        onKeyReleased="#searchCommandes"/>
-                            <Button fx:id="addCommandeButton" onAction="#ButtonAjouterCommande"
-                                    style="-fx-background-color: #fe0369; -fx-text-fill: white;">
-                                <graphic>
-                                    <HBox spacing="10" alignment="CENTER">
-                                        <Label text="+" style="-fx-font-size: 16px; -fx-text-fill: white;"/>
-                                        <Label text="Nouvelle Commande" style="-fx-text-fill: white;"/>
-                                    </HBox>
-                                </graphic>
-                            </Button>
                         </HBox>
                     </HBox>
 
                     <GridPane styleClass="platform-info" style="-fx-background-color: rgba(255, 255, 255, 0.05);">
                         <columnConstraints>
-                            <ColumnConstraints percentWidth="10"/>
-                            <ColumnConstraints percentWidth="20"/>
-                            <ColumnConstraints percentWidth="20"/>
-                            <ColumnConstraints percentWidth="15"/>
-                            <ColumnConstraints percentWidth="15"/>
-                            <ColumnConstraints percentWidth="20"/>
+                            <ColumnConstraints percentWidth="30"/>
+                            <ColumnConstraints percentWidth="40"/>
+                            <ColumnConstraints percentWidth="30"/>
                         </columnConstraints>
                         <padding>
                             <Insets top="10" right="10" bottom="10" left="10"/>
                         </padding>
-                        <Label text="ID" style="-fx-text-fill: #fe0369;" GridPane.columnIndex="0"/>
-                        <Label text="Utilisateur" style="-fx-text-fill: #fe0369;" GridPane.columnIndex="1"/>
-                        <Label text="Produit" style="-fx-text-fill: #fe0369;" GridPane.columnIndex="2"/>
-                        <Label text="Status" style="-fx-text-fill: #fe0369;" GridPane.columnIndex="3"/>
-                        <Label text="Actions" style="-fx-text-fill: #fe0369;" GridPane.columnIndex="5"/>
+                        <Label text="Utilisateur" style="-fx-text-fill: #fe0369;" GridPane.columnIndex="0"/>
+                        <Label text="Produit" style="-fx-text-fill: #fe0369;" GridPane.columnIndex="1"/>
+                        <Label text="Date" style="-fx-text-fill: #fe0369;" GridPane.columnIndex="2"/>
                     </GridPane>
 
                     <VBox fx:id="commandeContainer" spacing="10" styleClass="list-content"/>
@@ -90,6 +76,11 @@
                             <TextField fx:id="txtStatus"
                                        style="-fx-background-color: rgba(255, 255, 255, 0.1); -fx-text-fill: white;"
                                        GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                            <Label text="Date:" style="-fx-text-fill: white;"
+                                   GridPane.rowIndex="4" GridPane.columnIndex="0" />
+                            <Label fx:id="lblDate" style="-fx-text-fill: white;"
+                                   GridPane.rowIndex="4" GridPane.columnIndex="1" />
 
                             <HBox spacing="10" alignment="CENTER_RIGHT" GridPane.rowIndex="5" GridPane.columnIndex="1">
                                 <Button text="Sauvegarder" onAction="#saveCommandeChanges"

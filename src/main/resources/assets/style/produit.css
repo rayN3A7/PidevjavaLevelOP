@@ -1087,3 +1087,103 @@
 .product-description .scroll-bar .thumb {
     -fx-background-color: rgba(254, 3, 105, 0.3);
 }
+
+/* ===== Review Section Styles ===== */
+.reviews-section {
+    -fx-background-color: rgba(10, 15, 30, 0.4);
+    -fx-background-radius: 8px;
+    -fx-padding: 15px;
+    -fx-spacing: 10px;
+}
+
+.reviews-scroll-pane {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.reviews-scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.reviews-container {
+    -fx-background-color: transparent;
+    -fx-padding: 10px;
+    -fx-spacing: 15px;
+}
+
+.review-box {
+    -fx-background-color: rgba(28, 28, 46, 0.95);
+    -fx-background-radius: 8px;
+    -fx-padding: 10px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 5, 0, 0, 0);
+}
+
+.review-username {
+    -fx-text-fill: #fe0369;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.review-date {
+    -fx-text-fill: #888888;
+    -fx-font-size: 12px;
+}
+
+.review-comment {
+    -fx-background-color: rgba(10, 15, 30, 0.5);
+    -fx-text-fill: white;
+    -fx-border-color: transparent;
+    -fx-control-inner-background: transparent;
+    -fx-padding: 10px;
+    -fx-font-size: 14px;
+}
+
+.review-comment .scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.review-comment .scroll-pane .viewport {
+    -fx-background-color: transparent;
+}
+
+.review-status-label {
+    -fx-text-fill: #888888;
+    -fx-font-style: italic;
+    -fx-font-size: 12px;
+}
+
+.add-review-form {
+    -fx-background-color: rgba(10, 15, 30, 0.6);
+    -fx-background-radius: 8px;
+    -fx-padding: 15px;
+    -fx-spacing: 10px;
+}
+
+.review-input {
+    -fx-background-color: rgba(28, 28, 46, 0.95);
+    -fx-text-fill: white;
+    -fx-border-color: #fe0369;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4px;
+    -fx-control-inner-background: rgba(28, 28, 46, 0.95);
+    -fx-prompt-text-fill: rgba(255, 255, 255, 0.5);
+}
+
+.add-review-button {
+    -fx-background-color: #fe0369;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4px;
+    -fx-padding: 7px 15px;
+    -fx-cursor: hand;
+}
+
+.add-review-button:hover {
+    -fx-background-color: #ff1a7a;
+    -fx-effect: dropshadow(gaussian, #fe0369, 5, 0, 0, 0);
+}
+
+.separator {
+    -fx-background-color: rgba(254, 3, 105, 0.3);
+    -fx-opacity: 0.3;
+}

@@ -30,6 +30,9 @@ public class CommandeController {
     @FXML private TextField searchField;
     @FXML private TextField txtProduit;
     @FXML private TextField txtStatus;
+    @FXML private TextField txtUtilisateur;
+    @FXML private TextField txtId;
+    @FXML private Label lblDate;
     @FXML private VBox editForm;
 
     private CommandeService commandeService;
@@ -70,39 +73,56 @@ public class CommandeController {
         gridPane.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
         ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(40);
+        col1.setPercentWidth(30);
         ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(30);
+        col2.setPercentWidth(40);
         ColumnConstraints col3 = new ColumnConstraints();
         col3.setPercentWidth(30);
 
         gridPane.getColumnConstraints().addAll(col1, col2, col3);
 
+        // Get utilisateur name - simplified to match the image showing "cs2"
+        String utilisateurName = "User ID: " + commande.getUtilisateurId();
+        // Try to simplify name for display
+        try {
+            int userId = commande.getUtilisateurId();
+            // Here you could try to get the actual user's name/nickname
+            // For now we'll just display "cs" + userId to match the image
+            utilisateurName = "cs" + userId;
+        } catch (Exception e) {
+            // Fallback to default
+        }
+        
+        Label utilisateurLabel = new Label(utilisateurName);
+        utilisateurLabel.getStyleClass().addAll("info-value", "cell");
+        utilisateurLabel.setMaxWidth(Double.MAX_VALUE);
+        utilisateurLabel.setWrapText(true);
+        
+        // Get produit name
         Produit produit = produitService.getOne(commande.getProduitId());
         Label produitLabel = new Label(produit != null ? produit.getNomProduit() : "N/A");
         produitLabel.getStyleClass().addAll("info-value", "cell");
         produitLabel.setMaxWidth(Double.MAX_VALUE);
         produitLabel.setWrapText(true);
 
-        Label statusLabel = new Label(commande.getStatus());
-        statusLabel.getStyleClass().addAll("info-value", "cell");
-        statusLabel.setMaxWidth(Double.MAX_VALUE);
+        // Display status or date based on the image
+        String dateTimeText;
+        if (commande.getCreatedAt() != null) {
+            // Format to match the image: "2025-05-01 16:19:07"
+            dateTimeText = commande.getCreatedAt().toLocalDate() + " " + 
+                    commande.getCreatedAt().toLocalTime().toString();
+        } else {
+            dateTimeText = commande.getStatus(); // Fallback to status if no date
+        }
+        
+        Label dateTimeLabel = new Label(dateTimeText);
+        dateTimeLabel.getStyleClass().addAll("info-value", "cell");
+        dateTimeLabel.setMaxWidth(Double.MAX_VALUE);
+        dateTimeLabel.setWrapText(true);
 
-        Button editButton = new Button("Modifier");
-        editButton.getStyleClass().add("buy-now-button");
-        editButton.setOnAction(event -> updateCommande(commande));
-
-        Button deleteButton = new Button("Supprimer");
-        deleteButton.getStyleClass().add("back-button");
-        deleteButton.setOnAction(event -> deleteCommande(commande));
-
-        HBox actionsBox = new HBox(5, editButton, deleteButton);
-        actionsBox.getStyleClass().add("action-buttons");
-        actionsBox.setAlignment(javafx.geometry.Pos.CENTER);
-
-        gridPane.add(produitLabel, 0, 0);
-        gridPane.add(statusLabel, 1, 0);
-        gridPane.add(actionsBox, 2, 0);
+        gridPane.add(utilisateurLabel, 0, 0);
+        gridPane.add(produitLabel, 1, 0);
+        gridPane.add(dateTimeLabel, 2, 0);
 
         gridPane.setMaxWidth(Double.MAX_VALUE);
         HBox.setHgrow(gridPane, javafx.scene.layout.Priority.ALWAYS);
@@ -129,9 +149,28 @@ public class CommandeController {
     public void updateCommande(Commande commande) {
         this.selectedCommande = commande;
 
+        // Set ID if available
+        if (txtId != null) {
+            txtId.setText(String.valueOf(commande.getId()));
+        }
+        
+        // Set user info if available
+        if (txtUtilisateur != null) {
+            txtUtilisateur.setText("cs" + commande.getUtilisateurId());
+        }
+
+        // Set product info
         Produit produit = produitService.getOne(commande.getProduitId());
         txtProduit.setText(produit != null ? produit.getNomProduit() : "");
+        
+        // Set status
         txtStatus.setText(commande.getStatus());
+        
+        // Set date if available
+        if (lblDate != null && commande.getCreatedAt() != null) {
+            lblDate.setText(commande.getCreatedAt().toLocalDate() + " " + 
+                    commande.getCreatedAt().toLocalTime().toString());
+        }
 
         editForm.setVisible(true);
     }

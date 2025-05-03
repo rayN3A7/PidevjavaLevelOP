@@ -7,26 +7,28 @@ public class Evenement {
     private int id,categorie_id,max_places_event;
     private String nom_event,lieu_event;
     private Timestamp date_event;
+    private String photo_event;
 
     public Evenement() {
     }
 
-    public Evenement(int id, int categorie_id, int max_places_event, String nom_event, String lieu_event,Timestamp date_event) {
+    public Evenement(int id, int categorie_id, int max_places_event, String nom_event, String lieu_event,Timestamp date_event,String photo_event) {
         this.id = id;
         this.categorie_id = categorie_id;
         this.max_places_event = max_places_event;
         this.nom_event = nom_event;
         this.lieu_event = lieu_event;
         this.date_event = date_event;
+        this.photo_event = photo_event;
     }
 
-    public Evenement(int categorie_id, int max_places_event, String nom_event, String lieu_event,Timestamp date_event) {
+    public Evenement(int categorie_id, int max_places_event, String nom_event, String lieu_event,Timestamp date_event,String photo_event) {
         this.categorie_id = categorie_id;
         this.max_places_event = max_places_event;
         this.nom_event = nom_event;
         this.lieu_event = lieu_event;
         this.date_event = date_event;
-
+        this.photo_event = photo_event;
     }
 
     public int getId() {
@@ -76,7 +78,13 @@ public class Evenement {
     public void setDate_event(Timestamp date_event) {
         this.date_event = date_event;
     }
+    public String getPhoto_event() {
+        return photo_event;
+    }
 
+    public void setPhoto_event(String photo_event) {
+        this.photo_event = photo_event;
+    }
     @Override
     public String toString() {
         return "Evenement{" +

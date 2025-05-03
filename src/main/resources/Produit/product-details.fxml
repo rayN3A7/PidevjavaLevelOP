@@ -20,6 +20,24 @@
                                 <Label styleClass="section-title" text="Description" />
                                 <TextArea fx:id="productDescription" editable="false" prefRowCount="6" styleClass="product-description" wrapText="true" />
                             </VBox>
+                            
+                            <!-- Review Section -->
+                            <VBox spacing="15" styleClass="reviews-section">
+                                <Label styleClass="section-title" text="Commentaires" />
+                                <ScrollPane fitToWidth="true" prefHeight="250" styleClass="reviews-scroll-pane">
+                                    <VBox fx:id="reviewsContainer" spacing="10" styleClass="reviews-container" />
+                                </ScrollPane>
+                                
+                                <!-- Add Review Form -->
+                                <VBox spacing="10" styleClass="add-review-form">
+                                    <Label fx:id="reviewStatusLabel" styleClass="review-status-label" />
+                                    <TextArea fx:id="reviewTextArea" prefRowCount="3" promptText="Partagez votre avis sur ce produit..." styleClass="review-input" wrapText="true" />
+                                    <HBox alignment="CENTER_RIGHT">
+                                        <Button fx:id="submitReviewButton" onAction="#handleSubmitReview" styleClass="add-review-button" text="Envoyer" />
+                                    </HBox>
+                                </VBox>
+                            </VBox>
+                            
                         </VBox>
                         <VBox minWidth="300" spacing="20" styleClass="purchase-info-right">
                             <VBox spacing="10" styleClass="platform-info">

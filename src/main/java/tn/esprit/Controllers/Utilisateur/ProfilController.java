@@ -221,8 +221,20 @@ public class ProfilController implements Initializable {
             txtOldPassword.clear();
             txtPassword.clear();
             showMessage("Profile updated successfully", true);
+            navigateToHome();
         } catch (Exception e) {
             showMessage("Error updating profile: " + e.getMessage(), false);
+        }
+    }
+    private void navigateToHome() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Home.fxml"));
+            Stage stage = (Stage) btnUpdateInfo.getScene().getWindow();
+            stage.setScene(new Scene(loader.load()));
+            stage.show();
+        } catch (IOException e) {
+            btnUpdateInfo.setText("Impossible de charger la page d'accueil.");
+            e.printStackTrace();
         }
     }
 

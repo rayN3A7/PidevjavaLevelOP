@@ -10,6 +10,10 @@ public class Produit {
     private String activation_region;
     private int score;
 
+    // Default constructor
+    public Produit() {
+    }
+
     // Constructor with all fields
     public Produit(int id, String nomProduit, String description,
                    String platform, String region, String type,

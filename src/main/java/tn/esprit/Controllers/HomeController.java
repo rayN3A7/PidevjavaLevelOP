@@ -27,6 +27,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -546,7 +547,17 @@ public class HomeController {
         card.getStyleClass().add("event-card");
 
         ImageView imageView = new ImageView();
-        imageView.setImage(new Image(getClass().getResourceAsStream("/assets/image/event2.jpg")));
+        String imageBaseDir = "C:\\xampp\\htdocs\\img\\";
+        if (event.getPhoto_event() != null && !event.getPhoto_event().isEmpty()) {
+            String imagePath = imageBaseDir + event.getPhoto_event();
+            File imageFile = new File(imagePath);
+
+            if (imageFile.exists()) {
+                imageView.setImage(new Image(imageFile.toURI().toString()));
+            } else {
+                System.out.println("Image non trouvée : " + imagePath);
+            }
+        }
         imageView.setFitHeight(200);
         imageView.setFitWidth(250);
 
@@ -742,98 +753,85 @@ public class HomeController {
         });
         return button;
     }
-    @FXML
-    public void openChatbotDialog() {
-        if (SessionManager.getInstance().isLoggedIn()) {
-            Stage chatbotStage = new Stage();
-            chatbotStage.setTitle("Chatbot LevelOP");
-            chatbotStage.initModality(Modality.APPLICATION_MODAL);
-
-            VBox chatbotLayout = new VBox(10);
-            chatbotLayout.setStyle("-fx-background-color: #1E1E2E; -fx-padding: 20; -fx-spacing: 10;");
-
-            TextArea chatArea = new TextArea();
-            chatArea.setStyle("-fx-background-color: #2A2C3E; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 10; -fx-font-size: 14px; -fx-text-fill: #000000; -fx-wrap-text: true;");
-            chatArea.setEditable(false);
-            chatArea.setWrapText(true);
-            chatArea.setPrefHeight(300);
-
-            TextField userInput = new TextField();
-            userInput.setStyle("-fx-background-color: #2A2C3E; -fx-background-radius: 10; -fx-border-radius: 10; -fx-padding: 10; -fx-font-size: 14px; -fx-text-fill: #FFFFFF; -fx-prompt-text-fill: #6c757d;");
-            userInput.setPromptText("Posez une question...");
-
-            Button sendButton = new Button("Envoyer");
-            sendButton.setStyle("-fx-background-color: #FF4081; -fx-text-fill: #FFFFFF; -fx-background-radius: 10; -fx-padding: 10 20; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
-            sendButton.setOnAction(e -> {
-                String userMessage = userInput.getText();
-                if (!userMessage.isEmpty()) {
-                    chatArea.appendText("Vous : " + userMessage + "\n");
-                    userInput.clear();
-
-                    new Thread(() -> {
-                        String response = getChatbotResponse(userMessage);
-                        Platform.runLater(() -> animateText(chatArea, "Chatbot : " + response + "\n"));
-                    }).start();
-                }
-            });
-
-            Button closeButton = new Button("Fermer");
-            closeButton.setStyle("-fx-background-color: #FFFFFF; -fx-text-fill: #1E1E2E; -fx-background-radius: 10; -fx-padding: 10 20; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;");
-            closeButton.setOnAction(e -> chatbotStage.close());
-
-            HBox buttonBox = new HBox(10, sendButton, closeButton);
-            buttonBox.setAlignment(Pos.CENTER_RIGHT);
-
-            chatbotLayout.getChildren().addAll(chatArea, userInput, buttonBox);
-            Scene scene = new Scene(chatbotLayout, 400, 400);
-            chatbotStage.setScene(scene);
-            chatbotStage.show();
-        } else {
-            showAlert(Alert.AlertType.INFORMATION, "Information", "Vous devez être connecté pour accéder au chatbot");
-        }
-    }
-
-    private void animateText(TextArea textArea, String text) {
-        final StringBuilder displayedText = new StringBuilder(textArea.getText());
-        for (int i = 0; i < text.length(); i++) {
-            final int index = i;
-            Timeline timeline = new Timeline();
-            KeyFrame keyFrame = new KeyFrame(Duration.millis(50 * (index + 1)), event -> {
-                displayedText.append(text.charAt(index));
-                textArea.setText(displayedText.toString());
-            });
-            timeline.getKeyFrames().add(keyFrame);
-            timeline.play();
-        }
-    }
-
     private void showAlert(Alert.AlertType alertType, String title, String content) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
         alert.setContentText(content);
         alert.showAndWait();
     }
+    @FXML
+    public void openChatbotDialog() {
+        Stage chatbotStage = new Stage();
+        chatbotStage.setTitle("Chatbot Gemini");
+        chatbotStage.initModality(Modality.APPLICATION_MODAL);
+
+        VBox chatbotLayout = new VBox(10);
+        chatbotLayout.setStyle("-fx-background-color: #1E1E2E; -fx-padding: 20; -fx-spacing: 10;");
+
+        TextArea chatArea = new TextArea();
+        chatArea.setStyle("-fx-background-color: #2A2C3E; -fx-text-fill: #000;");
+        chatArea.setEditable(false);
+        chatArea.setWrapText(true);
+        chatArea.setPrefHeight(300);
+
+        TextField userInput = new TextField();
+        userInput.setPromptText("Posez une question...");
+
+        Button sendButton = new Button("Envoyer");
+        sendButton.setOnAction(e -> {
+            String userMessage = userInput.getText();
+            if (!userMessage.isEmpty()) {
+                chatArea.appendText("Vous : " + userMessage + "\n");
+                userInput.clear();
+
+                new Thread(() -> {
+                    String response = getChatbotResponse(userMessage);
+                    Platform.runLater(() -> animateText(chatArea, "Chatbot : " + response + "\n"));
+                }).start();
+            }
+        });
+
+        chatbotLayout.getChildren().addAll(chatArea, userInput, sendButton);
+        Scene scene = new Scene(chatbotLayout, 400, 400);
+        chatbotStage.setScene(scene);
+        chatbotStage.show();
+    }
+
+    private void animateText(TextArea textArea, String text) {
+        final StringBuilder displayedText = new StringBuilder(textArea.getText());
+        for (int i = 0; i < text.length(); i++) {
+            final int index = i;
+            Timeline timeline = new Timeline(new KeyFrame(Duration.millis(50 * (index + 1)), event -> {
+                displayedText.append(text.charAt(index));
+                textArea.setText(displayedText.toString());
+            }));
+            timeline.play();
+        }
+    }
 
     private String getChatbotResponse(String message) {
-        String apiKey = dotenv.get("OPENAI_API_KEY");
-        String apiUrl = dotenv.get("OPENAI_API_URL");
+        String apiKey = dotenv.get("GEMINI_API_KEY");
+        String apiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + apiKey;
 
-        if (apiKey == null || apiUrl == null) {
-            return "Error: API credentials not found in environment variables. Please check your Configuration file.";
+        if (apiKey == null) {
+            return "Erreur : Clé API non trouvée dans le fichier .env";
         }
 
         try {
             URL url = new URL(apiUrl);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + apiKey);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 
             JSONObject data = new JSONObject();
-            data.put("model", "gpt-4");
-            data.put("messages", new org.json.JSONArray()
-                    .put(new JSONObject().put("role", "user").put("content", message)));
+            JSONArray contents = new JSONArray();
+            JSONObject content = new JSONObject();
+            JSONArray parts = new JSONArray();
+            parts.put(new JSONObject().put("text", message));
+            content.put("parts", parts);
+            contents.put(content);
+            data.put("contents", contents);
 
             try (OutputStream os = conn.getOutputStream()) {
                 byte[] input = data.toString().getBytes("utf-8");
@@ -848,11 +846,18 @@ public class HomeController {
             }
 
             JSONObject jsonResponse = new JSONObject(response.toString());
-            return jsonResponse.getJSONArray("choices").getJSONObject(0).getJSONObject("message").getString("content");
+            JSONArray candidates = jsonResponse.optJSONArray("candidates");
+            if (candidates != null && candidates.length() > 0) {
+                JSONObject firstCandidate = candidates.getJSONObject(0);
+                JSONArray responseParts = firstCandidate.optJSONObject("content").optJSONArray("parts");
+                if (responseParts != null && responseParts.length() > 0) {
+                    return responseParts.getJSONObject(0).optString("text", "Réponse vide");
+                }
+            }
+            return "Réponse non trouvée dans la réponse de l'API";
 
         } catch (Exception e) {
-            LOGGER.error("Error communicating with API", e);
-            return "Erreur lors de la communication avec l'API: " + e.getMessage();
+            return "Erreur lors de la communication avec l'API Gemini: " + e.getMessage();
         }
     }
 }
