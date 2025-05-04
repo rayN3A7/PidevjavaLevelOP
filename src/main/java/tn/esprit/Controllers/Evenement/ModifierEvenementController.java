@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ModifierEvenementController {
     @FXML
@@ -47,33 +48,34 @@ public class ModifierEvenementController {
     private Evenement eventAModifier;
     private final EvenementService es = new EvenementService();
     private final CategorieEvService ces = new CategorieEvService();
-    private String newImageName; // Stocke le nom de la nouvelle image
+    private String newImageName;
 
-    private static final String IMAGE_DIR = "C:\\xampp\\htdocs\\img\\"; // Dossier de destination
+    private static final String IMAGE_DIR = "C:\\xampp\\htdocs\\img\\";
+    private static final String IMAGE_URL = System.getenv("IMG_UPLOAD_PATH") != null 
+        ? System.getenv("IMG_UPLOAD_PATH") 
+        : "http://localhost/img/";
 
     public void initData(Evenement event) {
         this.eventAModifier = event;
 
-        // Extraire la date et l'heure depuis Timestamp
         Timestamp eventTimestamp = event.getDate_event();
         LocalDateTime eventDateTime = eventTimestamp.toLocalDateTime();
-
-        // Séparer la date et l'heure
         LocalDate datePart = eventDateTime.toLocalDate();
         LocalTime timePart = eventDateTime.toLocalTime();
-
-        // Formater l'heure en HH:mm
         String formattedTime = String.format("%02d:%02d", timePart.getHour(), timePart.getMinute());
 
-        // Remplir les champs
         NomEvent.setText(event.getNom_event());
         DateEvent.setValue(datePart);
         LieuEvent.setText(event.getLieu_event());
         NBPEvent.setText(String.valueOf(event.getMax_places_event()));
         CatEvent.setValue(ces.getNomCategorieEvent(event.getCategorie_id()));
         TimeEvent.setValue(formattedTime);
-        PhotoEvent.setText(event.getPhoto_event() != null ? event.getPhoto_event() : ""); // Afficher le nom de l'image existante
-        newImageName = event.getPhoto_event(); // Initialiser avec le nom actuel
+        
+        // Afficher l'URL complète de l'image si elle existe
+        if (event.getPhoto_event() != null && !event.getPhoto_event().isEmpty()) {
+            PhotoEvent.setText(IMAGE_URL + event.getPhoto_event());
+        }
+        newImageName = event.getPhoto_event();
     }
 
     @FXML
@@ -94,7 +96,6 @@ public class ModifierEvenementController {
     private void ModifierEvenement() {
         if (eventAModifier != null) {
             try {
-                // Vérifier que tous les champs sont remplis
                 if (NomEvent.getText().trim().isEmpty() || LieuEvent.getText().trim().isEmpty() ||
                         NBPEvent.getText().trim().isEmpty() || DateEvent.getValue() == null ||
                         TimeEvent.getValue() == null || CatEvent.getValue() == null) {
@@ -110,21 +111,17 @@ public class ModifierEvenementController {
                 int categoryId = ces.getIdCategorieEvent(selectedCategory);
                 eventAModifier.setCategorie_id(categoryId);
 
-                // Récupérer la date et l'heure sélectionnées
                 LocalDate selectedDate = DateEvent.getValue();
                 LocalTime selectedTime = LocalTime.parse(TimeEvent.getValue());
                 LocalDateTime dateTime = LocalDateTime.of(selectedDate, selectedTime);
 
-                // Vérifier que la date est dans le futur
                 if (dateTime.isBefore(LocalDateTime.now())) {
                     showAlert(Alert.AlertType.ERROR, "Erreur", "La date de l'événement doit être dans le futur.");
                     return;
                 }
 
-                // Convertir LocalDateTime en Timestamp
                 eventAModifier.setDate_event(Timestamp.valueOf(dateTime));
 
-                // Mettre à jour le nom de l'image si une nouvelle image est sélectionnée
                 if (newImageName != null && !newImageName.isEmpty()) {
                     eventAModifier.setPhoto_event(newImageName);
                 }
@@ -152,16 +149,22 @@ public class ModifierEvenementController {
         File selectedFile = fileChooser.showOpenDialog(NomEvent.getScene().getWindow());
         if (selectedFile != null) {
             try {
-                // Extraire le nom du fichier (sans le chemin)
-                String imageName = selectedFile.getName();
-                File destinationFile = new File(IMAGE_DIR + imageName);
+                // Générer un nom unique pour l'image
+                String originalExtension = selectedFile.getName().substring(selectedFile.getName().lastIndexOf("."));
+                String imageName = UUID.randomUUID().toString() + originalExtension;
+                
+                // Créer le dossier de destination s'il n'existe pas
+                File destinationDir = new File(IMAGE_DIR);
+                if (!destinationDir.exists()) {
+                    destinationDir.mkdirs();
+                }
 
-                // Copier l'image dans C:\xampp\htdocs\img\
+                File destinationFile = new File(IMAGE_DIR + imageName);
                 Files.copy(selectedFile.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
                 // Mettre à jour le nom de l'image
                 newImageName = imageName;
-                PhotoEvent.setText(imageName); // Afficher uniquement le nom dans le champ
+                PhotoEvent.setText(IMAGE_URL + imageName);
             } catch (IOException e) {
                 showAlert(Alert.AlertType.ERROR, "Erreur", "Échec de l'enregistrement de l'image : " + e.getMessage());
             }

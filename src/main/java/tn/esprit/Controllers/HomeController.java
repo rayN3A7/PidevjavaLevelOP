@@ -639,6 +639,10 @@ public class HomeController {
         try {
             promoSessions = serviceSession.getSessionsInPromo();
             if (promoSessions != null && !promoSessions.isEmpty()) {
+                // Limiter à 4 sessions maximum
+                promoSessions = promoSessions.stream()
+                    .limit(4)
+                    .collect(Collectors.toList());
                 displayPromoSessions();
             } else {
                 Label noSessionsLabel = new Label("Aucune session en promotion trouvée.");
@@ -824,11 +828,18 @@ public class HomeController {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 
+            // Créer le prompt spécialisé pour le gaming
+            String gamingPrompt = "Tu es un assistant spécialisé dans le gaming. Tu dois répondre uniquement aux questions concernant les jeux vidéo, " +
+                    "les conseils de jeu, les astuces, les recommandations de jeux, les configurations PC pour le gaming, " +
+                    "et tout ce qui est lié au monde du gaming. Si la question n'est pas liée au gaming, " +
+                    "réponds poliment que tu es spécialisé uniquement dans le gaming et que tu ne peux pas répondre à cette question. " +
+                    "Voici la question de l'utilisateur : " + message;
+
             JSONObject data = new JSONObject();
             JSONArray contents = new JSONArray();
             JSONObject content = new JSONObject();
             JSONArray parts = new JSONArray();
-            parts.put(new JSONObject().put("text", message));
+            parts.put(new JSONObject().put("text", gamingPrompt));
             content.put("parts", parts);
             contents.put(content);
             data.put("contents", contents);

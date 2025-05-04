@@ -29,8 +29,10 @@ public class EvenementCardController {
     private Button detailsButton;
     @FXML
     private HBox eventActions;
-    private static final String IMAGE_DIR = "C:/xampp/htdocs/img/";
-
+    
+    private static final String IMAGE_URL = System.getenv("IMG_UPLOAD_PATH") != null 
+        ? System.getenv("IMG_UPLOAD_PATH") 
+        : "http://localhost/img/";
 
     private Evenement event;
     private EvenementService es = new EvenementService();
@@ -45,22 +47,26 @@ public class EvenementCardController {
         lieuLabel.setText(event.getLieu_event());
         categorieLabel.setText(ces.getNomCategorieEvent(event.getCategorie_id()));
         placesLabel.setText("Places restantes: " + event.getMax_places_event());
+        
         if (event.getPhoto_event() != null && !event.getPhoto_event().isEmpty()) {
-            String imagePath = IMAGE_DIR + event.getPhoto_event();
-            File imageFile = new File(imagePath);
-
-            if (imageFile.exists()) {
-                eventImage.setImage(new Image(imageFile.toURI().toString()));
-            } else {
-                System.out.println("Image non trouvée : " + imagePath);
+            // Utiliser l'URL depuis la variable d'environnement
+            String imageUrl = IMAGE_URL + event.getPhoto_event();
+            try {
+                Image image = new Image(imageUrl);
+                eventImage.setImage(image);
+            } catch (Exception e) {
+                System.out.println("Erreur lors du chargement de l'image : " + imageUrl);
+                e.printStackTrace();
             }
         }
+
         if(userRole.equals("CLIENT")||userRole.equals("COACH")){
             Button reserverButton = new Button("Réserver");
             reserverButton.getStyleClass().add("view-button");
             reserverButton.setOnAction(e -> reserverPlace(event));
             eventActions.getChildren().add(reserverButton);
         }
+        
         if ("ADMIN".equals(userRole)) {
             Button modifierButton = new Button("Modifier");
             modifierButton.getStyleClass().add("edit-button");
@@ -70,7 +76,6 @@ public class EvenementCardController {
             supprimerButton.getStyleClass().add("delete-button");
             supprimerButton.setOnAction(e -> deleteEvent());
 
-            // Ajouter les boutons au conteneur HBox
             eventActions.getChildren().addAll(modifierButton, supprimerButton);
         }
 

@@ -39,6 +39,9 @@ public class AjouterEvenementController {
 
     private File selectedFile;
     private static final String IMAGE_DIR = "C:\\xampp\\htdocs\\img\\";
+    private static final String IMAGE_URL = System.getenv("IMG_UPLOAD_PATH") != null 
+        ? System.getenv("IMG_UPLOAD_PATH") 
+        : "http://localhost/img/";
     @FXML
     private void initialize() {
         GetCategorie();
