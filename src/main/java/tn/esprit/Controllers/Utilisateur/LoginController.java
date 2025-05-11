@@ -92,7 +92,7 @@ public class LoginController {
             if(u.getRole().equals(Role.CLIENT)||u.getRole().equals(Role.COACH))
                 navigateToHome();
             else{
-                navigateToDash();
+                navigateToHome();
             }
         } else {
             lblError.setText("Email ou mot de passe incorrect.");

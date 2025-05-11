@@ -687,6 +687,9 @@ public class HomeController {
                 "-fx-font-weight: bold; " +
                 "-fx-padding: 10 0 5 0;");
 
+        Label imageNameLabel = new Label("Image: " + (session.getImageName() != null ? session.getImageName() : "Non disponible"));
+        imageNameLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 12px;");
+
         Label priceLabel = new Label("Prix: " + session.getprix() + " DT");
         priceLabel.setStyle("-fx-text-fill: #8899A6; -fx-font-size: 14px;");
 
@@ -695,32 +698,40 @@ public class HomeController {
 
         Button checkAvailabilityButton = createCheckAvailabilityButton(session.getId());
 
-        sessionCard.getChildren().addAll(gameImage, gameLabel, priceLabel, durationLabel, checkAvailabilityButton);
+        sessionCard.getChildren().addAll(gameImage, gameLabel, imageNameLabel, priceLabel, durationLabel, checkAvailabilityButton);
         return sessionCard;
     }
 
     private void loadSessionImage(ImageView imageView, Session_game session) {
         if (session.getImageName() != null && !session.getImageName().isEmpty()) {
-            String encodedImageName = URLEncoder.encode(session.getImageName(), StandardCharsets.UTF_8).replace("+", "%20");
-            String imageUrl = IMAGE_BASE_URL + encodedImageName;
-            try {
-                Image image = new Image(imageUrl, true);
-                image.errorProperty().addListener((obs, oldVal, newVal) -> {
-                    if (newVal) {
-                        LOGGER.error("Error loading image from " + imageUrl);
-                        setDefaultImage(imageView);
-                    }
-                });
-                image.progressProperty().addListener((obs, oldVal, newVal) -> {
-                    if (newVal.doubleValue() == 1.0 && !image.isError()) {
-                        imageView.setImage(image);
-                    }
-                });
-            } catch (Exception e) {
-                LOGGER.error("Exception loading image from " + imageUrl, e);
+            String imageBaseDir = "C:\\xampp\\htdocs\\img\\";
+            String fullImagePath = imageBaseDir + session.getImageName();
+            File imageFile = new File(fullImagePath);
+            
+            if (imageFile.exists()) {
+                try {
+                    Image image = new Image(imageFile.toURI().toString(), true);
+                    image.errorProperty().addListener((obs, oldVal, newVal) -> {
+                        if (newVal) {
+                            LOGGER.error("Error loading image from " + fullImagePath);
+                            setDefaultImage(imageView);
+                        }
+                    });
+                    image.progressProperty().addListener((obs, oldVal, newVal) -> {
+                        if (newVal.doubleValue() == 1.0 && !image.isError()) {
+                            imageView.setImage(image);
+                        }
+                    });
+                } catch (Exception e) {
+                    LOGGER.error("Exception loading image from " + fullImagePath, e);
+                    setDefaultImage(imageView);
+                }
+            } else {
+                LOGGER.error("Image file does not exist: " + fullImagePath);
                 setDefaultImage(imageView);
             }
         } else {
+            LOGGER.warn("No image name provided for session");
             setDefaultImage(imageView);
         }
     }
