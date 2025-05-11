@@ -632,7 +632,7 @@
 }
 
 .list-button {
-    -fx-background-color: #6c5ce7;
+    -fx-background-color: #0585e6;
     -fx-text-fill: white;
     -fx-background-radius: 8;
     -fx-padding: 10 20;
@@ -647,7 +647,7 @@
 }
 
 .list-button:hover {
-    -fx-background-color: #5f4ed6;
+    -fx-background-color: #0585e6;
 }
 
 .list-header {
@@ -710,7 +710,7 @@
 }
 
 .edit-button {
-    -fx-background-color: #4834d4;
+    -fx-background-color: #0585e6;
 }
 
 .delete-button {
@@ -825,7 +825,7 @@
 }
 
 .view-button {
-    -fx-background-color: #6c5ce7;
+    -fx-background-color: #0585e6;
     -fx-text-fill: white;
 }
 
@@ -846,7 +846,7 @@
 }
 
 .view-button:hover {
-    -fx-background-color: #5f4ed6;
+    -fx-background-color: #0585e6;
     -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 10, 0, 0, 0);
 }
 
