@@ -1,0 +1,33 @@
+[Scene 1: User Account Creation - Visual of user signing up]
+Narrator:
+“Getting started is a breeze ! To begin , Create an account, sign in with Google, or log in with your credentials. Then , easily you can update your profile anytime to keep things fresh.”
+
+[Scene 2: Admin Adding Events - Visual of an admin dashboard]
+Narrator:
+“Admins can add exciting events, while users explore a vibrant list of upcoming events, check detailed info, and reserve their spot with just a tap!”
+
+
+
+[Scene 3: QR Code Scanning - Visual of a user scanning a QR code]
+Narrator:
+“Attending an event? Scan the QR code to save all the details and keep everything organized in one place.”
+
+
+[Scene 4: Shop and AI FPS Estimation - Visual of a sleek shop interface]
+Narrator:
+“Shop for awesome gaming gear in our secure store, powered by Stripe for safe payments. Curious about your gaming performance? Our AI estimates your FPS to level up your setup!”
+
+[Scene 5: Forum Interaction - Visual of users posting and reacting]
+Narrator:
+“Join the conversation in our lively forum! Ask questions, reply, react with emojis,or report content to keep the community thriving.”
+
+
+[Scene 6: Coaching Sessions - Visual of a coaching session booking]
+Narrator:
+“Take your skills to the next level with our coaching feature. Browse sessions, book a coach, and get personalized guidance to dominate the game.”
+
+
+
+[Scene 7: AI Gaming Chatbot - Visual of a chatbot interface]
+Narrator:
+“Need tips or advice? Our specialized AI gaming chatbot is here 24/7 to answer your questions and boost your gaming experience to the next level .”

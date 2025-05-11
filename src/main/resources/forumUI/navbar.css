@@ -54,7 +54,26 @@
     -fx-border-radius: 10;
 }
 
-/* Login button hover effect */
 .login-button:hover {
     -fx-background-color: #e60073;
+}
+.notification-button {
+    -fx-background-color: transparent;
+    -fx-padding: 5;
+    -fx-cursor: hand;
+}
+
+.notification-button:hover {
+    -fx-background-color: #ff4081;
+}
+
+.notification-badge {
+    -fx-background-color: #ff0000;
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-padding: 2 4;
+    -fx-background-radius: 10;
+    -fx-alignment: center;
+    -fx-translate-x: 10;
+    -fx-translate-y: -10;
 }

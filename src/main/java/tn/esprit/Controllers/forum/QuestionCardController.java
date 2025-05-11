@@ -73,10 +73,10 @@ public class QuestionCardController {
     @FXML private ImageView gameIcon;
     @FXML private VBox contentVBox;
     @FXML private ImageView crownIcon;
-    @FXML private Label selectedEmojiImage; // Changed from ImageView to Label
     @FXML private HBox reactionContainer;
     @FXML private Button reportButton;
     @FXML private Button shareButton;
+    @FXML private ImageView selectedEmojiImage; // Changé de Label à ImageView
 
     private final ReportService reportService = new ReportService();
     private Question question;
@@ -134,7 +134,7 @@ public class QuestionCardController {
         votesLabel.setText("Votes: " + question.getVotes());
 
         upvoteButton.setOnAction(e -> forumController.handleUpvote(question, votesLabel, downvoteButton));
-        downvoteButton.setOnAction(e -> forumController.handleDownvote(question, votesLabel, downvoteButton));
+        downvoteButton.setOnAction(e -> forumController.handleDownvote(question, votesLabel, upvoteButton));
         downvoteButton.setDisable(question.getVotes() == 0);
         shareButton.setOnAction(e -> showShareDialog());
         updateButton.setOnAction(e -> {
@@ -1111,12 +1111,43 @@ public class QuestionCardController {
             HBox reactionBox = new HBox(5);
             reactionBox.setAlignment(Pos.CENTER_LEFT);
 
-            Label emojiLabel = new Label(emojiUnicode);
-            emojiLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: white;");
+            HBox emojiContainer = new HBox();
+            emojiContainer.setAlignment(Pos.CENTER);
+            ImageView emojiImage = new ImageView();
+            emojiImage.setFitWidth(20);
+            emojiImage.setFitHeight(20);
+
+            Label unicodeFallback = new Label(emojiUnicode);
+            unicodeFallback.setStyle("-fx-font-size: 16px; -fx-text-fill: white;");
+            unicodeFallback.setVisible(false);
+            emojiContainer.getChildren().addAll(emojiImage, unicodeFallback);
+
+            String unicodeHex = convertUnicodeToHex(emojiUnicode);
+            String imageUrl = "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/" + unicodeHex + ".png";
+            EmojiService.loadImageAsync(imageUrl).thenAccept(image -> {
+                Platform.runLater(() -> {
+                    if (image != null && !image.isError()) {
+                        emojiImage.setImage(image);
+                        unicodeFallback.setVisible(false);
+                    } else {
+                        System.err.println("Failed to load reaction image for emoji: " + emojiUnicode);
+                        emojiImage.setVisible(false);
+                        unicodeFallback.setVisible(true);
+                    }
+                });
+            }).exceptionally(throwable -> {
+                System.err.println("Exception loading reaction image for emoji " + emojiUnicode + ": " + throwable.getMessage());
+                Platform.runLater(() -> {
+                    emojiImage.setVisible(false);
+                    unicodeFallback.setVisible(true);
+                });
+                return null;
+            });
+
             Label countLabel = new Label(String.valueOf(count));
             countLabel.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
 
-            reactionBox.getChildren().addAll(emojiLabel, countLabel);
+            reactionBox.getChildren().addAll(emojiContainer, countLabel);
             reactionContainer.getChildren().add(reactionBox);
         }
     }
@@ -1124,11 +1155,40 @@ public class QuestionCardController {
     public void displayUserReaction() {
         String userReaction = question.getUserReaction();
         if (userReaction != null && !userReaction.isEmpty()) {
-            selectedEmojiImage.setText(userReaction); // Use setText for Label
-            selectedEmojiImage.setStyle("-fx-font-size: 20px; -fx-text-fill: white;");
+            String unicodeHex = convertUnicodeToHex(userReaction);
+            String imageUrl = "https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/" + unicodeHex + ".png";
+            EmojiService.loadImageAsync(imageUrl).thenAccept(image -> {
+                Platform.runLater(() -> {
+                    if (image != null && !image.isError()) {
+                        selectedEmojiImage.setImage(image);
+                    } else {
+                        System.err.println("Failed to load user reaction image for emoji: " + userReaction);
+                        selectedEmojiImage.setImage(null);
+                    }
+                });
+            }).exceptionally(throwable -> {
+                System.err.println("Exception loading user reaction image for emoji " + userReaction + ": " + throwable.getMessage());
+                Platform.runLater(() -> selectedEmojiImage.setImage(null));
+                return null;
+            });
         } else {
-            selectedEmojiImage.setText(""); // Clear the label
+            selectedEmojiImage.setImage(null);
         }
+    }
+
+    private String convertUnicodeToHex(String unicode) {
+        StringBuilder hex = new StringBuilder();
+        for (int i = 0; i < unicode.length(); i++) {
+            int codePoint = unicode.codePointAt(i);
+            if (Character.isSupplementaryCodePoint(codePoint)) {
+                i++;
+            }
+            hex.append(String.format("%x", codePoint));
+            if (i < unicode.length() - 1) {
+                hex.append("-");
+            }
+        }
+        return hex.toString().toLowerCase();
     }
 
     private void showEmojiPicker() {
@@ -1141,76 +1201,111 @@ public class QuestionCardController {
         emojiBox.setPadding(new Insets(10));
         emojiBox.setStyle("-fx-background-color: #091221;");
 
-        executorService.submit(() -> {
-            try {
-                Map<String, List<EmojiService.Emoji>> categorizedEmojis = EmojiService.fetchEmojis();
-                Platform.runLater(() -> {
-                    for (String sentiment : Arrays.asList("positive", "negative", "neutral")) {
-                        Label sectionLabel = new Label(sentiment.substring(0, 1).toUpperCase() + sentiment.substring(1));
-                        sectionLabel.setStyle("-fx-text-fill: #ff4081; -fx-font-size: 14px; -fx-font-weight: bold;");
-                        emojiBox.getChildren().add(sectionLabel);
-
-                        GridPane emojiGrid = new GridPane();
-                        emojiGrid.setHgap(8);
-                        emojiGrid.setVgap(8);
-                        emojiGrid.setPadding(new Insets(5));
-
-                        List<EmojiService.Emoji> emojis = categorizedEmojis.get(sentiment);
-                        int col = 0;
-                        int row = 0;
-                        for (EmojiService.Emoji emoji : emojis) {
-                            Label emojiLabel = new Label(emoji.getUnicode());
-                            emojiLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
-                            emojiLabel.setAlignment(Pos.CENTER);
-                            emojiLabel.setPrefSize(40, 40);
-
-                            emojiLabel.setOnMouseEntered(e -> {
-                                ScaleTransition scaleIn = new ScaleTransition(Duration.millis(150), emojiLabel);
-                                scaleIn.setToX(1.2);
-                                scaleIn.setToY(1.2);
-                                scaleIn.play();
-                            });
-                            emojiLabel.setOnMouseExited(e -> {
-                                ScaleTransition scaleOut = new ScaleTransition(Duration.millis(150), emojiLabel);
-                                scaleOut.setToX(1.0);
-                                scaleOut.setToY(1.0);
-                                scaleOut.play();
-                            });
-
-                            emojiLabel.setOnMouseClicked(e -> {
-                                forumController.handleReaction(question, emoji.getUnicode());
-                                popup.hide();
-                                displayReactions();
-                                displayUserReaction();
-                            });
-
-                            emojiGrid.add(emojiLabel, col, row);
-                            col++;
-                            if (col >= 5) {
-                                col = 0;
-                                row++;
-                            }
-                        }
-                        emojiBox.getChildren().add(emojiGrid);
-                    }
-
-                    scrollPane.setContent(emojiBox);
-                    scrollPane.setPrefSize(250, 300);
-                    popup.getContent().add(scrollPane);
-
-                    double x = reactButton.getScene().getWindow().getX() + reactButton.localToScene(0, 0).getX();
-                    double y = reactButton.getScene().getWindow().getY() + reactButton.localToScene(0, 0).getY() + reactButton.getHeight();
-                    double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
-                    if (y + 300 > screenHeight) {
-                        y = y - 300 - reactButton.getHeight();
-                    }
-                    popup.show(reactButton, x, y);
-                    popup.setAutoHide(true);
-                });
-            } catch (Exception e) {
-                System.err.println("Failed to load emojis: " + e.getMessage());
-                Platform.runLater(() -> showAlert("Error", "Failed to load emoji picker"));
+        EmojiService.fetchEmojis().thenAcceptAsync(categorizedEmojis -> {
+            if (categorizedEmojis == null) {
+                Platform.runLater(() -> showAlert("Error", "Failed to fetch emojis."));
+                return;
             }
+
+            Platform.runLater(() -> {
+                for (String sentiment : Arrays.asList("positive", "negative", "neutral")) {
+                    Label sectionLabel = new Label(sentiment.substring(0, 1).toUpperCase() + sentiment.substring(1));
+                    sectionLabel.setStyle("-fx-text-fill: #ff4081; -fx-font-size: 14px; -fx-font-weight: bold;");
+                    emojiBox.getChildren().add(sectionLabel);
+
+                    GridPane emojiGrid = new GridPane();
+                    emojiGrid.setHgap(8);
+                    emojiGrid.setVgap(8);
+                    emojiGrid.setPadding(new Insets(5));
+
+                    List<EmojiService.Emoji> emojis = categorizedEmojis.get(sentiment);
+                    if (emojis == null || emojis.isEmpty()) {
+                        System.err.println("No emojis found for sentiment: " + sentiment);
+                        continue;
+                    }
+
+                    int col = 0;
+                    int row = 0;
+                    for (EmojiService.Emoji emoji : emojis) {
+                        HBox emojiContainer = new HBox();
+                        emojiContainer.setAlignment(Pos.CENTER);
+                        emojiContainer.setStyle("-fx-pref-width: 40px; -fx-pref-height: 40px;");
+
+                        ImageView emojiImage = new ImageView();
+                        emojiImage.setFitWidth(24);
+                        emojiImage.setFitHeight(24);
+
+                        // Fallback to Unicode emoji if image fails
+                        Label unicodeFallback = new Label(emoji.getUnicode());
+                        unicodeFallback.setStyle("-fx-font-size: 20px; -fx-text-fill: white;");
+                        unicodeFallback.setVisible(false);
+                        emojiContainer.getChildren().addAll(emojiImage, unicodeFallback);
+
+                        EmojiService.loadImageAsync(emoji.getImageUrl()).thenAccept(image -> {
+                            Platform.runLater(() -> {
+                                if (image != null && !image.isError()) {
+                                    emojiImage.setImage(image);
+                                    unicodeFallback.setVisible(false);
+                                } else {
+                                    System.err.println("Failed to load image for emoji: " + emoji.getUnicode() + ", showing Unicode fallback.");
+                                    emojiImage.setVisible(false);
+                                    unicodeFallback.setVisible(true);
+                                }
+                            });
+                        }).exceptionally(throwable -> {
+                            System.err.println("Exception loading image for emoji " + emoji.getUnicode() + ": " + throwable.getMessage());
+                            Platform.runLater(() -> {
+                                emojiImage.setVisible(false);
+                                unicodeFallback.setVisible(true);
+                            });
+                            return null;
+                        });
+
+                        emojiContainer.setOnMouseEntered(e -> {
+                            ScaleTransition scaleIn = new ScaleTransition(Duration.millis(150), emojiContainer);
+                            scaleIn.setToX(1.2);
+                            scaleIn.setToY(1.2);
+                            scaleIn.play();
+                        });
+                        emojiContainer.setOnMouseExited(e -> {
+                            ScaleTransition scaleOut = new ScaleTransition(Duration.millis(150), emojiContainer);
+                            scaleOut.setToX(1.0);
+                            scaleOut.setToY(1.0);
+                            scaleOut.play();
+                        });
+
+                        emojiContainer.setOnMouseClicked(e -> {
+                            forumController.handleReaction(question, emoji.getUnicode());
+                            popup.hide();
+                            displayReactions();
+                            displayUserReaction();
+                        });
+
+                        emojiGrid.add(emojiContainer, col, row);
+                        col++;
+                        if (col >= 5) {
+                            col = 0;
+                            row++;
+                        }
+                    }
+                    emojiBox.getChildren().add(emojiGrid);
+                }
+
+                scrollPane.setContent(emojiBox);
+                scrollPane.setPrefSize(250, 300);
+                popup.getContent().add(scrollPane);
+
+                double x = reactButton.getScene().getWindow().getX() + reactButton.localToScene(0, 0).getX();
+                double y = reactButton.getScene().getWindow().getY() + reactButton.localToScene(0, 0).getY() + reactButton.getHeight();
+                double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
+                if (y + 300 > screenHeight) y -= 300 + reactButton.getHeight();
+                popup.show(reactButton, x, y);
+                popup.setAutoHide(true);
+            });
+        }, executorService).exceptionally(throwable -> {
+            System.err.println("Failed to fetch emojis: " + throwable.getMessage());
+            Platform.runLater(() -> showAlert("Error", "Failed to load emoji picker: " + throwable.getMessage()));
+            return null;
         });
     }
 

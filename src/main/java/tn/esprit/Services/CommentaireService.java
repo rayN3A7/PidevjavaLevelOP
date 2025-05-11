@@ -4,14 +4,12 @@ import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.scene.Node;
 import tn.esprit.Interfaces.IService;
-import tn.esprit.Models.Commentaire;
-import tn.esprit.Models.Question;
-import tn.esprit.Models.Role;
-import tn.esprit.Models.Utilisateur;
+import tn.esprit.Models.*;
 import tn.esprit.utils.MyDatabase;
 import tn.esprit.utils.PrivilegeEvent;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +19,7 @@ public class CommentaireService implements IService<Commentaire> {
     private static Connection connexion;
     private Node eventTarget;
     private final UtilisateurService us = new UtilisateurService();
+    private final NotificationService notificationService = new NotificationService();
     public CommentaireService() {
         connexion = MyDatabase.getInstance().getCnx();
     }
@@ -46,8 +45,44 @@ public class CommentaireService implements IService<Commentaire> {
             ps.executeUpdate();
 
             try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next()) commentaire.setCommentaire_id(rs.getInt(1));
+                if (rs.next()) {
+                    commentaire.setCommentaire_id(rs.getInt(1));
+                }
             }
+
+            // Send notification to the question owner or parent comment owner
+            if (question != null && parentCommentaire == null) {
+                // Comment on a question
+                Utilisateur questionOwner = new QuestionService().getOne(question.getQuestion_id()).getUser();
+                if (questionOwner.getId() != utilisateur.getId()) { // Don't notify the commenter
+                    String message = "Quelqu'un a commenté votre question: '" + question.getTitle() + "'";
+                    String link = "/forum/topic/" + question.getQuestion_id() + "#comment-" + commentaire.getCommentaire_id();
+                    Notification notification = new Notification(
+                            questionOwner.getId(),
+                            message,
+                            link,
+                            false,
+                            LocalDateTime.now()
+                    );
+                    notificationService.add(notification);
+                }
+            } else if (parentCommentaire != null) {
+                // Reply to a comment
+                Utilisateur parentCommentOwner = parentCommentaire.getUtilisateur();
+                if (parentCommentOwner.getId() != utilisateur.getId()) { // Don't notify the commenter
+                    String message = "Quelqu'un a commenté votre commentaire: '" + parentCommentaire.getContenu() + "'";
+                    String link = "/forum/topic/" + parentCommentaire.getQuestion().getQuestion_id() + "#comment-" + commentaire.getCommentaire_id();
+                    Notification notification = new Notification(
+                            parentCommentOwner.getId(),
+                            message,
+                            link,
+                            false,
+                            LocalDateTime.now()
+                    );
+                    notificationService.add(notification);
+                }
+            }
+
             us.updateUserPrivilege(utilisateur.getId());
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add comment: " + e.getMessage(), e);
