@@ -32,7 +32,7 @@ public class SessionManagementController {
     private int currentCoachId = SessionManager.getInstance().getUserId();
     private String roleuser = SessionManager.getInstance().getRole().name();
     private final ServiceSession serviceSession = new ServiceSession();
-    private static final String IMAGE_BASE_DIR = "C:\\xampp\\htdocs\\img\\games\\"; // Directory path
+    private static final String IMAGE_BASE_DIR = "C:\\xampp\\htdocs\\img\\"; // Directory path
     private static final String DEFAULT_IMAGE_PATH = "/images/default-game.jpg"; // Resource path for default image
 
     @FXML

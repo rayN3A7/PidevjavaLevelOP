@@ -76,7 +76,7 @@ public class HomeController {
     @FXML private HBox productContainer; // Added for dynamic product cards
     @FXML private HBox eventContainer;
     @FXML private HBox promoSessionsContainer;
-    private static final String IMAGE_BASE_URL = "http://localhost/img/games/";
+    private static final String IMAGE_BASE_URL = "http://localhost/img/";
     private static final String DEFAULT_IMAGE_PATH = "/images/default-game.jpg";
     private List<Session_game> promoSessions;
     private final ServiceSession serviceSession = new ServiceSession();

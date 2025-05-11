@@ -26,7 +26,7 @@ public class PromoSessionsController {
     private FlowPane promoSessionsVBox;
 
     private final ServiceSession serviceSession = new ServiceSession();
-    private static final String IMAGE_BASE_URL = "http://localhost/img/games/";
+    private static final String IMAGE_BASE_URL = "http://localhost/img/";
     private static final String DEFAULT_IMAGE_PATH = "/images/default-game.jpg";
 
     @FXML
