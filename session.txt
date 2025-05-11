@@ -1,4 +1,0 @@
-20
-ADMIN
-1234@gmail.com
-true
