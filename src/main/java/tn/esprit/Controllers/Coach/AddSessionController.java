@@ -35,7 +35,7 @@ public class AddSessionController {
     private final int currentCoachId = SessionManager.getInstance().getUserId();
     private final String roleuser = SessionManager.getInstance().getRole().name();
     private String selectedImageName;
-    private static final String IMAGE_DIR = "C:\\xampp\\htdocs\\img\\games\\"; // Chemin XAMPP
+    private static final String IMAGE_DIR = "C:\\xampp\\htdocs\\img\\"; // Chemin XAMPP
 
     @FXML
     private void addSession() {

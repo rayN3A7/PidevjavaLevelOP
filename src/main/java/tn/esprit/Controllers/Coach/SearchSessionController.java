@@ -30,7 +30,7 @@ public class SearchSessionController {
 
     private final String userRole = SessionManager.getInstance().getRole().name();
     private final ServiceSession serviceSession = new ServiceSession();
-    private static final String IMAGE_BASE_URL = "http://localhost/img/games/";
+    private static final String IMAGE_BASE_URL = "http://localhost/img/";
     private static final String DEFAULT_IMAGE_PATH = "/images/default-game.jpg";
 
     @FXML

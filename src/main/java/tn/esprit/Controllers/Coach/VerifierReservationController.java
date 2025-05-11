@@ -30,7 +30,7 @@ public class VerifierReservationController {
 
     private final ServiceSession serviceSession = new ServiceSession();
     private final ServiceReservation serviceReservation = new ServiceReservation();
-    private static final String IMAGE_BASE_URL = "http://localhost/img/games/";
+    private static final String IMAGE_BASE_URL = "http://localhost/img/";
     private static final String DEFAULT_IMAGE_PATH = "/images/default-game.jpg";
 
     @FXML
