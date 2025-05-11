@@ -28,7 +28,7 @@
             </HBox>
             <HBox alignment="CENTER_LEFT" styleClass="reaction-actions">
                 <Button fx:id="reactButton" text="👍" styleClass="action-button"/>
-                <ImageView fx:id="selectedEmojiImage" styleClass="selected-emoji-image" fitWidth="20" fitHeight="20" preserveRatio="true"/>
+                <Label fx:id="selectedEmojiImage" minHeight="20.0" minWidth="20.0" alignment="CENTER" />
                 <Button fx:id="replyButton" text="Reply" styleClass="reply-toggle-button"/>
                 <Button fx:id="deleteButton" text="Delete" styleClass="update-delete-button"/>
                 <Button fx:id="updateButton" text="Update" styleClass="update-delete-button"/>

@@ -402,3 +402,70 @@
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 0); /* Enhanced glow */
     -fx-cursor: hand; /* Indicate interactivity (optional: could link to Reddit) */
 }
+.emoji-picker {
+    -fx-background-color: #091221;
+    -fx-border-color: #ff4081;
+    -fx-border-width: 2;
+    -fx-padding: 10;
+}
+
+.reaction-container .image-view {
+    -fx-pref-width: 20;
+    -fx-pref-height: 20;
+}
+
+.reaction-container .label {
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+}
+
+.question-card {
+    -fx-background-color: #1e2a44;
+    -fx-padding: 10;
+    -fx-border-radius: 5;
+    -fx-background-radius: 5;
+    -fx-border-color: #ff4081;
+    -fx-border-width: 1;
+}
+
+.vote-button {
+    -fx-background-color: #ff4081;
+    -fx-text-fill: white;
+}
+
+.action-button {
+    -fx-background-color: #ff4081;
+    -fx-text-fill: white;
+}
+
+.update-delete-button {
+    -fx-background-color: #555;
+    -fx-text-fill: white;
+}
+
+.action-button-no-gradient {
+    -fx-background-color: #555;
+    -fx-text-fill: white;
+}
+
+.comment-author {
+    -fx-font-weight: bold;
+}
+
+.question-title {
+    -fx-font-size: 16px;
+    -fx-text-fill: white;
+}
+
+.question-content {
+    -fx-text-fill: #ccc;
+}
+
+.votes-label {
+    -fx-text-fill: #ff4081;
+}
+#selectedEmojiImage {
+    -fx-font-size: 20px;
+    -fx-text-fill: white;
+    -fx-alignment: center;
+}

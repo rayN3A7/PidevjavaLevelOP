@@ -57,9 +57,14 @@ public class AddGameController {
                     Files.createDirectories(destinationPath);
                 }
 
-                String fileName = "game_" + System.currentTimeMillis() + "_" + selectedFile.getName();
+                String fileName = selectedFile.getName();
                 Path targetPath = destinationPath.resolve(fileName);
-                Files.copy(selectedFile.toPath(), targetPath);
+
+                if (Files.exists(targetPath)) {
+                    showAlert("Warning", "A file with this name already exists. It will be overwritten.");
+                }
+
+                Files.copy(selectedFile.toPath(), targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
                 imageFileName = fileName;
 
@@ -72,7 +77,6 @@ public class AddGameController {
             }
         }
     }
-
     @FXML
     private void handleAddGame() {
         String gameName = gameNameField.getText().trim();

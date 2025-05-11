@@ -14,10 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
@@ -43,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -75,7 +73,7 @@ public class QuestionCardController {
     @FXML private ImageView gameIcon;
     @FXML private VBox contentVBox;
     @FXML private ImageView crownIcon;
-    @FXML private ImageView selectedEmojiImage;
+    @FXML private Label selectedEmojiImage; // Changed from ImageView to Label
     @FXML private HBox reactionContainer;
     @FXML private Button reportButton;
     @FXML private Button shareButton;
@@ -636,14 +634,12 @@ public class QuestionCardController {
         synchronized (allControllers) {
             controllersCopy = new ArrayList<>(allControllers);
         }
-        // Removed outer Platform.runLater as this is typically called from FX thread (e.g., navigation)
         for (QuestionCardController controller : controllersCopy) {
             controller.disposeVideo();
         }
     }
 
     public void updatePrivilegeUI(Utilisateur user) {
-        // Removed Platform.runLater as this is called from FX thread or scheduled appropriately
         TextFlow authorFlow = new TextFlow();
         Text usernameText = new Text(user.getNickname());
         usernameText.setStyle("-fx-fill: white;");
@@ -677,6 +673,7 @@ public class QuestionCardController {
         commentAuthor.setGraphic(authorFlow);
         commentAuthor.setText("");
     }
+
     private void animatePrivilegeChange(ImageView crownIcon, boolean isVisible) {
         FadeTransition fade = new FadeTransition(Duration.millis(500), crownIcon);
         ScaleTransition scale = new ScaleTransition(Duration.millis(500), crownIcon);
@@ -1087,6 +1084,7 @@ public class QuestionCardController {
             }
         }
     }
+
     private void resetMediaState() {
         questionImage.setImage(null);
         questionImage.setVisible(false);
@@ -1105,93 +1103,31 @@ public class QuestionCardController {
     public void displayReactions() {
         reactionContainer.getChildren().clear();
         Map<String, Integer> reactions = question.getReactions();
+
         for (Map.Entry<String, Integer> entry : reactions.entrySet()) {
-            String emojiUrl = entry.getKey();
+            String emojiUnicode = entry.getKey();
             int count = entry.getValue();
-            HBox reactionBox = new HBox(2);
+
+            HBox reactionBox = new HBox(5);
             reactionBox.setAlignment(Pos.CENTER_LEFT);
 
-            if (emojiUrl.contains("twemoji")) {
-                Image emojiImage = imageCache.computeIfAbsent(emojiUrl, k -> new Image(emojiUrl, 32, 32, true, true));
-                if (!emojiImage.isError()) {
-                    ImageView emojiIcon = new ImageView(emojiImage);
-                    emojiIcon.setFitWidth(32);
-                    emojiIcon.setFitHeight(32);
-                    emojiIcon.setPreserveRatio(true);
-                    emojiIcon.getStyleClass().add("reaction-emoji-icon");
+            Label emojiLabel = new Label(emojiUnicode);
+            emojiLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: white;");
+            Label countLabel = new Label(String.valueOf(count));
+            countLabel.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
 
-                    Label countLabel = new Label(String.valueOf(count));
-                    countLabel.getStyleClass().add("reaction-count-label");
-
-                    reactionBox.getChildren().addAll(emojiIcon, countLabel);
-                } else {
-                    System.err.println("Échec du chargement de l'emoji de réaction pour l'URL: " + emojiUrl + " - " + emojiImage.getException());
-                    Label fallbackLabel = new Label(getEmojiNameFromUrl(emojiUrl) + " " + count);
-                    fallbackLabel.getStyleClass().add("reaction-label");
-                    reactionContainer.getChildren().add(fallbackLabel);
-                    continue;
-                }
-            } else {
-                Label fallbackLabel = new Label(getEmojiNameFromUrl(emojiUrl) + " " + count);
-                fallbackLabel.getStyleClass().add("reaction-label");
-                reactionContainer.getChildren().add(fallbackLabel);
-                continue;
-            }
-
+            reactionBox.getChildren().addAll(emojiLabel, countLabel);
             reactionContainer.getChildren().add(reactionBox);
         }
-    }
-
-    private String getEmojiNameFromUrl(String url) {
-        if (url.contains("twemoji")) {
-            String hexcode = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf(".")).replace("72x72_", "");
-            return switch (hexcode.toLowerCase()) {
-                case "1f44d" -> "J'aime";
-                case "2764" -> "Amour";
-                case "1f602" -> "Haha";
-                case "1f62e" -> "Triste";
-                case "1f620" -> "En colère";
-                case "1f60d" -> "Wow";
-                case "1f44f" -> "Applaudissements";
-                case "1f525" -> "Feu";
-                case "1f4af" -> "100";
-                case "1f389" -> "Fête";
-                case "1f44c" -> "OK";
-                case "1f499" -> "Cœur bleu";
-                case "1f60a" -> "Cool";
-                case "1f4a9" -> "Caca";
-                case "1f680" -> "Fusée";
-                case "1f3c6" -> "Trophée";
-                case "1f381" -> "Cadeau";
-                case "1f3ae" -> "Jeu";
-                case "1f3b2" -> "Dé";
-                case "1f4a5" -> "Collision";
-                case "1f64f" -> "Prier";
-                case "1f3c3" -> "Coureur";
-                case "1f451" -> "Couronne";
-                case "1f3b0" -> "Machines à sous";
-                default -> hexcode;
-            };
-        }
-        return url;
     }
 
     public void displayUserReaction() {
         String userReaction = question.getUserReaction();
         if (userReaction != null && !userReaction.isEmpty()) {
-            if (userReaction.contains("twemoji")) {
-                Image emojiImage = imageCache.computeIfAbsent(userReaction, k -> new Image(userReaction, 30, 30, true, true));
-                if (!emojiImage.isError()) {
-                    selectedEmojiImage.setImage(emojiImage);
-                } else {
-                    System.err.println("Échec du chargement de l'emoji sélectionné: " + userReaction + " - " + emojiImage.getException());
-                    selectedEmojiImage.setImage(null);
-                }
-            } else {
-                selectedEmojiImage.setImage(null);
-            }
+            selectedEmojiImage.setText(userReaction); // Use setText for Label
+            selectedEmojiImage.setStyle("-fx-font-size: 20px; -fx-text-fill: white;");
         } else {
-            selectedEmojiImage.setImage(null);
+            selectedEmojiImage.setText(""); // Clear the label
         }
     }
 
@@ -1199,119 +1135,81 @@ public class QuestionCardController {
         Popup popup = new Popup();
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setFitToWidth(true);
-        scrollPane.setFitToHeight(true);
-        scrollPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 0;");
+        scrollPane.setStyle("-fx-background-color: #091221; -fx-border-color: #ff4081; -fx-border-width: 2;");
 
-        VBox emojiBox = new VBox(8);
-        emojiBox.setPadding(new Insets(15));
-        emojiBox.getStyleClass().add("emoji-picker");
+        VBox emojiBox = new VBox(10);
+        emojiBox.setPadding(new Insets(10));
+        emojiBox.setStyle("-fx-background-color: #091221;");
 
         executorService.submit(() -> {
             try {
-                List<Image> emojis = EmojiService.fetchEmojis();
+                Map<String, List<EmojiService.Emoji>> categorizedEmojis = EmojiService.fetchEmojis();
                 Platform.runLater(() -> {
-                    HBox row = new HBox(8);
-                    int emojiCount = 0;
-                    for (Image emoji : emojis) {
-                        ImageView emojiImage = new ImageView(emoji);
-                        emojiImage.setFitWidth(30);
-                        emojiImage.setFitHeight(30);
-                        emojiImage.setPreserveRatio(true);
-                        emojiImage.setOnMouseClicked(e -> {
-                            forumController.handleReaction(question, emoji.getUrl());
-                            popup.hide();
-                            displayReactions();
-                            displayUserReaction();
-                        });
+                    for (String sentiment : Arrays.asList("positive", "negative", "neutral")) {
+                        Label sectionLabel = new Label(sentiment.substring(0, 1).toUpperCase() + sentiment.substring(1));
+                        sectionLabel.setStyle("-fx-text-fill: #ff4081; -fx-font-size: 14px; -fx-font-weight: bold;");
+                        emojiBox.getChildren().add(sectionLabel);
 
-                        emojiImage.setOnMouseEntered(e -> {
-                            ScaleTransition scaleIn = new ScaleTransition(Duration.millis(150), emojiImage);
-                            scaleIn.setToX(1.1);
-                            scaleIn.setToY(1.1);
-                            scaleIn.play();
-                        });
-                        emojiImage.setOnMouseExited(e -> {
-                            ScaleTransition scaleOut = new ScaleTransition(Duration.millis(150), emojiImage);
-                            scaleOut.setToX(1.0);
-                            scaleOut.setToY(1.0);
-                            scaleOut.play();
-                        });
+                        GridPane emojiGrid = new GridPane();
+                        emojiGrid.setHgap(8);
+                        emojiGrid.setVgap(8);
+                        emojiGrid.setPadding(new Insets(5));
 
-                        row.getChildren().add(emojiImage);
-                        emojiCount++;
-                        if (emojiCount % 7 == 0) {
-                            emojiBox.getChildren().add(row);
-                            row = new HBox(8);
+                        List<EmojiService.Emoji> emojis = categorizedEmojis.get(sentiment);
+                        int col = 0;
+                        int row = 0;
+                        for (EmojiService.Emoji emoji : emojis) {
+                            Label emojiLabel = new Label(emoji.getUnicode());
+                            emojiLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: white;");
+                            emojiLabel.setAlignment(Pos.CENTER);
+                            emojiLabel.setPrefSize(40, 40);
+
+                            emojiLabel.setOnMouseEntered(e -> {
+                                ScaleTransition scaleIn = new ScaleTransition(Duration.millis(150), emojiLabel);
+                                scaleIn.setToX(1.2);
+                                scaleIn.setToY(1.2);
+                                scaleIn.play();
+                            });
+                            emojiLabel.setOnMouseExited(e -> {
+                                ScaleTransition scaleOut = new ScaleTransition(Duration.millis(150), emojiLabel);
+                                scaleOut.setToX(1.0);
+                                scaleOut.setToY(1.0);
+                                scaleOut.play();
+                            });
+
+                            emojiLabel.setOnMouseClicked(e -> {
+                                forumController.handleReaction(question, emoji.getUnicode());
+                                popup.hide();
+                                displayReactions();
+                                displayUserReaction();
+                            });
+
+                            emojiGrid.add(emojiLabel, col, row);
+                            col++;
+                            if (col >= 5) {
+                                col = 0;
+                                row++;
+                            }
                         }
-                    }
-                    if (!row.getChildren().isEmpty()) {
-                        emojiBox.getChildren().add(row);
+                        emojiBox.getChildren().add(emojiGrid);
                     }
 
                     scrollPane.setContent(emojiBox);
-                    scrollPane.setPrefSize(250, 200);
+                    scrollPane.setPrefSize(250, 300);
                     popup.getContent().add(scrollPane);
-                    popup.show(reactButton, reactButton.getScene().getWindow().getX() + reactButton.localToScene(0, 0).getX(),
-                            reactButton.getScene().getWindow().getY() + reactButton.localToScene(0, 0).getY() + reactButton.getHeight());
+
+                    double x = reactButton.getScene().getWindow().getX() + reactButton.localToScene(0, 0).getX();
+                    double y = reactButton.getScene().getWindow().getY() + reactButton.localToScene(0, 0).getY() + reactButton.getHeight();
+                    double screenHeight = Screen.getPrimary().getVisualBounds().getHeight();
+                    if (y + 300 > screenHeight) {
+                        y = y - 300 - reactButton.getHeight();
+                    }
+                    popup.show(reactButton, x, y);
                     popup.setAutoHide(true);
                 });
             } catch (Exception e) {
-                System.err.println("Échec du chargement des emojis: " + e.getMessage());
-                Platform.runLater(() -> {
-                    String[] fallbackPaths = {
-                            "/forumUI/icons/like.png", "/forumUI/icons/love.png", "/forumUI/icons/haha.png", "/forumUI/icons/wow.png",
-                            "/forumUI/icons/sad.png", "/forumUI/icons/angry.png", "/forumUI/icons/applause.png", "/forumUI/icons/fire.png",
-                            "/forumUI/icons/100.png", "/forumUI/icons/party.png", "/forumUI/icons/ok.png", "/forumUI/icons/blue_heart.png",
-                            "/forumUI/icons/cool.png", "/forumUI/icons/poop.png", "/forumUI/icons/rocket.png", "/forumUI/icons/trophy.png",
-                            "/forumUI/icons/gift.png", "/forumUI/icons/game.png", "/forumUI/icons/die.png", "/forumUI/icons/collision.png",
-                            "/forumUI/icons/pray.png", "/forumUI/icons/runner.png", "/forumUI/icons/crown.png", "/forumUI/icons/slots.png"
-                    };
-                    HBox row = new HBox(8);
-                    int emojiCount = 0;
-                    for (String path : fallbackPaths) {
-                        Image fallbackImage = imageCache.computeIfAbsent(path, k -> new Image(getClass().getResourceAsStream(path), 30, 30, true, true));
-                        ImageView emojiImage = new ImageView(fallbackImage);
-                        emojiImage.setFitWidth(30);
-                        emojiImage.setFitHeight(30);
-                        emojiImage.setPreserveRatio(true);
-                        emojiImage.setOnMouseClicked(m -> {
-                            forumController.handleReaction(question, path);
-                            popup.hide();
-                            displayReactions();
-                            displayUserReaction();
-                        });
-
-                        emojiImage.setOnMouseEntered(m -> {
-                            ScaleTransition scaleIn = new ScaleTransition(Duration.millis(150), emojiImage);
-                            scaleIn.setToX(1.1);
-                            scaleIn.setToY(1.1);
-                            scaleIn.play();
-                        });
-                        emojiImage.setOnMouseExited(m -> {
-                            ScaleTransition scaleOut = new ScaleTransition(Duration.millis(150), emojiImage);
-                            scaleOut.setToX(1.0);
-                            scaleOut.setToY(1.0);
-                            scaleOut.play();
-                        });
-
-                        row.getChildren().add(emojiImage);
-                        emojiCount++;
-                        if (emojiCount % 7 == 0) {
-                            emojiBox.getChildren().add(row);
-                            row = new HBox(8);
-                        }
-                    }
-                    if (!row.getChildren().isEmpty()) {
-                        emojiBox.getChildren().add(row);
-                    }
-
-                    scrollPane.setContent(emojiBox);
-                    scrollPane.setPrefSize(350, 300);
-                    popup.getContent().add(scrollPane);
-                    popup.show(reactButton, reactButton.getScene().getWindow().getX() + reactButton.localToScene(0, 0).getX(),
-                            reactButton.getScene().getWindow().getY() + reactButton.localToScene(0, 0).getY() + reactButton.getHeight());
-                    popup.setAutoHide(true);
-                });
+                System.err.println("Failed to load emojis: " + e.getMessage());
+                Platform.runLater(() -> showAlert("Error", "Failed to load emoji picker"));
             }
         });
     }
