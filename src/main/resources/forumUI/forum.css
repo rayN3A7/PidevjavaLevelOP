@@ -113,16 +113,16 @@
     -fx-text-fill: white;
     -fx-prompt-text-fill: #aaaaaa;
     -fx-font-size: 14px;
-    -fx-padding: 8px; /* Reduced padding for compactness */
-    -fx-pref-width: 250px; /* Slightly reduced width for compactness */
+    -fx-padding: 8px;
+    -fx-pref-width: 250px;
 }
 
 .create-post-button {
     -fx-background-color: #ff007f;
     -fx-text-fill: #091221;
     -fx-font-size: 14px;
-    -fx-padding: 8px 16px; /* Reduced padding for compactness */
-    -fx-border-radius: 30; /* More rounded for modern look */
+    -fx-padding: 8px 16px;
+    -fx-border-radius: 30;
 }
 
 .scroll-pane {
@@ -148,26 +148,28 @@
 }
 
 .reaction-label {
-    -fx-font-size: 16px; /* Smaller, cleaner text like social media (for fallbacks) */
+    -fx-font-size: 16px;
     -fx-text-fill: white;
     -fx-padding: 4px 10px;
-    -fx-background-color: rgba(255, 0, 127, 0.15); /* Light pink background for reactions */
+    -fx-background-color: rgba(255, 0, 127, 0.15);
     -fx-background-radius: 15;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.2), 5, 0.5, 0, 1);
 }
 
 .reaction-emoji-icon {
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2); /* Subtle shadow for graphical reaction icons */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2);
 }
 
 .reaction-count-label {
-    -fx-font-size: 14px; /* Smaller count text for compactness */
+    -fx-font-size: 14px;
     -fx-text-fill: white;
-    -fx-padding: 0 4px; /* Minimal padding for tight fit */
+    -fx-padding: 0 4px;
 }
 
 .selected-emoji-image {
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2); /* Subtle shadow for graphical emoji */
+    -fx-font-size: 20px;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2);
 }
 
 .reaction-actions {
@@ -177,51 +179,50 @@
 }
 
 .action-button {
-    -fx-background-color: #091221; /* Solid pink for React button, social-media-like */
+    -fx-background-color: #091221;
     -fx-text-fill: #ff007f;
     -fx-font-size: 20px;
     -fx-padding: 4px 4px;
-    -fx-background-radius: 50; /* Rounded buttons for social media feel */
+    -fx-background-radius: 50;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
 }
 
 .action-button:hover {
-    -fx-background-color: #e6007a; /* Darker pink on hover */
-    -fx-scale-x: 1.05; /* Subtle scale for modern animation */
+    -fx-background-color: #e6007a;
+    -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
 }
 
 .action-button-no-gradient {
-    -fx-background-color: #ff007f; /* Solid pink, no gradient */
+    -fx-background-color: #ff007f;
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-padding: 8px 16px;
-    -fx-background-radius: 25; /* Rounded buttons */
+    -fx-background-radius: 25;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 6, 0.5, 0, 2);
 }
 
 .action-button-no-gradient:hover {
-    -fx-background-color: #e6007a; /* Darker pink on hover */
-    -fx-scale-x: 1.05; /* Subtle scale for modern animation */
+    -fx-background-color: #e6007a;
+    -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 3);
 }
 
 .emoji-picker {
-    -fx-background-color: #091221; /* White background, like Facebook */
-    -fx-border-color: #ff007f; /* Neon pink border */
+    -fx-background-color: #091221;
+    -fx-border-color: #ff4081;
     -fx-border-width: 2;
     -fx-border-radius: 15;
     -fx-background-radius: 15;
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.2), 8, 0.5, 0, 3); /* Subtle shadow like Facebook */
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.2), 8, 0.5, 0, 3);
     -fx-padding: 15;
     -fx-spacing: 8;
 }
 
 .emoji-button {
     -fx-background-color: transparent;
-    -fx-text-fill: black;
     -fx-font-size: 36px;
     -fx-padding: 0;
     -fx-background-radius: 0;
@@ -248,13 +249,13 @@
 }
 
 .video-control-bar {
-    -fx-background-color: rgba(9, 18, 33, 0.9); /* Semi-transparent dark background matching app theme */
+    -fx-background-color: rgba(9, 18, 33, 0.9);
     -fx-padding: 5px;
     -fx-spacing: 10px;
-    -fx-alignment: center; /* Center the children for a balanced look */
-    -fx-background-radius: 0; /* No rounded corners in full-screen */
-    -fx-effect: none; /* Remove shadow for a cleaner look in full-screen */
-    -fx-max-width: 80%; /* Réfléchir le pourcentage utilisé dans Java, ou une valeur fixe en pixels */
+    -fx-alignment: center;
+    -fx-background-radius: 0;
+    -fx-effect: none;
+    -fx-max-width: 80%;
     -fx-pref-height: 40px;
     -fx-min-height: 40px;
     -fx-max-height: 40px;
@@ -267,12 +268,12 @@
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-padding: 4px 8px;
-    -fx-opacity: 1.0; /* Forcer l’opacité du bouton à 100% */
+    -fx-opacity: 1.0;
     -fx-visibility: visible;
 }
 
 .video-control-bar .button:hover {
-    -fx-background-color: rgba(255, 0, 127, 0.2); /* Hover effect with neon pink */
+    -fx-background-color: rgba(255, 0, 127, 0.2);
     -fx-scale-x: 1.05;
     -fx-scale-y: 1.05;
 }
@@ -287,7 +288,7 @@
 }
 
 .progress-slider .thumb {
-    -fx-background-color: #ff007f; /* Neon pink thumb */
+    -fx-background-color: #ff007f;
     -fx-pref-width: 12px;
     -fx-pref-height: 12px;
 }
@@ -302,7 +303,7 @@
 }
 
 .volume-slider .thumb {
-    -fx-background-color: #ff007f; /* Neon pink thumb */
+    -fx-background-color: #ff007f;
     -fx-pref-width: 12px;
     -fx-pref-height: 12px;
 }
@@ -320,28 +321,25 @@
 }
 .report-button {
     -fx-background-color: transparent;
-    -fx-text-fill: #ff4081; /* Neon pink to match the theme */
+    -fx-text-fill: #ff4081;
     -fx-font-size: 16px;
     -fx-padding: 5;
     -fx-border-width: 0;
 }
 
 .report-button:hover {
-    -fx-text-fill: #ff80ab; /* Lighter pink on hover */
+    -fx-text-fill: #ff80ab;
     -fx-cursor: hand;
 }
 
 .report-button:pressed {
-    -fx-text-fill: #d81b60; /* Darker pink when pressed */
+    -fx-text-fill: #d81b60;
 }
 
-/* Ensure the button has some margin from the edge of the card */
 .question-card .report-button,
 .comment-card .report-button {
-    -fx-margin: 5 5 0 0; /* Top-right corner spacing */
+    -fx-margin: 5 5 0 0;
 }
-/* Existing styles remain unchanged until the end, where we update the floating button and its container */
-
 .floating-button {
     -fx-background-color: transparent;
     -fx-text-fill: white;
@@ -366,41 +364,41 @@
     -fx-scale-y: 0.95;
 }
 .trending-section {
-    -fx-background-color: rgba(9, 18, 33, 0.9); /* Dark, semi-transparent background matching theme */
-    -fx-border-color: #ff007f; /* Neon pink border */
+    -fx-background-color: rgba(9, 18, 33, 0.9);
+    -fx-border-color: #ff007f;
     -fx-border-width: 2px;
     -fx-border-radius: 10px;
     -fx-background-radius: 10px;
     -fx-padding: 15px;
     -fx-spacing: 8px;
-    -fx-max-width: 600px; /* Compact width */
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 10, 0.5, 0, 0); /* Subtle neon pink glow */
-    -fx-alignment: center-left; /* Align content to the left within centered container */
+    -fx-max-width: 600px;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.3), 10, 0.5, 0, 0);
+    -fx-alignment: center-left;
 }
 
 .trending-title {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-text-fill: #ff007f; /* Neon pink to stand out */
-    -fx-padding: 0 0 10px 0; /* Space below title */
-    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 5, 0.5, 0, 0); /* Subtle white glow */
+    -fx-text-fill: #ff007f;
+    -fx-padding: 0 0 10px 0;
+    -fx-effect: dropshadow(gaussian, rgba(255, 255, 255, 0.2), 5, 0.5, 0, 0);
 }
 
 .trending-section .label {
     -fx-font-size: 14px;
-    -fx-text-fill: #e0e0e0; /* Light gray for readability */
-    -fx-padding: 5px 10px; /* Padding for each post */
-    -fx-background-color: rgba(255, 0, 127, 0.1); /* Very light pink background */
+    -fx-text-fill: #e0e0e0;
+    -fx-padding: 5px 10px;
+    -fx-background-color: rgba(255, 0, 127, 0.1);
     -fx-background-radius: 5px;
-    -fx-wrap-text: true; /* Wrap long titles */
-    -fx-max-width: 550px; /* Slightly less than container width for padding */
+    -fx-wrap-text: true;
+    -fx-max-width: 550px;
 }
 
 .trending-section .label:hover {
-    -fx-background-color: rgba(255, 0, 127, 0.2); /* Slightly darker pink on hover */
-    -fx-text-fill: #ffffff; /* Bright white on hover */
-    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 0); /* Enhanced glow */
-    -fx-cursor: hand; /* Indicate interactivity (optional: could link to Reddit) */
+    -fx-background-color: rgba(255, 0, 127, 0.2);
+    -fx-text-fill: #ffffff;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.5), 8, 0.5, 0, 0);
+    -fx-cursor: hand;
 }
 .emoji-picker {
     -fx-background-color: #091221;
@@ -412,8 +410,23 @@
 .reaction-container .image-view {
     -fx-pref-width: 20;
     -fx-pref-height: 20;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2);
 }
 
+#selectedEmojiImage .image-view {
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2);
+}
+.comment-card .reaction-container .image-view {
+    -fx-pref-width: 20;
+    -fx-pref-height: 20;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2);
+}
+
+.comment-card .selected-emoji-image {
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2);
+}
 .reaction-container .label {
     -fx-text-fill: white;
     -fx-font-size: 12px;
@@ -465,7 +478,7 @@
     -fx-text-fill: #ff4081;
 }
 #selectedEmojiImage {
+
     -fx-font-size: 20px;
-    -fx-text-fill: white;
     -fx-alignment: center;
 }

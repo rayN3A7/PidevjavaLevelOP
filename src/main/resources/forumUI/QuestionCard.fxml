@@ -49,7 +49,7 @@
             <HBox spacing="5" fx:id="reactionContainer" styleClass="reaction-container" prefWidth="300"/>
             <HBox spacing="5" alignment="CENTER_LEFT" styleClass="reaction-actions">
                 <Button text="👍" fx:id="reactButton" styleClass="action-button"/>
-                <Label fx:id="selectedEmojiImage" minHeight="30.0" minWidth="30.0" alignment="CENTER" />
+                <ImageView fx:id="selectedEmojiImage" fitWidth="20" fitHeight="20" />
                 <Button text="Update" fx:id="updateButton" styleClass="update-delete-button"/>
                 <Button text="Delete" fx:id="deleteButton" styleClass="update-delete-button"/>
                 <Button fx:id="shareButton" text="Share" styleClass="action-button-no-gradient" />

@@ -288,7 +288,16 @@
     -fx-padding: 5;
     -fx-border-width: 0;
 }
+.comment-card .reaction-container .image-view {
+    -fx-pref-width: 20;
+    -fx-pref-height: 20;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2);
+}
 
+.comment-card .selected-emoji-image {
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, rgba(255, 0, 127, 0.4), 8, 0.5, 0, 2);
+}
 .report-button:hover {
     -fx-text-fill: #ff80ab; /* Lighter pink on hover */
     -fx-cursor: hand;
