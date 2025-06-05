@@ -274,4 +274,28 @@ public class EvenementService implements IService<Evenement> {
         return evenementsProches;
     }
 
+    public List<Evenement> getEvenementsByCategorie(int categorieId) {
+        List<Evenement> resultats = new ArrayList<>();
+        String qry = "SELECT * FROM evenement WHERE categorie_id = ?";
+        try {
+            PreparedStatement pre = cnx.prepareStatement(qry);
+            pre.setInt(1, categorieId);
+            ResultSet rs = pre.executeQuery();
+            while (rs.next()) {
+                Evenement e = new Evenement();
+                e.setId(rs.getInt("id"));
+                e.setNom_event(rs.getString("nom_event"));
+                e.setMax_places_event(rs.getInt("max_places_event"));
+                e.setLieu_event(rs.getString("lieu_event"));
+                e.setCategorie_id(rs.getInt("categorie_id"));
+                e.setDate_event(rs.getTimestamp("date_event"));
+                e.setPhoto_event(rs.getString("photo_event"));
+                resultats.add(e);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return resultats;
+    }
+
 }

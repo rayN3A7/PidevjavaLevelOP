@@ -740,8 +740,10 @@
     -fx-background-color: linear-gradient(to bottom, #2A2C3E, #1E1E2E);
     -fx-background-radius: 15;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0, 0, 0);
-    -fx-min-width: 200px;
+    -fx-min-width: 250px;
     -fx-max-width: 250px;
+    -fx-min-height: 200px;
+    -fx-max-height: 200px;
     -fx-padding: 20;
     -fx-alignment: CENTER;
     -fx-border-radius: 15;
@@ -749,12 +751,30 @@
     -fx-transition: all 0.3s ease;
 }
 
-.event-card:hover {
+.event-card2:hover {
     -fx-effect: dropshadow(gaussian, rgba(255, 0, 122, 0.4), 15, 0, 0, 0);
     -fx-scale-x: 1.03;
     -fx-scale-y: 1.03;
     -fx-border-color: #FF007A;
+    -fx-background-color: linear-gradient(to bottom, #3A3A4A, #2A2C3E);
     -fx-cursor: hand;
+}
+
+.event-info {
+    -fx-font-size: 14px;
+    -fx-text-fill: #A4A6B3;
+    -fx-alignment: CENTER;
+    -fx-text-alignment: CENTER;
+    -fx-wrap-text: true;
+    -fx-max-width: 210px;
+    -fx-max-height: 80px;
+    -fx-line-spacing: 2px;
+}
+
+.event-actions2 {
+    -fx-spacing: 10;
+    -fx-padding: 10 0 0 0;
+    -fx-alignment: CENTER;
 }
 .event-content {
     -fx-alignment: center;
@@ -1003,4 +1023,93 @@
     -fx-font-size: 16px;
     -fx-text-fill: white;
     -fx-alignment: CENTER;
+}
+
+/* Category Carousel Styles */
+.category-carousel {
+    -fx-padding: 10 0;
+    -fx-spacing: 15;
+    -fx-alignment: center-left;
+    -fx-pref-height: 50;
+    -fx-min-height: 50;
+    -fx-max-height: 50;
+    -fx-background-color: transparent;
+}
+
+.category-item {
+    -fx-background-color: #2A2C3E;
+    -fx-background-radius: 20;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+    -fx-text-fill: white;
+    -fx-transition: all 0.3s ease;
+    -fx-min-width: 120;
+    -fx-pref-width: 120;
+    -fx-max-width: 120;
+    -fx-alignment: center;
+}
+
+.category-item:hover {
+    -fx-background-color: #3A3C4E;
+    -fx-effect: dropshadow(gaussian, rgba(255, 64, 129, 0.3), 10, 0, 0, 0);
+    -fx-translate-y: -2;
+}
+
+.category-item.active {
+    -fx-background-color: #FF4081;
+    -fx-effect: dropshadow(gaussian, rgba(255, 64, 129, 0.5), 15, 0, 0, 0);
+}
+
+.category-text {
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-alignment: center;
+}
+
+.category-item.active .category-text {
+    -fx-text-fill: white;
+}
+
+.category-scroll {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-fit-to-height: true;
+    -fx-hbar-policy: as-needed;
+    -fx-vbar-policy: never;
+    -fx-pref-height: 70;
+    -fx-min-height: 70;
+    -fx-max-height: 70;
+}
+
+.category-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.category-scroll .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-pref-height: 10;
+    -fx-min-height: 10;
+    -fx-max-height: 10;
+}
+
+.category-scroll .scroll-bar:horizontal .thumb {
+    -fx-background-color: #FF4081;
+    -fx-background-radius: 5;
+    -fx-opacity: 0.5;
+}
+
+.category-scroll .scroll-bar:horizontal .thumb:hover {
+    -fx-opacity: 0.8;
+}
+
+.category-scroll .scroll-bar:horizontal .increment-button,
+.category-scroll .scroll-bar:horizontal .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.category-scroll .scroll-bar:horizontal .increment-arrow,
+.category-scroll .scroll-bar:horizontal .decrement-arrow {
+    -fx-background-color: transparent;
 }

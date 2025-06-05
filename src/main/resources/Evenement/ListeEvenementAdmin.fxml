@@ -43,6 +43,14 @@
                     </HBox>
                 </HBox>
 
+                <!-- Category Carousel -->
+                <ScrollPane fitToHeight="true" styleClass="category-scroll">
+                    <HBox fx:id="categoryCarousel" styleClass="category-carousel">
+                        <padding>
+                            <Insets left="10" right="10"/>
+                        </padding>
+                    </HBox>
+                </ScrollPane>
 
                 <!-- List Content -->
                 <FlowPane fx:id="eventContainer" alignment="CENTER"/>
