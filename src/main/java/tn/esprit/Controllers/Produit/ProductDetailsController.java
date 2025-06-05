@@ -103,7 +103,14 @@ public class ProductDetailsController {
             imagePreviewOverlay.setVisible(false);
             imagePreviewOverlay.setOnMouseClicked(event -> hideImagePreview());
         }
-        System.out.println("Product Description Style: " + productDescription.getStyle());
+
+        // Initialiser le style de la description du produit
+        if (productDescription != null) {
+            productDescription.setStyle("-fx-background-color: transparent; -fx-text-fill: white;");
+            productDescription.setEditable(false);
+            productDescription.setWrapText(true);
+        }
+        
         updateSystemSpecs();
     }
 
@@ -176,7 +183,11 @@ public class ProductDetailsController {
                 } else if (part.contains("\"gpus\"")) {
                     String gpuPart = specsJson.substring(specsJson.indexOf("[") + 1, specsJson.indexOf("]"));
                     for (String gpu : gpuPart.split(",")) {
-                        gpus.add(gpu.replace("\"", "").trim());
+                        String gpuName = gpu.replace("\"", "").trim();
+                        // Ne pas filtrer les GPUs Intel Iris Xe
+                        if (!isVirtualDisplay(gpuName)) {
+                            gpus.add(gpuName);
+                        }
                     }
                 }
             }
@@ -204,13 +215,39 @@ public class ProductDetailsController {
         }
     }
 
+    private boolean isVirtualDisplay(String gpuName) {
+        // Liste des mots-clés pour identifier les affichages virtuels et les moniteurs USB
+        String[] virtualKeywords = {
+            "virtual display",
+            "virtual adapter",
+            "usb display",
+            "usb monitor",
+            "mobile display",
+            "mobile monitor",
+            "generic display",
+            "generic monitor",
+            "microsoft basic display"
+        };
+
+        gpuName = gpuName.toLowerCase();
+        
+        // Vérifier si le nom contient des mots-clés d'affichage virtuel
+        for (String keyword : virtualKeywords) {
+            if (gpuName.contains(keyword.toLowerCase())) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
     public void estimateFPS(String cpu, String ram, List<String> gpus) {
         fpsVBox.getChildren().clear();
         try {
             String osInfo = System.getProperty("os.name") + " " + System.getProperty("os.arch");
             String gameName = currentProduct.getNomProduit();
             if (gameName == null || gameName.trim().isEmpty()) {
-                throw new Exception("No game selected for FPS estimation");
+                throw new Exception("Aucun jeu sélectionné pour l'estimation FPS");
             }
 
             for (int i = 0; i < gpus.size(); i++) {
@@ -225,36 +262,42 @@ public class ProductDetailsController {
                                 "Return the response strictly in the format: low,medium,high (e.g., 60,45,30) with only the three FPS numbers separated by commas, no additional text or explanation.",
                         gameName, systemSpecs);
 
-                String fpsResponse = callGeminiApi(prompt);
+                String fpsResponse;
+                try {
+                    fpsResponse = callGeminiApi(prompt);
+                } catch (Exception e) {
+                    System.err.println("Erreur lors de l'appel à l'API pour l'estimation FPS: " + e.getMessage());
+                    fpsResponse = "30,45,60"; // Valeurs par défaut en cas d'erreur
+                }
 
                 fpsResponse = fpsResponse.replaceAll("[^0-9,]", "").trim();
                 String[] fpsValues = fpsResponse.split(",");
 
-                // Vérification de la longueur de la réponse
-                if (fpsValues.length != 3) {
-                    throw new Exception("Invalid FPS response format for GPU " + gpus.get(i) + ": " + fpsResponse);
-                }
-
                 int lowFps = 30, mediumFps = 45, highFps = 60;
 
                 try {
-                    // Tentative de parsing des FPS
-                    lowFps = Integer.parseInt(fpsValues[0].trim());
-                    mediumFps = Integer.parseInt(fpsValues[1].trim());
-                    highFps = Integer.parseInt(fpsValues[2].trim());
+                    if (fpsValues.length >= 3) {
+                        lowFps = Integer.parseInt(fpsValues[0].trim());
+                        mediumFps = Integer.parseInt(fpsValues[1].trim());
+                        highFps = Integer.parseInt(fpsValues[2].trim());
+                    }
                 } catch (NumberFormatException e) {
                     System.err.println("Format FPS invalide pour GPU " + gpus.get(i) + ", utilisation des valeurs par défaut.");
                 }
 
-                // Affichage des FPS estimés
+                // Création des labels avec style
                 Label gpuHeader = new Label("GPU " + (i + 1) + ": " + gpus.get(i));
                 gpuHeader.getStyleClass().add("fps-header");
+                
                 Label lowLabel = new Label(String.format("Low Settings: %d FPS", lowFps));
                 lowLabel.getStyleClass().add("fps-value");
+                
                 Label mediumLabel = new Label(String.format("Medium Settings: %d FPS", mediumFps));
                 mediumLabel.getStyleClass().add("fps-value");
+                
                 Label highLabel = new Label(String.format("High Settings: %d FPS", highFps));
                 highLabel.getStyleClass().add("fps-value");
+                
                 Label detailsLabel = new Label("Based on Gemini AI estimates");
                 detailsLabel.getStyleClass().add("fps-details");
 
@@ -263,36 +306,46 @@ public class ProductDetailsController {
                 fpsVBox.getChildren().add(gpuFpsBox);
             }
         } catch (Exception e) {
-            System.err.println("Error estimating FPS: " + e.getMessage());
-            Label errorLabel = new Label("FPS Estimation Unavailable: " + e.getMessage());
-            errorLabel.getStyleClass().add("fps-details");
+            System.err.println("Erreur lors de l'estimation FPS: " + e.getMessage());
+            Label errorLabel = new Label("Estimation FPS non disponible");
+            errorLabel.getStyleClass().add("fps-error");
             fpsVBox.getChildren().add(errorLabel);
         }
     }
 
     private String callGeminiApi(String prompt) throws IOException {
-        JSONObject requestJson = new JSONObject();
-        JSONArray contents = new JSONArray();
-        JSONObject content = new JSONObject();
-        JSONArray parts = new JSONArray();
-        parts.put(new JSONObject().put("text", prompt));
-        content.put("parts", parts);
-        contents.put(content);
-        requestJson.put("contents", contents);
-
-        RequestBody body = RequestBody.create(requestJson.toString(), MediaType.parse("application/json"));
-        Request request = new Request.Builder()
-                .url(GEMINI_API_URL)
-                .addHeader("Content-Type", "application/json")
-                .post(body)
-                .build();
-
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IOException("Gemini API request failed: " + response.code());
+        try {
+            if (GEMINI_API_KEY == null || GEMINI_API_KEY.trim().isEmpty()) {
+                throw new IOException("Clé API Gemini non configurée");
             }
-            String responseBody = response.body().string();
-            return parseGeminiResponse(responseBody);
+
+            JSONObject requestJson = new JSONObject();
+            JSONArray contents = new JSONArray();
+            JSONObject content = new JSONObject();
+            JSONArray parts = new JSONArray();
+            parts.put(new JSONObject().put("text", prompt));
+            content.put("parts", parts);
+            contents.put(content);
+            requestJson.put("contents", contents);
+
+            RequestBody body = RequestBody.create(requestJson.toString(), MediaType.parse("application/json"));
+            Request request = new Request.Builder()
+                    .url(GEMINI_API_URL)
+                    .addHeader("Content-Type", "application/json")
+                    .post(body)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    throw new IOException("Erreur API Gemini: " + response.code() + " - " + response.message());
+                }
+                String responseBody = response.body().string();
+                return parseGeminiResponse(responseBody);
+            }
+        } catch (Exception e) {
+            System.err.println("Erreur lors de l'appel à l'API Gemini: " + e.getMessage());
+            // Retourner des valeurs par défaut en cas d'erreur
+            return "30,45,60";
         }
     }
 
@@ -343,21 +396,33 @@ public class ProductDetailsController {
 
     private void loadDefaultImage() {
         try {
+            // Essayer d'abord de charger depuis le dossier des images
             String defaultImagePath = IMAGE_DIR + "default-product.png";
-            Image defaultImage = new Image(new File(defaultImagePath).toURI().toString());
-            if (defaultImage != null && !defaultImage.isError()) {
-                productImage.setImage(defaultImage);
-            } else {
-                System.err.println("Error loading default image: " + defaultImagePath + " - Default image not found or invalid");
-                Image fallbackImage = new Image(getClass().getResourceAsStream("/assets/image/default-product.png"));
-                if (fallbackImage != null && !fallbackImage.isError()) {
-                    productImage.setImage(fallbackImage);
-                } else {
-                    System.err.println("Error loading fallback default image from resources");
+            File defaultImageFile = new File(defaultImagePath);
+            
+            if (defaultImageFile.exists()) {
+                Image defaultImage = new Image(defaultImageFile.toURI().toString());
+                if (!defaultImage.isError()) {
+                    productImage.setImage(defaultImage);
+                    return;
                 }
             }
+            
+            // Si le fichier n'existe pas ou est invalide, essayer de charger depuis les ressources
+            String resourcePath = "/assets/image/default-product.png";
+            Image fallbackImage = new Image(getClass().getResourceAsStream(resourcePath));
+            if (!fallbackImage.isError()) {
+                productImage.setImage(fallbackImage);
+                return;
+            }
+            
+            // Si tout échoue, créer une image vide
+            System.err.println("Impossible de charger l'image par défaut, création d'une image vide");
+            productImage.setImage(null);
+            
         } catch (Exception e) {
-            System.err.println("Error loading default image: " + e.getMessage());
+            System.err.println("Erreur lors du chargement de l'image par défaut: " + e.getMessage());
+            productImage.setImage(null);
         }
     }
 

@@ -5,25 +5,26 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.shape.Rectangle?>
 
-<AnchorPane fx:controller="tn.esprit.Controllers.Evenement.CategorieCardController" 
+<AnchorPane fx:controller="tn.esprit.Controllers.Evenement.CategorieCardController"
             xmlns="http://javafx.com/javafx/21"
-            xmlns:fx="http://javafx.com/fxml/1" 
+            xmlns:fx="http://javafx.com/fxml/1"
             fx:id="cardContainer"
-            stylesheets="@/assets/style/style.css" 
-            styleClass="event-card2">
-    
+            stylesheets="@/assets/style/style.css"
+            styleClass="event-card2"
+            prefWidth="250" prefHeight="200">
+
     <children>
         <VBox spacing="15" alignment="CENTER" styleClass="card-content">
             <padding>
                 <Insets top="20" right="20" bottom="20" left="20"/>
             </padding>
-            
+
             <!-- Category Information -->
-            <VBox spacing="8" alignment="CENTER">
-                <Label fx:id="nomLabel" styleClass="event-title"/>
-                <Label fx:id="desclabel" styleClass="event-info" wrapText="true"/>
+            <VBox spacing="10" alignment="CENTER">
+                <Label fx:id="nomLabel" styleClass="event-title" wrapText="true" maxWidth="210"/>
+                <Label fx:id="desclabel" styleClass="event-info" wrapText="true" maxWidth="210" maxHeight="80"/>
             </VBox>
-            
+
             <!-- Action Buttons -->
             <HBox spacing="10" fx:id="actionsHBox" styleClass="event-actions2" alignment="CENTER">
                 <Button fx:id="detailsButton" styleClass="view-button">
